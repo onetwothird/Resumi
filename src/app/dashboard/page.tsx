@@ -33,7 +33,7 @@ export default async function DashboardPage() {
             <FileText className="text-white w-5 h-5" />
           </div>
           <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-            CareerCraft
+            Resumi
           </h1>
         </div>
         <div className="flex items-center gap-4">
