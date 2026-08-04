@@ -37,7 +37,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
       <header className="h-16 bg-white border-b flex justify-between items-center px-6">
-        <h1 className="font-bold text-indigo-600">CareerCraft Editor</h1>
+        <h1 className="font-bold text-indigo-600">Resumi Editor</h1>
         <div className="flex gap-4 items-center">
           <button onClick={handleSave} className="px-4 py-2 border rounded-md text-sm font-medium">Save</button>
           <button onClick={handleExport} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium">Export PDF</button>
