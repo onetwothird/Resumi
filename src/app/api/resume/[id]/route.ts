@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+// 1. Update the signature to expect a Promise for params
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+
+    // 2. Await the params to extract the ID
+    const { id } = await params;
 
     const data = await req.json();
     
@@ -13,12 +17,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     await prisma.user.upsert({
       where: { id: userId },
       update: {},
-      create: { id: userId, email: "user@example.com" } // Replace with Clerk email if needed
+      create: { id: userId, email: "user@example.com" } 
     });
 
     // Save Resume
     const resume = await prisma.resume.upsert({
-      where: { id: params.id === "new" ? "temp-id-prevent-match" : params.id },
+      // 3. Use the extracted 'id' variable here
+      where: { id: id === "new" ? "temp-id-prevent-match" : id },
       update: { ...data },
       create: { ...data, userId, id: undefined },
     });
