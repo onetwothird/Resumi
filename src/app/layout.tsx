@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes"; // 1. Import the dark theme
+import { dark } from "@clerk/themes"; 
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,8 +17,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // 2. Add the appearance prop to ClerkProvider
-    <ClerkProvider appearance={{ theme: dark }}>
+    <ClerkProvider 
+      appearance={{ 
+        theme: dark,
+        variables: {
+          colorBackground: '#111827', 
+          colorPrimary: '#4f46e5',    
+          colorForeground: '#f9fafb', 
+        }
+      }}
+    >
       <html lang="en">
         <body className={`${inter.className} bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased`}>
           {children}
