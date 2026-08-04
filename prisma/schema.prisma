@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id // Maps to Clerk User ID
+  email     String   @unique
+  name      String?
+  resumes   Resume[]
+  createdAt DateTime @default(now())
+}
+
+model Resume {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String   @default("Untitled Resume")
+  
+  // Personal Info
+  fullName    String?
+  jobTitle    String?
+  email       String?
+  phone       String?
+  address     String?
+  summary     String?  @db.Text
+  
+  // Structured JSON fields for multi-item sections
+  experience  Json?    // Array of { company, role, startDate, endDate, description }
+  education   Json?    // Array of { school, degree, year }
+  skills      Json?    // Array of strings or categories
+
+  // ATS Optimization
+  atsScore    Int?
+  targetJob   String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
