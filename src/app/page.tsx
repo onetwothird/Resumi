@@ -74,13 +74,13 @@ const TRANSFORMATIONS = [
     tag: "Marketing",
     before: "Responsible for managing social media accounts",
     after:
-      "Grew social engagement 42% across four platforms with a data-driven content calendar",
+      "Grew social engagement by 42% across four platforms using a data-driven content calendar",
   },
   {
     tag: "Engineering",
     before: "Worked with team to fix bugs in software",
     after:
-      "Resolved 120+ pre-launch bugs and cut QA turnaround time 35% with a new triage workflow",
+      "Resolved 120+ pre-launch bugs and cut QA turnaround time by 35% with a new triage workflow",
   },
   {
     tag: "Customer Support",
@@ -114,7 +114,7 @@ const STEPS = [
 const TESTIMONIALS = [
   {
     quote:
-      "Resumi rewrote three bullet points and I started getting callbacks the same week.",
+      "Resumi rewrote three bullet points and I started getting callbacks the very same week.",
     name: "Maria S.",
     role: "Product Marketing Manager",
   },
@@ -150,7 +150,7 @@ const PLANS = [
     period: "/ month",
     features: [
       "Unlimited exports",
-      "All templates",
+      "All premium templates",
       "Advanced AI rewriting & keyword tailoring",
       "ATS score checker",
       "Priority support",
@@ -193,7 +193,7 @@ export default async function LandingPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden relative">
 
       {/* Background Decorative Blobs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-250 h-125 opacity-20 dark:opacity-10 pointer-events-none">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-240 h-120 opacity-20 dark:opacity-10 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
         <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
       </div>
@@ -238,7 +238,7 @@ export default async function LandingPage() {
 
         {/* Rating Badge */}
         <div className="flex justify-center mb-6">
-          <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm text-sm font-medium text-gray-600 dark:text-gray-300 hover:-translate-y-0.5 transition-transform cursor-default">
+          <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm text-sm font-medium text-gray-600 dark:text-gray-300 cursor-default">
             <div className="flex gap-0.5 text-amber-400">
               <Star className="w-4 h-4 fill-current" />
               <Star className="w-4 h-4 fill-current" />
@@ -300,10 +300,10 @@ export default async function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Everything your resume needs, nothing it doesn&apos;t
+              Everything you need to stand out
             </h2>
             <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-              Six tools that work together so you spend your time applying, not formatting.
+              Six tools that work together seamlessly, so you can spend your time applying instead of formatting.
             </p>
           </div>
 
@@ -329,10 +329,10 @@ export default async function LandingPage() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Watch a bullet point become an interview
+              Turn everyday experience into interview magnets
             </h2>
             <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-              Real rewrites from real resumes. Same experience, told with numbers and outcomes.
+              Real rewrites from real resumes. The exact same experience, told with numbers and clear outcomes.
             </p>
           </div>
 
@@ -386,7 +386,7 @@ export default async function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-              People who rewrote their odds
+              Success stories from real users
             </h2>
           </div>
 
