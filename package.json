@@ -3,16 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "next dev",
-  "build": "prisma generate && next build",
-  "start": "next start",
-  "lint": "eslint",
-  "postinstall": "prisma generate"
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.6.4",
     "@clerk/themes": "^2.4.57",
-    "@google/generative-ai": "^0.24.1",
+    "@google/genai": "^2.16.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "clsx": "^2.1.1",
@@ -23,18 +23,19 @@
     "prisma": "^7.9.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-to-print": "^3.3.0",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
-      "@tailwindcss/postcss": "^4",
-      "@types/node": "^20",
-      "@types/pg": "^8.20.3",
-      "@types/react": "^19",
-      "@types/react-dom": "^19",
-      "dotenv": "^17.4.2",
-      "eslint": "^9",
-      "eslint-config-next": "16.3.0",
-      "tailwindcss": "^4",
-      "typescript": "^5"
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pg": "^8.20.3",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
