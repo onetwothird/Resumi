@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { auth } from "@clerk/nextjs/server";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+// Reused across invocations (Next.js keeps the module warm between requests)
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 export async function POST(req: Request) {
   try {
@@ -10,14 +11,29 @@ export async function POST(req: Request) {
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
     const { text, jobTitle } = await req.json();
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    
-    const prompt = `Rewrite this professional summary for a ${jobTitle} to be ATS-optimized, action-oriented, and professional. Return ONLY the rewritten text, no quotes or explanations.\n\nOriginal: ${text}`;
-    
-    const result = await model.generateContent(prompt);
-    return NextResponse.json({ text: result.response.text().trim() });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+    if (!text || !text.trim()) {
+      return NextResponse.json(
+        { error: "Add a summary before rewriting it." },
+        { status: 400 }
+      );
+    }
+
+    const prompt = `Rewrite this professional summary for a ${jobTitle || "professional"} to be ATS-optimized, action-oriented, and professional. Return ONLY the rewritten text, no quotes or explanations.\n\nOriginal: ${text}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    const rewritten = response.text?.trim();
+    if (!rewritten) {
+      return NextResponse.json({ error: "AI returned an empty response" }, { status: 502 });
+    }
+
+    return NextResponse.json({ text: rewritten });
   } catch (error) {
-    return new NextResponse("AI Error", { status: 500 });
+    console.error("Rewrite Error:", error);
+    return NextResponse.json({ error: "AI Error" }, { status: 500 });
   }
 }
