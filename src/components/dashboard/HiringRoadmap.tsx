@@ -1,14 +1,14 @@
-// C:\resumi\src\components\dashboard\HiringRoadmap.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { FileText, Target, Send, MessagesSquare, Handshake, Check, Sparkles } from "lucide-react";
+import { FileText, Target, Send, MessagesSquare, Handshake, Check, Sparkles, Bot } from "lucide-react";
 
 interface RoadmapStep {
   title: string;
   blurb: string;
   icon: React.ElementType;
   tips: string[];
+  action?: { label: string, trigger: 'ai_coach' };
 }
 
 const STEPS: RoadmapStep[] = [
@@ -51,6 +51,8 @@ const STEPS: RoadmapStep[] = [
       "Prepare a 60-second \"tell me about yourself\" that maps to the role",
       "Bring 2–3 thoughtful questions for the interviewer",
     ],
+    // New action linked to our Voice AI
+    action: { label: "Practice with AI Voice Coach", trigger: 'ai_coach' }
   },
   {
     title: "Negotiate & Get Hired",
@@ -66,7 +68,7 @@ const STEPS: RoadmapStep[] = [
 
 const STORAGE_KEY = "resumi:roadmap-step";
 
-export default function HiringRoadmap({ hasResumes }: { hasResumes: boolean }) {
+export default function HiringRoadmap({ hasResumes, onStartAiInterview }: { hasResumes: boolean, onStartAiInterview?: () => void }) {
   const [current, setCurrent] = useState(0);
   const [openStep, setOpenStep] = useState<number | null>(null);
 
@@ -75,7 +77,7 @@ export default function HiringRoadmap({ hasResumes }: { hasResumes: boolean }) {
     const initial = saved !== null ? Number(saved) : hasResumes ? 1 : 0;
     
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrent(initial);
+    setCurrent(initial); 
      
     setOpenStep(initial);
   }, [hasResumes]);
@@ -86,80 +88,102 @@ export default function HiringRoadmap({ hasResumes }: { hasResumes: boolean }) {
   };
 
   return (
-    <div className="mt-10 bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-xs">
+    <div className="mt-10 bg-white border border-gray-200 rounded-2xl p-6 md:p-10 shadow-sm">
       <div className="flex items-center gap-2 mb-1">
         <Sparkles className="w-5 h-5 text-indigo-600" />
-        <h2 className="text-lg font-bold text-gray-900">Your Path to Getting Hired</h2>
+        <h2 className="text-xl font-bold text-gray-900 tracking-tight">Your Path to Getting Hired</h2>
       </div>
-      <p className="text-xs text-gray-500 mb-8">
+      <p className="text-sm text-gray-500 mb-10">
         A resume is step one. Here&rsquo;s the rest of the journey — tap a step for real tips.
       </p>
 
-      {/* Stepper */}
-      <div className="overflow-x-auto pb-2">
-        <div className="flex items-start min-w-150">
+      {/* Stepper Grid */}
+      <div className="overflow-x-auto pb-4">
+        <div className="flex w-full min-w-162.5">
           {STEPS.map((step, i) => {
             const isDone = i < current;
             const isCurrent = i === current;
+            const isOpen = openStep === i;
             const Icon = step.icon;
+            
             return (
-              <div key={step.title} className="flex-1 flex items-start">
-                <div className="flex flex-col items-center text-center flex-1">
-                  <button
-                    onClick={() => setOpenStep(openStep === i ? null : i)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all shrink-0 ${
-                      isDone
-                        ? "bg-indigo-600 border-indigo-600 text-white"
-                        : isCurrent
-                        ? "border-indigo-600 text-indigo-600 bg-indigo-50"
-                        : "border-gray-200 text-gray-400 bg-white"
-                    }`}
-                  >
-                    {isDone ? <Check className="w-5 h-5" strokeWidth={3} /> : <Icon className="w-4 h-4" />}
-                  </button>
-                  <button onClick={() => setOpenStep(openStep === i ? null : i)} className="mt-2.5 max-w-27.5">
-                    <p className={`text-xs font-semibold ${isCurrent ? "text-indigo-700" : "text-gray-800"}`}>
-                      {step.title}
-                    </p>
-                    <p className="text-[10px] uppercase tracking-wide font-medium text-gray-400 mt-0.5">
-                      {isDone ? "Done" : isCurrent ? "In progress" : "Pending"}
-                    </p>
-                  </button>
-                </div>
+              <div key={step.title} className="flex-1 relative flex flex-col items-center text-center group">
+                {/* Geometrically perfectly centered connecting line with gap */}
                 {i < STEPS.length - 1 && (
-                  <div className={`h-0.5 mt-5 flex-1 ${isDone ? "bg-indigo-600" : "bg-gray-100"}`} />
+                  <div 
+                    className={`absolute top-5 h-0.5 rounded-full transition-colors duration-500 ease-out left-[calc(50%+1.75rem)] w-[calc(100%-3.5rem)] ${isDone ? "bg-indigo-600" : "bg-gray-200"}`} 
+                  />
                 )}
+
+                {/* Circle Icon */}
+                <button
+                  onClick={() => setOpenStep(isOpen ? null : i)}
+                  className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ease-out outline-none
+                    ${isDone ? "bg-indigo-600 border-indigo-600 text-white shadow-sm hover:bg-indigo-700" : 
+                      isCurrent ? "bg-white border-indigo-600 text-indigo-600 shadow-sm ring-4 ring-indigo-50" : 
+                      "bg-white border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-500"}
+                  `}
+                >
+                  {isDone ? <Check className="w-5 h-5" strokeWidth={3} /> : <Icon className="w-4 h-4" strokeWidth={2.5} />}
+                </button>
+
+                {/* Step Labels */}
+                <button 
+                  onClick={() => setOpenStep(isOpen ? null : i)} 
+                  className="mt-4 flex flex-col items-center outline-none px-2"
+                >
+                  <p className={`text-sm font-bold transition-colors ${isOpen ? "text-indigo-700" : isCurrent ? "text-gray-900" : "text-gray-600 hover:text-gray-900"}`}>
+                    {step.title}
+                  </p>
+                  <p className={`text-[10px] uppercase tracking-widest font-bold mt-1.5 ${isDone ? "text-gray-400" : isCurrent ? "text-indigo-500" : "text-gray-300"}`}>
+                    {isDone ? "Done" : isCurrent ? "In progress" : "Pending"}
+                  </p>
+                </button>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Tips */}
+      {/* Expanded Tips Box */}
       {openStep !== null && (
-        <div className="mt-6 bg-gray-50 border border-gray-200/60 rounded-xl p-5">
-          <div className="flex items-center justify-between gap-4 flex-wrap mb-2">
+        <div className="mt-8 bg-gray-50/50 border border-gray-200 rounded-xl p-6 md:p-8 transition-all animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
             <div>
-              <h3 className="font-bold text-gray-900 text-sm">{STEPS[openStep].title}</h3>
-              <p className="text-xs text-gray-500 mt-0.5">{STEPS[openStep].blurb}</p>
+              <h3 className="text-lg font-bold text-gray-900">{STEPS[openStep].title}</h3>
+              <p className="text-sm text-gray-500 mt-1">{STEPS[openStep].blurb}</p>
             </div>
+            
             {openStep !== current && (
               <button
                 onClick={() => markCurrent(openStep)}
-                className="text-xs font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
+                className="shrink-0 text-sm font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 px-5 py-2 rounded-lg hover:bg-indigo-100 transition-colors shadow-sm"
               >
                 I&rsquo;m here now
               </button>
             )}
           </div>
-          <ul className="space-y-2 mt-3">
+          
+          <ul className="space-y-3.5 mb-2">
             {STEPS[openStep].tips.map((tip, i) => (
-              <li key={i} className="text-xs text-gray-700 flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+              <li key={i} className="text-sm text-gray-700 flex items-start gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0" />
                 <span className="leading-relaxed">{tip}</span>
               </li>
             ))}
           </ul>
+          
+          {/* AI Interactive Button inside Roadmap */}
+          {STEPS[openStep].action && (
+            <div className="mt-6 pt-6 border-t border-gray-200/60">
+              <button 
+                onClick={onStartAiInterview}
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-sm transition-all hover:shadow"
+              >
+                <Bot size={18} /> {STEPS[openStep].action.label}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
