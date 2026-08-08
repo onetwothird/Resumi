@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes"; 
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Resumi- AI Resume Builder",
-  description: "Build ATS-friendly resumes in minutes using AI.",
+  title: "Resumi - Smart Resume Builder",
+  description: "Build ATS-optimized, professional resumes easily.",
 };
 
 export default function RootLayout({
@@ -19,16 +18,15 @@ export default function RootLayout({
   return (
     <ClerkProvider 
       appearance={{ 
-        theme: dark,
         variables: {
-          colorBackground: '#111827', 
+          colorBackground: '#ffffff', 
           colorPrimary: '#4f46e5',    
-          colorForeground: '#f9fafb', 
+          colorForeground: '#0f172a', 
         }
       }}
     >
       <html lang="en">
-        <body className={`${inter.className} bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased`}>
+        <body className={`${inter.className} bg-[#F7F9FC] text-slate-900 antialiased`}>
           {children}
         </body>
       </html>
