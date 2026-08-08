@@ -67,7 +67,6 @@ export default function ResumeCard({
         isBusy ? "opacity-60 pointer-events-none" : ""
       }`}
     >
-      {/* Dropdown Menu */}
       <div className="absolute top-4 right-4 z-10" ref={menuRef}>
         <button
           onClick={(e) => {
