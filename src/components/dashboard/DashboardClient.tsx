@@ -1,14 +1,15 @@
+// C:\resumi\src\components\dashboard\DashboardClient.tsx
 "use client";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Plus, Search, FileX2, FilePlus2 } from "lucide-react";
-import { ResumeListItem } from "../../types/dashboard";
-import { formatRelativeDate } from "../../lib/format";
+import { ResumeListItem } from "@/types/dashboard";
+import { formatRelativeDate } from "@/lib/format";
 import ResumeCard from "@/components/dashboard/ResumeCard";
 import HiringRoadmap from "@/components/dashboard/HiringRoadmap";
-import ConfirmModal from "../../components/ui/ConfirmModal";
-import { ToastStack, ToastItem } from "../../components/ui/Toast";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import { ToastStack, ToastItem } from "@/components/ui/Toast";
 
 type SortOption = "updated" | "created" | "name";
 
@@ -22,18 +23,13 @@ interface DashboardClientProps {
   initialResumes: ResumeListItem[];
 }
 
-export default function DashboardClient({
-  initialResumes,
-}: DashboardClientProps) {
+export default function DashboardClient({ initialResumes }: DashboardClientProps) {
   const [resumes, setResumes] = useState<ResumeListItem[]>(initialResumes);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("updated");
   const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
   const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    id: string;
-    title: string;
-  } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const pushToast = (message: string, variant: "success" | "error") => {
@@ -62,8 +58,7 @@ export default function DashboardClient({
       list = list.filter((r) => {
         const title = r.title && r.title !== "My Resume" ? r.title : "";
         return (
-          title.toLowerCase().includes(q) ||
-          (r.jobTitle || "").toLowerCase().includes(q)
+          title.toLowerCase().includes(q) || (r.jobTitle || "").toLowerCase().includes(q)
         );
       });
     }
@@ -75,9 +70,7 @@ export default function DashboardClient({
         return an.localeCompare(bn);
       }
       if (sortBy === "created") {
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
@@ -92,9 +85,7 @@ export default function DashboardClient({
 
   const handleRename = async (id: string, title: string) => {
     const previous = resumes;
-    setResumes((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, title } : r))
-    );
+    setResumes((prev) => prev.map((r) => (r.id === id ? { ...r, title } : r)));
     setBusy(id, true);
     try {
       const res = await fetch(`/api/resume/${id}`, {
@@ -115,9 +106,7 @@ export default function DashboardClient({
   const handleDuplicate = async (id: string) => {
     setBusy(id, true);
     try {
-      const res = await fetch(`/api/resume/${id}/duplicate`, {
-        method: "POST",
-      });
+      const res = await fetch(`/api/resume/${id}/duplicate`, { method: "POST" });
       if (!res.ok) throw new Error("Duplicate failed");
       const copy: ResumeListItem = await res.json();
       setResumes((prev) => [copy, ...prev]);
@@ -157,21 +146,18 @@ export default function DashboardClient({
 
   return (
     <>
-      {/* Header row: title + stats */}
+      {/* Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-1">
             My Resumes
-          </h2>
-          <p className="text-gray-500">
+          </h1>
+          <p className="text-sm text-gray-500">
             {hasResumes ? (
               <>
                 {resumes.length} resume{resumes.length === 1 ? "" : "s"}
                 {mostRecentEdit && (
-                  <>
-                    {" "}
-                    · last edited {formatRelativeDate(mostRecentEdit.updatedAt)}
-                  </>
+                  <> · last edited {formatRelativeDate(mostRecentEdit.updatedAt)}</>
                 )}
               </>
             ) : (
@@ -191,13 +177,13 @@ export default function DashboardClient({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search resumes"
-                className="pl-9 pr-3 py-2 w-56 text-sm rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-shadow"
+                className="pl-9 pr-3 py-2 w-56 text-sm rounded-xl border border-gray-200 bg-white text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
               />
             </div>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="text-sm rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-shadow"
+              className="text-sm rounded-xl border border-gray-200 bg-white text-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -209,65 +195,58 @@ export default function DashboardClient({
         )}
       </div>
 
-      {/* True empty state: no resumes at all */}
+      {/* Empty State Redesign */}
       {!hasResumes && (
-        <div className="flex flex-col items-center justify-center text-center py-24 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
-          <div className="w-16 h-16 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-5">
-            <FilePlus2 size={28} />
+        <div className="bg-white flex flex-col items-center justify-center text-center py-20 px-6 border-2 border-dashed border-gray-200 rounded-2xl shadow-xs">
+          <div className="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4">
+            <FilePlus2 size={26} />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
             Start your first resume
-          </h3>
-          <p className="text-gray-500 max-w-sm mb-6">
-            Build a tailored, ATS-friendly resume in minutes and export it as
-            a polished PDF.
+          </h2>
+          <p className="text-sm text-gray-500 max-w-sm mb-6 leading-relaxed">
+            Build a tailored, ATS-friendly resume in minutes and export it as a polished PDF.
           </p>
           <Link
             href="/resume/new"
-            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md"
           >
             <Plus size={18} /> Create resume
           </Link>
         </div>
       )}
 
-      {/* Search yielded nothing */}
+      {/* Search No Results */}
       {hasResumes && !hasResults && (
-        <div className="flex flex-col items-center justify-center text-center py-24">
-          <div className="w-14 h-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-4">
-            <FileX2 size={24} />
+        <div className="bg-white flex flex-col items-center justify-center text-center py-20 rounded-2xl border border-gray-200 shadow-xs">
+          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-3">
+            <FileX2 size={22} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+          <h3 className="text-base font-semibold text-gray-900 mb-1">
             No resumes match &ldquo;{query}&rdquo;
           </h3>
-          <p className="text-gray-500 mb-4">
-            Try a different search term.
-          </p>
+          <p className="text-sm text-gray-500 mb-4">Try a different search term.</p>
           <button
             onClick={() => setQuery("")}
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
           >
             Clear search
           </button>
         </div>
       )}
 
-      {/* Grid */}
+      {/* Grid View */}
       {hasResumes && hasResults && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <Link
             href="/resume/new"
-            className="group flex flex-col items-center justify-center h-80 bg-indigo-50/50 dark:bg-indigo-950/20 border-2 border-dashed border-indigo-300 dark:border-indigo-800 rounded-2xl hover:bg-indigo-50 dark:hover:bg-indigo-900/40 hover:border-indigo-500 transition-all duration-300 cursor-pointer"
+            className="group flex flex-col items-center justify-center h-80 bg-white border-2 border-dashed border-indigo-200 rounded-2xl hover:bg-indigo-50/40 hover:border-indigo-500 transition-all duration-200 cursor-pointer shadow-xs"
           >
-            <div className="w-14 h-14 rounded-full bg-indigo-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-indigo-200 transition-all duration-300">
-              <Plus size={28} strokeWidth={2.5} />
+            <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white mb-3 group-hover:scale-105 transition-transform">
+              <Plus size={24} strokeWidth={2.5} />
             </div>
-            <p className="font-semibold text-indigo-700 dark:text-indigo-400 text-lg">
-              Create New Resume
-            </p>
-            <p className="text-sm text-indigo-400 dark:text-indigo-600 mt-1">
-              Start from scratch
-            </p>
+            <p className="font-bold text-indigo-700 text-base">Create New Resume</p>
+            <p className="text-xs text-indigo-400 mt-0.5">Start from scratch</p>
           </Link>
 
           {filteredAndSorted.map((resume) => (
@@ -283,6 +262,7 @@ export default function DashboardClient({
         </div>
       )}
 
+      {/* Hiring Roadmap Component */}
       <HiringRoadmap hasResumes={hasResumes} />
 
       <ConfirmModal
