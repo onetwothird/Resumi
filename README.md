@@ -48,17 +48,16 @@ Make sure you have Node.js installed on your machine. You will also need a Postg
    npm run dev
 6. Open http://localhost:3000 with your browser to see the application.
 
-📁 Project Structure
-/src/app: Next.js App Router pages and API routes.
+## 📁 Project Structure
 
-/src/components/resume: Core builder components including the CanvasEditor, BuilderSidebar, and PropertiesSidebar.
+*   `/src/app`: Next.js App Router pages and API routes.
+*   `/src/components/resume`: Core builder components including the `CanvasEditor`, `BuilderSidebar`, and `PropertiesSidebar`.
+*   `/src/types`: Shared TypeScript interfaces for strict typing across the application.
+*   `/src/lib`: Utility functions, formatting tools, and the Prisma client instance.
 
-/src/types: Shared TypeScript interfaces for strict typing across the application.
+## ☁️ Deployment
 
-/src/lib: Utility functions, formatting tools, and the Prisma client instance.
+The easiest way to deploy this Next.js app is to use the [Vercel Platform](https://vercel.com/new).
 
-☁️ Deployment
-The easiest way to deploy this Next.js app is to use the Vercel Platform.
-
-Check out the Next.js deployment documentation for more details. Ensure you configure your build settings and environment variables (like DATABASE_URL) in your hosting provider's dashboard.
+Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details. Ensure you configure your build settings and environment variables (like `DATABASE_URL`) in your hosting provider's dashboard.
 
