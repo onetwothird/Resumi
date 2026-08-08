@@ -1,7 +1,21 @@
-// Shared types for the frontend state
+// src/types/index.ts
 
 export type ResumeLayout = "classic" | "modern" | "minimal";
 export type ResumeFontSize = "sm" | "md" | "lg";
+// Added keys for the new section headers and list items
+export type ResumeBlockKey = "name" | "jobTitle" | "contact" | "summaryBody" | "sectionHeading" | "itemTitle" | "itemSubtitle" | "itemMeta" | "itemBody";
+
+export interface TextBlockStyle {
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strike?: boolean;
+  align?: "left" | "center" | "right" | "justify";
+  fontFamily?: string;
+  fontSize?: number;
+  lineHeight?: string;
+  letterSpacing?: number;
+}
 
 export interface ResumeTheme {
   primaryColor: string;
@@ -11,27 +25,17 @@ export interface ResumeTheme {
 }
 
 export const DEFAULT_THEME: ResumeTheme = {
-  primaryColor: "#4f46e5", // indigo-600, matches the app's existing accent
+  primaryColor: "#4f46e5", 
   fontFamily: "inter",
   layout: "classic",
   fontSize: "md",
 };
 
-// Curated preset accent colors shown as swatches in the Design panel
 export const THEME_COLOR_PRESETS: string[] = [
-  "#4f46e5", // indigo
-  "#2563eb", // blue
-  "#0891b2", // cyan
-  "#059669", // emerald
-  "#65a30d", // lime
-  "#d97706", // amber
-  "#dc2626", // red
-  "#db2777", // pink
-  "#7c3aed", // violet
-  "#334155", // slate
+  "#4f46e5", "#2563eb", "#0891b2", "#059669", "#65a30d", 
+  "#d97706", "#dc2626", "#db2777", "#7c3aed", "#334155",
 ];
 
-// Web-safe font stacks — no extra font loading required, so these always render
 export const THEME_FONT_OPTIONS: { value: string; label: string; stack: string }[] = [
   { value: "inter", label: "Inter (Sans)", stack: "'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif" },
   { value: "arial", label: "Arial (Sans)", stack: "Arial, Helvetica, ui-sans-serif, sans-serif" },
@@ -42,10 +46,22 @@ export const THEME_FONT_OPTIONS: { value: string; label: string; stack: string }
 ];
 
 export function getFontStack(value: string): string {
-  return (
-    THEME_FONT_OPTIONS.find((f) => f.value === value)?.stack ??
-    THEME_FONT_OPTIONS[0].stack
-  );
+  return THEME_FONT_OPTIONS.find((f) => f.value === value)?.stack ?? THEME_FONT_OPTIONS[0].stack;
+}
+
+export interface ExperienceItem {
+  id: string;
+  company: string;
+  role: string;
+  date: string;
+  description: string;
+}
+
+export interface EducationItem {
+  id: string;
+  school: string;
+  degree: string;
+  date: string;
 }
 
 export interface ResumeData {
@@ -57,5 +73,10 @@ export interface ResumeData {
   phone: string;
   address: string;
   summary: string;
+  experience?: ExperienceItem[];
+  education?: EducationItem[];
+  skills?: string;
+  certifications?: string;
   theme?: ResumeTheme;
+  blockStyles?: Partial<Record<ResumeBlockKey, TextBlockStyle>>;
 }
