@@ -31,14 +31,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] text-gray-900">
-      {/* Global Talently Navigation Header */}
+      {/* Global Resumi Navigation Header */}
       <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-20 shadow-xs">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2 font-bold text-indigo-600 text-lg">
             <span className="bg-indigo-600 text-white rounded-md p-1 leading-none text-sm">
               T
             </span>{" "}
-            Talently
+            Resumi
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
             <Link href="/dashboard" className="text-gray-900 font-semibold">
