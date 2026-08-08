@@ -4,7 +4,6 @@ import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import {
   ArrowRight,
-  FileText,
   CheckCircle,
   Wand2,
   Layout,
@@ -12,8 +11,8 @@ import {
   Target,
   Check,
 } from "lucide-react";
+import ResumiLogo from "@/components/logo/ResumiLogo";
 
-// --- Data Constants ---
 const FEATURES = [
   {
     icon: CheckCircle,
@@ -147,10 +146,10 @@ export default function LandingClient() {
       {/* Top Navigation - Instant Load */}
       <nav className="relative z-50 border-b border-slate-200/80 backdrop-blur-xl bg-white/80 top-0">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 font-bold text-lg text-indigo-600 tracking-tight cursor-pointer">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
-              <FileText className="text-white w-4 h-4" />
-            </div>
+          
+          {/* Replaced generic icon with the custom SVG Logo */}
+          <div className="flex items-center gap-2 font-bold text-xl text-indigo-600 tracking-tight cursor-pointer">
+            <ResumiLogo className="w-8 h-8" />
             Resumi
           </div>
 
@@ -359,12 +358,13 @@ export default function LandingClient() {
       {/* Footer */}
       <footer className="relative z-10 bg-white py-12 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          
+          {/* Replaced generic icon with the custom SVG Logo */}
           <div className="flex items-center gap-2 font-bold text-slate-900">
-            <div className="w-6 h-6 bg-indigo-600 rounded flex items-center justify-center">
-              <FileText className="text-white w-3 h-3" />
-            </div>
+            <ResumiLogo className="w-6 h-6" />
             Resumi © {new Date().getFullYear()}
           </div>
+          
           <div className="flex items-center gap-6 text-sm text-slate-500 font-medium">
             <a href="#features" className="hover:text-indigo-600 transition-colors">Features</a>
             <a href="#pricing" className="hover:text-indigo-600 transition-colors">Pricing</a>
