@@ -10,6 +10,7 @@ import { ResumeData, DEFAULT_THEME } from "@/types";
 import BuilderSidebar from "../../../components/resume/BuilderSidebar";
 import CanvasEditor from "../../../components/resume/CanvasEditor";
 import PropertiesSidebar from "@/components/resume/PropertiesSidebar";
+import ResumiLogo from "@/components/logo/ResumiLogo"; // Added the logo import
 
 const emptyResume = (): ResumeData => ({
   firstName: "",
@@ -119,15 +120,19 @@ export default function EditorPage() {
       {/* 1. Global Navigation Bar */}
       <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 z-20">
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-2 font-bold text-indigo-600 text-lg cursor-pointer" onClick={() => router.push('/dashboard')}>
-            <span className="bg-indigo-600 text-white rounded-md p-1 leading-none text-sm">R</span> Resumi
+          
+          {/* Replaced placeholder with the custom SVG Logo */}
+          <div className="flex items-center gap-2 font-bold text-indigo-600 text-xl cursor-pointer" onClick={() => router.push('/dashboard')}>
+            <ResumiLogo className="w-8 h-8" />
+            Resumi
           </div>
+          
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <a href="#" className="hover:text-gray-900 transition-colors">Home</a>
-            <a href="#" className="hover:text-gray-900 transition-colors">Jobs</a>
-            <a href="#" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Companies <ChevronDown size={14}/></a>
-            <a href="#" className="flex items-center gap-1 text-gray-900 font-semibold transition-colors">AI Tools <ChevronDown size={14}/></a>
-            <a href="#" className="hover:text-gray-900 transition-colors">For Employers</a>
+            <a href="#" className="hover:text-gray-900 transition-colors" onClick={() => router.push('/dashboard')}>Home</a>
+            <a href="#" className="hover:text-gray-900 transition-colors" onClick={() => router.push('/jobs')}>Jobs</a>
+            <a href="#" className="flex items-center gap-1 hover:text-gray-900 transition-colors" onClick={() => router.push('/companies')}>Companies <ChevronDown size={14}/></a>
+            <a href="#" className="flex items-center gap-1 text-gray-900 font-semibold transition-colors" onClick={() => router.push('/ai-tools')}>AI Tools <ChevronDown size={14}/></a>
+            <a href="#" className="hover:text-gray-900 transition-colors" onClick={() => router.push('/for-employers')}>For Employers</a>
           </nav>
         </div>
         <div className="flex items-center gap-4">
