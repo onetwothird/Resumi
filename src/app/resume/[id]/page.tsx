@@ -128,11 +128,11 @@ export default function EditorPage() {
           </div>
           
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <a href="#" className="hover:text-gray-900 transition-colors" onClick={() => router.push('/dashboard')}>Home</a>
-            <a href="#" className="hover:text-gray-900 transition-colors" onClick={() => router.push('/jobs')}>Jobs</a>
-            <a href="#" className="flex items-center gap-1 hover:text-gray-900 transition-colors" onClick={() => router.push('/companies')}>Companies <ChevronDown size={14}/></a>
-            <a href="#" className="flex items-center gap-1 text-gray-900 font-semibold transition-colors" onClick={() => router.push('/ai-tools')}>AI Tools <ChevronDown size={14}/></a>
-            <a href="#" className="hover:text-gray-900 transition-colors" onClick={() => router.push('/for-employers')}>For Employers</a>
+            <a href="/dashboard" className="hover:text-gray-900 transition-colors">Home</a>
+            <a href="/jobs" className="hover:text-gray-900 transition-colors">Jobs</a>
+            <a href="/companies" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Companies <ChevronDown size={14}/></a>
+            <a href="/ai-tools" className="flex items-center gap-1 text-gray-900 font-semibold transition-colors">AI Tools <ChevronDown size={14}/></a>
+            <a href="/for-employers" className="hover:text-gray-900 transition-colors">For Employers</a>
           </nav>
         </div>
         <div className="flex items-center gap-4">
