@@ -1,3 +1,4 @@
+// src/app/resume/[id]/page.tsx
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -27,6 +28,7 @@ export default function EditorPage() {
   const params = useParams<{ id: string }>();
   const resumeId = params.id as string;
   const router = useRouter();
+  // Deep-linked from the hiring roadmap's "Run ATS Scan" action
 
   const [data, setData] = useState<ResumeData>(emptyResume());
   const [isLoading, setIsLoading] = useState(resumeId !== "new");
@@ -117,11 +119,9 @@ export default function EditorPage() {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#F7F9FC]">
       
-      {/* 1. Global Navigation Bar */}
       <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 z-20">
         <div className="flex items-center gap-8">
           
-          {/* Replaced placeholder with the custom SVG Logo */}
           <div className="flex items-center gap-2 font-bold text-indigo-600 text-xl cursor-pointer" onClick={() => router.push('/dashboard')}>
             <ResumiLogo className="w-8 h-8" />
             Resumi
@@ -146,7 +146,6 @@ export default function EditorPage() {
         </div>
       </header>
 
-      {/* 2. Document Sub-Navigation */}
       <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0 z-10 shadow-sm">
         <div className="flex items-center gap-4 text-gray-500">
           <div className="flex gap-1 border-r border-gray-200 pr-4">
@@ -179,19 +178,15 @@ export default function EditorPage() {
         </div>
       </div>
 
-      {/* 3. Main 3-Column Workspace */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Column: Content Builder */}
         <aside className="w-85 bg-white border-r border-gray-200 overflow-y-auto flex flex-col shrink-0">
           <BuilderSidebar data={data} onChange={setData} />
         </aside>
 
-        {/* Center Column: Interactive Canvas */}
         <main className="flex-1 overflow-y-auto bg-gray-100/50 flex flex-col items-center py-8 px-4 relative">
           <CanvasEditor ref={printRef} data={data} onChange={setData} />
         </main>
 
-        {/* Right Column: Design Properties & AI */}
         <aside className="w-75 bg-white border-l border-gray-200 overflow-y-auto p-5 flex flex-col gap-6 shrink-0">
           <PropertiesSidebar data={data} onChange={setData} pushToast={pushToast} />
         </aside>
