@@ -2,12 +2,31 @@
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Plus, Search, FileX2, FilePlus2, Bell, Mail, Mic, Bot, X, PlaySquare, Square } from "lucide-react";
+import {
+  Plus, Search, FileX2, FilePlus2, Bell, Mail, Mic, Bot, X, PlaySquare, Square,
+  Video, VideoOff, Loader2, RotateCcw, TrendingUp, ThumbsUp, Target,
+} from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { ResumeListItem } from "@/types/dashboard";
 import { formatRelativeDate } from "@/lib/format";
 import ResumeCard from "@/components/dashboard/ResumeCard";
-import HiringRoadmap from "@/components/dashboard/HiringRoadmap";
+import PdfUploader from "@/components/dashboard/PdfUploader"; // Added import
+
+// Fallback inline HiringRoadmap component.
+const HiringRoadmap = ({ hasResumes, onStartAiInterview }: { hasResumes: boolean; onStartAiInterview: () => void }) => {
+  if (!hasResumes) return null;
+  return (
+    <div className="mt-8">
+      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+        <h3 className="text-sm font-bold text-gray-900">Hiring roadmap</h3>
+        <p className="text-xs text-gray-500 mt-1">Get started with the AI coach to prepare for interviews.</p>
+        <div className="mt-3">
+          <button onClick={onStartAiInterview} className="text-sm font-semibold text-indigo-600">Start AI Coach</button>
+        </div>
+      </div>
+    </div>
+  );
+};
 import JobBoard from "@/components/dashboard/JobBoard";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
@@ -22,13 +41,15 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "name", label: "Name A–Z" },
 ];
 
-const AI_QUESTIONS = [
-  "Hi there! Let's practice. Can you tell me a little bit about yourself?",
-  "What would you say is your greatest professional strength?",
-  "Describe a time you had to overcome a difficult challenge at work.",
-  "Where do you see your career heading in the next five years?",
-  "Great job. Do you have any questions for me?"
-];
+// Stages of the AI Interview Coach modal
+type InterviewStage = "setup" | "preparing" | "live" | "reviewing" | "complete";
+
+interface InterviewFeedback {
+  score: number;
+  strengths: string[];
+  improvements: string[];
+  summary: string;
+}
 
 interface DashboardClientProps {
   initialResumes: ResumeListItem[];
@@ -44,15 +65,31 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // --- AI Voice Interview State ---
+  // --- AI Interview Coach State ---
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [interviewStage, setInterviewStage] = useState<InterviewStage>("setup");
+  const [selectedResumeId, setSelectedResumeId] = useState<string>("");
+  const [targetJobTitle, setTargetJobTitle] = useState("");
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState<InterviewFeedback | null>(null);
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [uploadedResumeData, setUploadedResumeData] = useState<any>(null);
+
   const [isInterviewActive, setIsInterviewActive] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
-  
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraOn, setCameraOn] = useState(true);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const speechSupported =
+    typeof window !== "undefined" && (("SpeechRecognition" in window) || ("webkitSpeechRecognition" in window));
 
   const pushToast = (message: string, variant: "success" | "error" | "info") => {
     const id = Date.now() + Math.random();
@@ -66,6 +103,125 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
   const startAiInterview = () => {
     setIsAiModalOpen(true);
+    setInterviewStage("setup");
+    setSelectedResumeId(mostRecentEdit?.id ?? "");
+    setTargetJobTitle(mostRecentEdit?.jobTitle ?? "");
+    setUploadedResumeData(null); 
+    setQuestions([]);
+    setAnswers([]);
+    setFeedback(null);
+    setQuestionIndex(0);
+    setTranscript("");
+    setIsInterviewActive(false);
+    setCameraError(null);
+    setCameraOn(true);
+  };
+
+  const closeAiInterview = () => {
+    window.speechSynthesis?.cancel();
+    if (recognitionRef.current) recognitionRef.current.stop();
+    stopCamera();
+    setIsInterviewActive(false);
+    setIsAiModalOpen(false);
+  };
+
+  const startCamera = async () => {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Camera isn't supported in this browser — continuing with audio only.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      streamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+      setCameraError(null);
+    } catch {
+      setCameraError("Camera access was blocked — continuing with audio only.");
+    }
+  };
+
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+  };
+
+  const beginInterview = async () => {
+    if (!selectedResumeId && !uploadedResumeData) {
+      pushToast("Choose a resume to prep with first.", "error");
+      return;
+    }
+    if (!targetJobTitle.trim()) {
+      pushToast("Enter the job title you're targeting.", "error");
+      return;
+    }
+    setInterviewStage("preparing");
+    try {
+      let resumeData;
+      
+      // Use the uploaded data if it exists, otherwise fetch the saved resume
+      if (uploadedResumeData) {
+        resumeData = uploadedResumeData;
+      } else {
+        const resumeRes = await fetch(`/api/resume/${selectedResumeId}`);
+        if (!resumeRes.ok) throw new Error("Failed to load resume");
+        resumeData = await resumeRes.json();
+      }
+
+      const qRes = await fetch("/api/ai/interview-questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetJobTitle,
+          summary: resumeData.summary,
+          skills: resumeData.skills,
+          experience: resumeData.experience,
+        }),
+      });
+      if (!qRes.ok) throw new Error("Failed to generate questions");
+      const { questions: qs } = await qRes.json();
+      if (!Array.isArray(qs) || qs.length === 0) throw new Error("No questions returned");
+
+      setQuestions(qs);
+      setAnswers(new Array(qs.length).fill(""));
+      setQuestionIndex(0);
+      setTranscript("");
+      setInterviewStage("live");
+      if (cameraOn) startCamera();
+    } catch {
+      pushToast("Couldn't prepare your mock interview. Try again.", "error");
+      setInterviewStage("setup");
+    }
+  };
+
+  const finishInterview = async (finalAnswers: string[], finalQuestions: string[]) => {
+    stopCamera();
+    setInterviewStage("reviewing");
+    try {
+      const res = await fetch("/api/ai/interview-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetJobTitle,
+          qa: finalQuestions.map((q, i) => ({ question: q, answer: finalAnswers[i] || "" })),
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to get feedback");
+      const result = await res.json();
+      setFeedback(result);
+    } catch {
+      pushToast("Couldn't generate feedback this time, but great job practicing!", "info");
+      setFeedback(null);
+    } finally {
+      setInterviewStage("complete");
+    }
+  };
+
+  const restartInterview = () => {
+    setInterviewStage("setup");
+    setQuestions([]);
+    setAnswers([]);
+    setFeedback(null);
     setQuestionIndex(0);
     setTranscript("");
     setIsInterviewActive(false);
@@ -109,15 +265,29 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
   const handleNextQuestion = () => {
     if (recognitionRef.current) recognitionRef.current.stop();
+    const updatedAnswers = [...answers];
+    updatedAnswers[questionIndex] = transcript.trim();
+    setAnswers(updatedAnswers);
     setTranscript("");
+
     const nextIdx = questionIndex + 1;
-    if (nextIdx < AI_QUESTIONS.length) {
+    if (nextIdx < questions.length) {
       setQuestionIndex(nextIdx);
-      speakAndListen(AI_QUESTIONS[nextIdx]);
+      if (isInterviewActive) speakAndListen(questions[nextIdx]);
     } else {
+      window.speechSynthesis?.cancel();
       setIsInterviewActive(false);
-      pushToast("Interview practice completed!", "success");
+      finishInterview(updatedAnswers, questions);
     }
+  };
+
+  const finishEarly = () => {
+    if (recognitionRef.current) recognitionRef.current.stop();
+    window.speechSynthesis?.cancel();
+    setIsInterviewActive(false);
+    const updatedAnswers = [...answers];
+    updatedAnswers[questionIndex] = transcript.trim();
+    finishInterview(updatedAnswers, questions);
   };
 
   const toggleInterview = () => {
@@ -127,7 +297,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
       setIsInterviewActive(false);
     } else {
       setIsInterviewActive(true);
-      speakAndListen(AI_QUESTIONS[questionIndex]);
+      speakAndListen(questions[questionIndex]);
     }
   };
 
@@ -135,6 +305,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     return () => {
       if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
       if (recognitionRef.current) recognitionRef.current.stop();
+      streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
 
@@ -167,6 +338,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     });
   }, [resumes, query, sortBy]);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const mostRecentEdit = useMemo(() => {
     if (resumes.length === 0) return null;
     return resumes.reduce((latest, r) => new Date(r.updatedAt) > new Date(latest.updatedAt) ? r : latest);
@@ -318,17 +490,31 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               </div>
 
               {!hasResumes && (
-                <div className="bg-white flex flex-col items-center justify-center text-center py-20 px-6 border-2 border-dashed border-gray-200 rounded-2xl shadow-xs">
-                  <div className="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4">
-                    <FilePlus2 size={26} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-white flex flex-col items-center justify-center text-center py-14 px-6 border border-gray-200 rounded-2xl shadow-xs h-full">
+                    <div className="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4">
+                      <FilePlus2 size={26} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Start your first resume</h2>
+                    <p className="text-sm text-gray-500 max-w-sm mb-6 leading-relaxed">
+                      Build a tailored, ATS-friendly resume in minutes and export it as a polished PDF.
+                    </p>
+                    <Link href="/resume/new" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all shadow-sm">
+                      <Plus size={18} /> Create resume
+                    </Link>
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Start your first resume</h2>
-                  <p className="text-sm text-gray-500 max-w-sm mb-6 leading-relaxed">
-                    Build a tailored, ATS-friendly resume in minutes and export it as a polished PDF.
-                  </p>
-                  <Link href="/resume/new" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md">
-                    <Plus size={18} /> Create resume
-                  </Link>
+
+                  <div className="h-full">
+                    <PdfUploader 
+                      pushToast={pushToast} 
+                      onScanComplete={(parsedData) => {
+                        setUploadedResumeData(parsedData);
+                        setTargetJobTitle(parsedData.jobTitle || "");
+                        setIsAiModalOpen(true);
+                        setInterviewStage("setup");
+                      }} 
+                    />
+                  </div>
                 </div>
               )}
 
@@ -362,17 +548,13 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
         )}
       </main>
 
-      {/* --- Advanced AI Voice Interview Modal (Redesigned) --- */}
       {isAiModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all">
-          
-          {/* Main Modal Container */}
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-110 overflow-hidden animate-in zoom-in-95 duration-200">
-            
-            {/* Header: Smooth Gradient matching the mockup */}
-            <div className="bg-linear-to-r from-[#6366F1] to-[#8B5CF6] px-6 py-5 text-white relative flex items-center gap-4">
-              <button 
-                onClick={() => { setIsAiModalOpen(false); window.speechSynthesis.cancel(); if (recognitionRef.current) recognitionRef.current.stop(); }} 
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-125 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+
+            <div className="bg-linear-to-r from-[#6366F1] to-[#8B5CF6] px-6 py-5 text-white relative flex items-center gap-4 shrink-0">
+              <button
+                onClick={closeAiInterview}
                 className="absolute top-5 right-5 w-7 h-7 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
               >
                 <X size={14} strokeWidth={2.5} />
@@ -382,55 +564,214 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               </div>
               <div>
                 <h2 className="text-[17px] font-bold leading-tight tracking-tight">AI Interview Coach</h2>
-                <p className="text-[13px] font-medium text-white/80 mt-0.5">Question {questionIndex + 1} of {AI_QUESTIONS.length}</p>
+                <p className="text-[13px] font-medium text-white/80 mt-0.5">
+                  {interviewStage === "setup" && "Set up your mock interview"}
+                  {interviewStage === "preparing" && "Preparing tailored questions..."}
+                  {interviewStage === "live" && `Question ${questionIndex + 1} of ${questions.length}`}
+                  {interviewStage === "reviewing" && "Reviewing your answers..."}
+                  {interviewStage === "complete" && "Session complete"}
+                </p>
               </div>
             </div>
-            
-            {/* Body */}
-            <div className="p-7 flex flex-col items-center">
-              
-              {/* Question Bubble - Left aligned with smart shadow */}
-              <div className="bg-white rounded-2xl p-5 w-full mb-8 border border-gray-200 shadow-sm">
-                <p className="text-gray-800 font-medium text-[15px] leading-relaxed">
-                  &ldquo;{AI_QUESTIONS[questionIndex]}&rdquo;
-                </p>
-              </div>
 
-              {/* Central Mic Button - Perfect circle, lighter background */}
-              <div className="relative flex items-center justify-center w-20 h-20 mb-8">
-                {isListening && <span className="absolute inset-0 rounded-full bg-violet-400 animate-ping opacity-20"></span>}
-                <button 
-                  onClick={toggleInterview}
-                  className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 outline-none ${isListening ? 'bg-violet-50 scale-105 shadow-md' : 'bg-gray-50 hover:bg-gray-100'}`}
-                >
-                  <Mic size={28} strokeWidth={1.5} className={isListening ? "text-violet-600 animate-pulse" : "text-gray-400"} />
-                </button>
-              </div>
+            <div className="p-7 flex flex-col items-center overflow-y-auto">
+              {interviewStage === "setup" && (
+                <div className="w-full space-y-5">
+                  {!hasResumes && !uploadedResumeData ? (
+                    <div className="text-center py-6">
+                      <p className="text-sm text-gray-600 mb-4">You&rsquo;ll need a resume before practicing — the AI reads it to ask relevant questions.</p>
+                      <Link href="/resume/new" onClick={closeAiInterview} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl">
+                        <Plus size={16} /> Create a resume
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
+                      {!uploadedResumeData && (
+                        <div>
+                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">Which resume are we prepping with?</label>
+                          <select
+                            value={selectedResumeId}
+                            onChange={(e) => {
+                              const id = e.target.value;
+                              setSelectedResumeId(id);
+                              const r = resumes.find((x) => x.id === id);
+                              setTargetJobTitle(r?.jobTitle || "");
+                            }}
+                            className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 bg-white"
+                          >
+                            {resumes.map((r) => (
+                              <option key={r.id} value={r.id}>
+                                {r.title && r.title !== "My Resume" ? r.title : r.jobTitle || "Untitled resume"}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      
+                      {uploadedResumeData && (
+                        <div className="p-3 bg-indigo-50 text-indigo-700 text-sm rounded-xl border border-indigo-100 flex items-center gap-2 mb-2">
+                           <FilePlus2 size={16} /> <span>Using uploaded PDF data</span>
+                        </div>
+                      )}
 
-              {/* User Answer Textarea Placeholder */}
-              <div className="w-full bg-white rounded-2xl p-5 min-h-27.5 border border-gray-200 mb-7 shadow-sm">
-                <p className={`text-[14px] leading-relaxed ${transcript ? 'text-gray-700' : 'text-gray-400 italic'}`}>
-                  {transcript || (isListening ? "Listening to your answer..." : "Your answer will appear here...")}
-                </p>
-              </div>
+                      <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">Target job title</label>
+                        <input
+                          value={targetJobTitle}
+                          onChange={(e) => setTargetJobTitle(e.target.value)}
+                          placeholder="e.g. Frontend Web Engineer"
+                          className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500"
+                        />
+                      </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-4 w-full">
-                <button 
-                  onClick={toggleInterview}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[14px] text-white transition-all outline-none shadow-sm hover:shadow active:scale-[0.98] ${isInterviewActive ? 'bg-rose-500 hover:bg-rose-600' : 'bg-[#6366F1] hover:bg-indigo-600'}`}
-                >
-                  {isInterviewActive ? <><Square size={16} fill="currentColor" /> Stop</> : <><PlaySquare size={16} /> Start Interview</>}
-                </button>
-                <button 
-                  onClick={handleNextQuestion}
-                  disabled={!isInterviewActive && questionIndex === 0}
-                  className="flex-1 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-400 font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-none border border-transparent"
-                >
-                  Next Question
-                </button>
-              </div>
-              
+                      <label className="flex items-center gap-3 cursor-pointer bg-gray-50 border border-gray-200 rounded-xl p-3">
+                        <input type="checkbox" checked={cameraOn} onChange={(e) => setCameraOn(e.target.checked)} className="w-4 h-4 accent-indigo-600" />
+                        <span className="text-sm text-gray-700 flex items-center gap-2">
+                          <Video size={15} className="text-gray-400" /> Practice on camera (self-view only — never sent anywhere)
+                        </span>
+                      </label>
+
+                      <button
+                        onClick={beginInterview}
+                        className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#6366F1] hover:bg-indigo-600 text-white font-bold text-[14px] rounded-xl transition-all shadow-sm hover:shadow"
+                      >
+                        <PlaySquare size={16} /> Start Mock Interview
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {interviewStage === "preparing" && (
+                <div className="py-14 flex flex-col items-center gap-3 text-gray-500">
+                  <Loader2 className="w-7 h-7 animate-spin text-indigo-500" />
+                  <p className="text-sm font-medium text-center">Reading your resume and writing questions for {targetJobTitle}&hellip;</p>
+                </div>
+              )}
+
+              {interviewStage === "live" && (
+                <div className="w-full">
+                  {cameraOn && (
+                    <div className="relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden mb-6 border border-gray-200">
+                      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover -scale-x-100" />
+                      {cameraError && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900 px-6">
+                          <p className="text-white/70 text-xs text-center flex items-center gap-2"><VideoOff size={14} /> {cameraError}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="bg-white rounded-2xl p-5 w-full mb-6 border border-gray-200 shadow-sm">
+                    <p className="text-gray-800 font-medium text-[15px] leading-relaxed">
+                      &ldquo;{questions[questionIndex]}&rdquo;
+                    </p>
+                  </div>
+
+                  <div className="relative flex items-center justify-center w-20 h-20 mb-6 mx-auto">
+                    {isListening && <span className="absolute inset-0 rounded-full bg-violet-400 animate-ping opacity-20"></span>}
+                    <button
+                      onClick={toggleInterview}
+                      disabled={!speechSupported}
+                      className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 outline-none disabled:opacity-40 disabled:cursor-not-allowed ${isListening ? 'bg-violet-50 scale-105 shadow-md' : 'bg-gray-50 hover:bg-gray-100'}`}
+                    >
+                      <Mic size={28} strokeWidth={1.5} className={isListening ? "text-violet-600 animate-pulse" : "text-gray-400"} />
+                    </button>
+                  </div>
+                  {!speechSupported && (
+                    <p className="text-center text-xs text-gray-400 -mt-4 mb-6">Voice isn&rsquo;t supported in this browser — just type your answer below.</p>
+                  )}
+
+                  <textarea
+                    value={transcript}
+                    onChange={(e) => setTranscript(e.target.value)}
+                    placeholder={isListening ? "Listening to your answer..." : "Your answer will appear here — or just type it"}
+                    rows={4}
+                    className="w-full bg-white rounded-2xl p-5 border border-gray-200 mb-6 shadow-sm text-[14px] leading-relaxed text-gray-700 outline-none focus:border-indigo-400 resize-none"
+                  />
+
+                  <div className="flex gap-4 w-full mb-3">
+                    <button
+                      onClick={toggleInterview}
+                      disabled={!speechSupported}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[14px] text-white transition-all outline-none shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${isInterviewActive ? 'bg-rose-500 hover:bg-rose-600' : 'bg-[#6366F1] hover:bg-indigo-600'}`}
+                    >
+                      {isInterviewActive ? <><Square size={16} fill="currentColor" /> Stop</> : <><PlaySquare size={16} /> Read Aloud</>}
+                    </button>
+                    <button
+                      onClick={handleNextQuestion}
+                      className="flex-1 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-[14px] rounded-xl transition-colors outline-none border border-transparent"
+                    >
+                      {questionIndex === questions.length - 1 ? "Finish" : "Next Question"}
+                    </button>
+                  </div>
+                  <div className="text-center">
+                    <button onClick={finishEarly} className="text-xs font-semibold text-gray-400 hover:text-gray-600 transition-colors">
+                      End interview now
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {interviewStage === "reviewing" && (
+                <div className="py-14 flex flex-col items-center gap-3 text-gray-500">
+                  <Loader2 className="w-7 h-7 animate-spin text-indigo-500" />
+                  <p className="text-sm font-medium">Analyzing your answers&hellip;</p>
+                </div>
+              )}
+
+              {interviewStage === "complete" && (
+                <div className="w-full">
+                  {feedback ? (
+                    <>
+                      <div className="flex items-center justify-center mb-6">
+                        <div className="w-20 h-20 rounded-full bg-indigo-50 border-4 border-indigo-100 flex flex-col items-center justify-center">
+                          <span className="text-2xl font-extrabold text-indigo-700">{feedback.score}</span>
+                          <span className="text-[10px] font-bold text-indigo-400 -mt-1">/ 100</span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">{feedback.summary}</p>
+
+                      <div className="w-full bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-3">
+                        <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-wide mb-2">
+                          <ThumbsUp size={14} /> Strengths
+                        </div>
+                        <ul className="space-y-1.5">
+                          {feedback.strengths.map((s, i) => (
+                            <li key={i} className="text-sm text-emerald-800 flex gap-2"><span>•</span><span>{s}</span></li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="w-full bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6">
+                        <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wide mb-2">
+                          <TrendingUp size={14} /> Room to grow
+                        </div>
+                        <ul className="space-y-1.5">
+                          {feedback.improvements.map((s, i) => (
+                            <li key={i} className="text-sm text-amber-800 flex gap-2"><span>•</span><span>{s}</span></li>
+                          ))}
+                        </ul>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Target size={28} className="mx-auto text-gray-300 mb-3" />
+                      <p className="text-sm text-gray-500">Nice work finishing the mock interview! We couldn&rsquo;t generate written feedback this time — but reviewing your own answers is a great next step.</p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 w-full">
+                    <button onClick={restartInterview} className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-[13px] rounded-xl transition-colors">
+                      <RotateCcw size={15} /> Practice Again
+                    </button>
+                    <button onClick={closeAiInterview} className="flex-1 py-3 bg-[#6366F1] hover:bg-indigo-600 text-white font-bold text-[13px] rounded-xl transition-colors">
+                      Done
+                    </button>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </div>
