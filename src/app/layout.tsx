@@ -8,10 +8,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Resumi - Smart Resume Builder",
   description: "Build ATS-optimized, professional resumes easily.",
-  // Explicitly linking the icon from the public folder
   icons: {
     icon: "/icon/icons.png",
-    apple: "/icon/icons.png", // Optional but good for iOS devices
+    apple: "/icon/icons.png", 
   },
 };
 
