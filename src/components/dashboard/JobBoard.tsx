@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Search, MapPin, Briefcase, DollarSign, ExternalLink, Bookmark, Clock, SlidersHorizontal, Sparkles } from "lucide-react";
 
-// Mock data tailored to your tech stack (Flutter, Firebase, React, YOLO)
 const MOCK_JOBS = [
   {
     id: "1",
@@ -65,7 +64,6 @@ export default function JobBoard() {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out max-w-6xl mx-auto">
       
-      {/* Header Section */}
       <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
@@ -77,7 +75,6 @@ export default function JobBoard() {
         </div>
       </div>
 
-      {/* Sleek Unified Search Bar */}
       <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col md:flex-row items-center gap-2 mb-10 transition-shadow focus-within:shadow-md focus-within:border-indigo-300">
         
         <div className="relative flex-1 w-full flex items-center">
@@ -109,7 +106,6 @@ export default function JobBoard() {
 
       <div className="flex flex-col lg:flex-row gap-10">
         
-        {/* Left Sidebar: Minimalist Filters */}
         <aside className="w-full lg:w-56 shrink-0">
           <div className="sticky top-24">
             <div className="flex items-center gap-2 font-bold text-slate-900 mb-6">
@@ -117,7 +113,6 @@ export default function JobBoard() {
             </div>
 
             <div className="space-y-8">
-              {/* Filter Group */}
               <div>
                 <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Job Type</h3>
                 <div className="space-y-3">
@@ -133,7 +128,6 @@ export default function JobBoard() {
                 </div>
               </div>
 
-              {/* Filter Group */}
               <div>
                 <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Work Model</h3>
                 <div className="space-y-3">
@@ -152,7 +146,6 @@ export default function JobBoard() {
           </div>
         </aside>
 
-        {/* Right Area: Premium Job Listings */}
         <div className="flex-1 space-y-5">
           <div className="flex justify-between items-center mb-4">
             <span className="text-sm font-medium text-slate-500">Showing {MOCK_JOBS.length} recommended jobs</span>
@@ -168,13 +161,11 @@ export default function JobBoard() {
               key={job.id} 
               className="group bg-white p-6 md:p-8 rounded-3xl border border-slate-200/60 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 flex flex-col md:flex-row gap-6 relative"
             >
-              {/* Company Logo */}
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold shrink-0 ${job.logoColor}`}>
                 {job.logo}
               </div>
 
               <div className="flex-1">
-                {/* Header Row: Title & Bookmark */}
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition-colors cursor-pointer mb-1">
@@ -188,7 +179,6 @@ export default function JobBoard() {
                   </button>
                 </div>
                 
-                {/* Meta Info Row */}
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500 mb-5 mt-4">
                   <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-slate-400" /> {job.location}</span>
                   <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-slate-400" /> {job.type}</span>
@@ -196,14 +186,11 @@ export default function JobBoard() {
                   <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-slate-400" /> {job.posted}</span>
                 </div>
 
-                {/* Tags & Match Badge */}
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Highly styled match badge */}
                   <span className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100 mr-2">
                     <Sparkles className="w-3.5 h-3.5" /> {job.match} Match
                   </span>
 
-                  {/* Clean, subtle tags */}
                   {job.tags.map(tag => (
                     <span key={tag} className="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-semibold">
                       {tag}
@@ -212,7 +199,6 @@ export default function JobBoard() {
                 </div>
               </div>
 
-              {/* Apply Action */}
               <div className="flex items-center justify-end shrink-0 pt-4 md:pt-0 mt-4 md:mt-0 border-t md:border-t-0 border-slate-100">
                 <button className="w-full md:w-auto flex justify-center items-center gap-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white font-bold py-2.5 px-6 rounded-xl transition-colors">
                   Apply <ExternalLink className="w-4 h-4" />
@@ -226,7 +212,6 @@ export default function JobBoard() {
   );
 }
 
-// Simple helper icon for custom checkboxes
 function CheckIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" {...props}>
