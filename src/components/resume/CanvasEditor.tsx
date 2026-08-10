@@ -188,7 +188,7 @@ function FloatingToolbar({ style, value, onPatch }: ToolbarProps) {
         <ToggleButton active={value.align === "right"} onClick={() => onPatch({ align: "right" })} Icon={AlignRight} label="Align right" />
         <ToggleButton active={value.align === "justify"} onClick={() => onPatch({ align: "justify" })} Icon={AlignJustify} label="Justify" />
       </div>
-
+      
       {/* Hidden on small screens so the pointer doesn't misalign when wrapped */}
       <div className="absolute left-1/2 -bottom-1.25 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-gray-200 rotate-45 hidden sm:block" />
     </div>
