@@ -114,7 +114,7 @@ export default function HiringRoadmap({ hasResumes, onStartAiInterview }: { hasR
                     className={`absolute top-5 h-0.5 rounded-full transition-colors duration-500 ease-out left-[calc(50%+1.75rem)] w-[calc(100%-3.5rem)] ${isDone ? "bg-indigo-600" : "bg-gray-200"}`} 
                   />
                 )}
-
+                
                 {/* Circle Icon */}
                 <button
                   onClick={() => setOpenStep(isOpen ? null : i)}
