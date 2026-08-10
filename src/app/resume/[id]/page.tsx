@@ -7,11 +7,10 @@ import { Loader2, Undo, Redo, Share, Bell, Mail, ChevronDown, Save } from "lucid
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import { ResumeData, DEFAULT_THEME } from "@/types";
 
-// Import our new 3-column components
 import BuilderSidebar from "../../../components/resume/BuilderSidebar";
 import CanvasEditor from "../../../components/resume/CanvasEditor";
 import PropertiesSidebar from "@/components/resume/PropertiesSidebar";
-import ResumiLogo from "@/components/logo/ResumiLogo"; // Added the logo import
+import ResumiLogo from "@/components/logo/ResumiLogo"; 
 
 const emptyResume = (): ResumeData => ({
   firstName: "",
