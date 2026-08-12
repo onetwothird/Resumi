@@ -27,7 +27,6 @@ export default function EditorPage() {
   const params = useParams<{ id: string }>();
   const resumeId = params.id as string;
   const router = useRouter();
-  // Deep-linked from the hiring roadmap's "Run ATS Scan" action
 
   const [data, setData] = useState<ResumeData>(emptyResume());
   const [isLoading, setIsLoading] = useState(resumeId !== "new");
