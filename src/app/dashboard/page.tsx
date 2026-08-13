@@ -9,12 +9,12 @@ export default async function DashboardPage() {
   const { userId } = await auth();
 
   if (!userId) {
-    redirect("/sign-in"); //[cite: 9]
+    redirect("/sign-in"); 
   }
 
   const resumes = await prisma.resume.findMany({
-    where: { userId }, //[cite: 9]
-    orderBy: { updatedAt: "desc" }, //[cite: 9]
+    where: { userId }, 
+    orderBy: { updatedAt: "desc" },
   });
 
   const initialResumes: ResumeListItem[] = resumes.map((r) => ({
