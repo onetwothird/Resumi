@@ -108,7 +108,6 @@ export default function HiringRoadmap({ hasResumes, onStartAiInterview }: { hasR
             
             return (
               <div key={step.title} className="flex-1 relative flex flex-col items-center text-center group">
-                {/* Geometrically perfectly centered connecting line with gap */}
                 {i < STEPS.length - 1 && (
                   <div 
                     className={`absolute top-5 h-0.5 rounded-full transition-colors duration-500 ease-out left-[calc(50%+1.75rem)] w-[calc(100%-3.5rem)] ${isDone ? "bg-indigo-600" : "bg-gray-200"}`} 
