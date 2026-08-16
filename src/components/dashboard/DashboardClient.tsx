@@ -10,9 +10,8 @@ import { UserButton } from "@clerk/nextjs";
 import { ResumeListItem } from "@/types/dashboard";
 import { formatRelativeDate } from "@/lib/format";
 import ResumeCard from "@/components/dashboard/ResumeCard";
-import PdfUploader from "@/components/dashboard/PdfUploader"; // Added import
+import PdfUploader from "@/components/dashboard/PdfUploader";
 
-// Fallback inline HiringRoadmap component.
 const HiringRoadmap = ({ hasResumes, onStartAiInterview }: { hasResumes: boolean; onStartAiInterview: () => void }) => {
   if (!hasResumes) return null;
   return (
@@ -41,7 +40,6 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "name", label: "Name A–Z" },
 ];
 
-// Stages of the AI Interview Coach modal
 type InterviewStage = "setup" | "preparing" | "live" | "reviewing" | "complete";
 
 interface InterviewFeedback {
@@ -49,6 +47,32 @@ interface InterviewFeedback {
   strengths: string[];
   improvements: string[];
   summary: string;
+}
+
+interface ParsedResumeData {
+  jobTitle?: string;
+  summary?: string;
+  skills?: string[];
+  experience?: unknown[];
+}
+
+interface MockSpeechRecognitionEvent {
+  resultIndex: number;
+  results: { transcript: string }[][];
+}
+
+interface MockSpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: MockSpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+}
+
+interface CustomWindow extends Window {
+  SpeechRecognition?: new () => MockSpeechRecognition;
+  webkitSpeechRecognition?: new () => MockSpeechRecognition;
 }
 
 interface DashboardClientProps {
@@ -65,7 +89,6 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // --- AI Interview Coach State ---
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [interviewStage, setInterviewStage] = useState<InterviewStage>("setup");
   const [selectedResumeId, setSelectedResumeId] = useState<string>("");
@@ -73,9 +96,8 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   const [questions, setQuestions] = useState<string[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<InterviewFeedback | null>(null);
-  
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [uploadedResumeData, setUploadedResumeData] = useState<any>(null);
+
+  const [uploadedResumeData, setUploadedResumeData] = useState<ParsedResumeData | null>(null);
 
   const [isInterviewActive, setIsInterviewActive] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -84,8 +106,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraOn, setCameraOn] = useState(true);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<MockSpeechRecognition | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const speechSupported =
@@ -93,13 +114,16 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
   const pushToast = (message: string, variant: "success" | "error" | "info") => {
     const id = Date.now() + Math.random();
-    // @ts-expect-error - overriding toast variant for extended UI
-    setToasts((prev) => [...prev, { id, message, variant }]);
+    setToasts((prev) => [...prev, { id, message, variant } as unknown as ToastItem]);
   };
 
   const dismissToast = (id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
+
+  const mostRecentEdit = resumes.length > 0 
+    ? resumes.reduce((latest, r) => new Date(r.updatedAt) > new Date(latest.updatedAt) ? r : latest) 
+    : null;
 
   const startAiInterview = () => {
     setIsAiModalOpen(true);
@@ -158,8 +182,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     setInterviewStage("preparing");
     try {
       let resumeData;
-      
-      // Use the uploaded data if it exists, otherwise fetch the saved resume
+
       if (uploadedResumeData) {
         resumeData = uploadedResumeData;
       } else {
@@ -243,17 +266,16 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
   const startListening = () => {
     if (typeof window === "undefined") return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    const win = window as unknown as CustomWindow;
+    const SpeechRecognitionConstructor = win.SpeechRecognition || win.webkitSpeechRecognition;
+    if (!SpeechRecognitionConstructor) return;
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognitionConstructor();
     recognition.continuous = false;
     recognition.interimResults = true;
     recognitionRef.current = recognition;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: MockSpeechRecognitionEvent) => {
       const current = event.resultIndex;
       const result = event.results[current][0].transcript;
       setTranscript((prev) => prev + " " + result);
@@ -338,12 +360,6 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     });
   }, [resumes, query, sortBy]);
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
-  const mostRecentEdit = useMemo(() => {
-    if (resumes.length === 0) return null;
-    return resumes.reduce((latest, r) => new Date(r.updatedAt) > new Date(latest.updatedAt) ? r : latest);
-  }, [resumes]);
-
   const handleRename = async (id: string, title: string) => {
     const previous = resumes;
     setResumes((prev) => prev.map((r) => (r.id === id ? { ...r, title } : r)));
@@ -424,9 +440,9 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
             >
               Jobs
             </button>
-            
+
             <Link href="/resume/new" className="hover:text-gray-900 transition-colors">Builder</Link>
-            
+
             <button onClick={startAiInterview} className="flex items-center gap-1 text-indigo-600 font-semibold hover:text-indigo-800 transition-colors bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
               <Bot size={16} /> AI Coach
             </button>
@@ -446,7 +462,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
       </header>
 
       <main className="max-w-7xl mx-auto p-6 md:p-10">
-        
+
         {activeTab === "jobs" ? (
           <JobBoard />
         ) : (
@@ -508,7 +524,12 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                     <PdfUploader 
                       pushToast={pushToast} 
                       onScanComplete={(parsedData) => {
-                        setUploadedResumeData(parsedData);
+                        setUploadedResumeData({
+                          jobTitle: parsedData.jobTitle,
+                          summary: parsedData.summary,
+                          skills: typeof parsedData.skills === 'string' ? parsedData.skills.split(',').map(s => s.trim()) : parsedData.skills,
+                          experience: parsedData.experience,
+                        });
                         setTargetJobTitle(parsedData.jobTitle || "");
                         setIsAiModalOpen(true);
                         setInterviewStage("setup");
@@ -607,7 +628,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                           </select>
                         </div>
                       )}
-                      
+
                       {uploadedResumeData && (
                         <div className="p-3 bg-indigo-50 text-indigo-700 text-sm rounded-xl border border-indigo-100 flex items-center gap-2 mb-2">
                            <FilePlus2 size={16} /> <span>Using uploaded PDF data</span>
