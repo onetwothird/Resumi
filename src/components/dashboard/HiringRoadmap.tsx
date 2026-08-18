@@ -97,7 +97,6 @@ export default function HiringRoadmap({ hasResumes, onStartAiInterview }: { hasR
         A resume is step one. Here&rsquo;s the rest of the journey — tap a step for real tips.
       </p>
 
-      {/* Stepper Grid */}
       <div className="overflow-x-auto pb-4">
         <div className="flex w-full min-w-162.5">
           {STEPS.map((step, i) => {
