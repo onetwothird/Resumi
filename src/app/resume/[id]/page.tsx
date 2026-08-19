@@ -1,4 +1,3 @@
-// src/app/resume/[id]/page.tsx
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
