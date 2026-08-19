@@ -38,6 +38,10 @@ export default function EditorPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   const [activeTab, setActiveTab] = useState<"builder" | "preview" | "settings">("preview");
+  
+  // NEW: Screen scaling state
+  const mainRef = useRef<HTMLElement>(null);
+  const [scale, setScale] = useState(1);
 
   const pushToast = useCallback((message: string, variant: "success" | "error") => {
     const id = Date.now() + Math.random();
@@ -77,6 +81,30 @@ export default function EditorPage() {
       cancelled = true;
     };
   }, [resumeId, pushToast]);
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (!mainRef.current) return;
+      const padding = 32; 
+      const containerWidth = mainRef.current.clientWidth - padding;
+      const A4_PIXELS = 794; 
+      
+      if (containerWidth < A4_PIXELS) {
+        setScale(containerWidth / A4_PIXELS);
+      } else {
+        setScale(1);
+      }
+    };
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    
+    if (activeTab === 'preview') {
+      setTimeout(updateScale, 50);
+    }
+    
+    return () => window.removeEventListener('resize', updateScale);
+  }, [activeTab]);
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -185,10 +213,22 @@ export default function EditorPage() {
           <BuilderSidebar data={data} onChange={setData} />
         </aside>
 
-        <main className={`${activeTab === 'preview' ? 'flex' : 'hidden'} lg:flex flex-1 overflow-auto bg-gray-100/50 flex-col items-center relative w-full`}>
-          <div className="m-auto p-4 lg:py-8 lg:px-4 min-w-max">
-            <CanvasEditor ref={printRef} data={data} onChange={setData} />
+        <main 
+          ref={mainRef}
+          className={`${activeTab === 'preview' ? 'flex' : 'hidden'} lg:flex flex-1 overflow-y-auto overflow-x-hidden bg-gray-100/50 flex-col items-center relative w-full`}
+        >
+          <div 
+            className="transition-transform duration-200 ease-in-out mt-4 lg:mt-8 shrink-0"
+            style={{ 
+              transform: `scale(${scale})`, 
+              transformOrigin: 'top center',
+              marginBottom: `${297 * (scale - 1)}mm` 
+            }}
+          >
+            <CanvasEditor ref={printRef} data={data} onChange={setData} scale={scale} />
           </div>
+          
+          <div className="h-8 lg:h-12 w-full shrink-0"></div>
         </main>
 
         <aside className={`${activeTab === 'settings' ? 'flex' : 'hidden'} lg:flex w-full lg:w-75 bg-white border-l border-gray-200 overflow-y-auto p-5 flex-col gap-6 shrink-0 absolute lg:relative z-10 h-full right-0`}>
@@ -196,7 +236,7 @@ export default function EditorPage() {
         </aside>
       </div>
 
-      <div className="lg:hidden flex h-16 bg-white border-t border-gray-200 shrink-0 z-20 w-full justify-around items-center pb-safe">
+      <div className="lg:hidden flex h-16 bg-white border-t border-gray-200 shrink-0 z-20 w-full justify-around items-center pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <button 
           onClick={() => setActiveTab('builder')} 
           className={`flex flex-col items-center p-2 w-full transition-colors ${activeTab === 'builder' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
