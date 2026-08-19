@@ -1,7 +1,7 @@
 // src/components/resume/CanvasEditor.tsx
 "use client";
 
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import {
   ResumeData,
   DEFAULT_THEME,
@@ -21,6 +21,7 @@ import {
 interface Props {
   data: ResumeData;
   onChange: (data: ResumeData) => void;
+  scale?: number;
 }
 
 const SIZE_MAP: Record<ResumeFontSize, { name: string; title: string; meta: string; heading: string; body: string }> = {
@@ -44,13 +45,11 @@ function styleToCss(s: TextBlockStyle | undefined): React.CSSProperties {
   };
 }
 
-/* --- Editable Component --- */
 interface EditableProps {
   value: string;
   placeholder: string;
   onCommit: (value: string) => void;
   onFocusBlock: (el: HTMLElement) => void;
-  // UPDATE: Now accepts the focus event to track where focus is going
   onBlurBlock: (e: React.FocusEvent<HTMLElement>) => void;
   className?: string;
   style?: React.CSSProperties;
@@ -90,7 +89,6 @@ function Editable({ value, placeholder, onCommit, onFocusBlock, onBlurBlock, cla
   );
 }
 
-/* --- Floating Toolbar --- */
 interface ToolbarProps {
   style: React.CSSProperties;
   value: TextBlockStyle;
@@ -98,7 +96,6 @@ interface ToolbarProps {
 }
 
 const stopMouseDown = (e: React.MouseEvent) => e.preventDefault();
-// UPDATE: Added allowFocus to prevent the container's preventDefault from breaking inputs
 const allowFocus = (e: React.MouseEvent) => e.stopPropagation();
 
 function ToggleButton({ active, onClick, Icon, label }: { active: boolean; onClick: () => void; Icon: React.ElementType; label: string }) {
@@ -114,16 +111,13 @@ function FloatingToolbar({ style, value, onPatch }: ToolbarProps) {
     <div 
       style={style} 
       onMouseDown={stopMouseDown} 
-      // Added flex-wrap, w-max, and max-w constraints to allow wrapping on small screens
       className="absolute z-50 bg-white border border-gray-200 shadow-xl rounded-xl p-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 w-max max-w-[90vw] sm:max-w-150"
     >
-      {/* Group 1: Typography Options */}
       <div className="flex items-center gap-1">
         <select 
           value={value.fontFamily ?? ""} 
           onMouseDown={allowFocus} 
           onChange={(e) => onPatch({ fontFamily: e.target.value || undefined })} 
-          // Increased width to w-24 and added truncate
           className="text-xs border border-gray-200 rounded-md pl-1.5 pr-1 py-1 outline-none w-24 bg-white text-gray-700 truncate"
         >
           <option value="">Theme</option>
@@ -171,7 +165,6 @@ function FloatingToolbar({ style, value, onPatch }: ToolbarProps) {
 
       <div className="hidden sm:block w-px h-5 bg-gray-200 shrink-0" />
 
-      {/* Group 2: Text Formatting */}
       <div className="flex items-center gap-1">
         <ToggleButton active={!!value.bold} onClick={() => onPatch({ bold: !value.bold })} Icon={Bold} label="Bold" />
         <ToggleButton active={!!value.italic} onClick={() => onPatch({ italic: !value.italic })} Icon={Italic} label="Italic" />
@@ -181,7 +174,6 @@ function FloatingToolbar({ style, value, onPatch }: ToolbarProps) {
 
       <div className="hidden sm:block w-px h-5 bg-gray-200 shrink-0" />
 
-      {/* Group 3: Alignment */}
       <div className="flex items-center gap-1">
         <ToggleButton active={!value.align || value.align === "left"} onClick={() => onPatch({ align: "left" })} Icon={AlignLeft} label="Align left" />
         <ToggleButton active={value.align === "center"} onClick={() => onPatch({ align: "center" })} Icon={AlignCenter} label="Align center" />
@@ -189,14 +181,12 @@ function FloatingToolbar({ style, value, onPatch }: ToolbarProps) {
         <ToggleButton active={value.align === "justify"} onClick={() => onPatch({ align: "justify" })} Icon={AlignJustify} label="Justify" />
       </div>
       
-      {/* Hidden on small screens so the pointer doesn't misalign when wrapped */}
       <div className="absolute left-1/2 -bottom-1.25 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-gray-200 rotate-45 hidden sm:block" />
     </div>
   );
 }
 
-/* --- Canvas Editor --- */
-const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange }, ref) => {
+const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale = 1 }, ref) => {
   const theme = data.theme ?? DEFAULT_THEME;
   const sizes = SIZE_MAP[theme.fontSize] ?? SIZE_MAP.md;
   const fontStack = getFontStack(theme.fontFamily);
@@ -206,26 +196,30 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange }, ref)
   const [activeBlock, setActiveBlock] = useState<ResumeBlockKey | null>(null);
   const [toolbarStyle, setToolbarStyle] = useState<React.CSSProperties>({});
 
-  const positionToolbar = (el: HTMLElement) => {
+  const positionToolbar = useCallback((el: HTMLElement) => {
     const wrap = wrapperRef.current;
     if (!wrap) return;
+    
     const elRect = el.getBoundingClientRect();
     const wrapRect = wrap.getBoundingClientRect();
-    const rawLeft = elRect.left - wrapRect.left + elRect.width / 2;
+    
+    const rawTop = (elRect.top - wrapRect.top) / scale;
+    const rawLeft = (elRect.left - wrapRect.left + elRect.width / 2) / scale;
+    const localWidth = wrapRect.width / scale;
+
     setToolbarStyle({
-      top: elRect.top - wrapRect.top - 10,
-      left: Math.min(Math.max(rawLeft, 200), wrapRect.width - 20),
-      transform: "translate(-50%, -100%)",
+      top: rawTop - 10,
+      left: Math.min(Math.max(rawLeft, 160), localWidth - 160),
+      transform: `translate(-50%, -100%) scale(${1 / scale})`, 
+      transformOrigin: 'bottom center', 
     });
-  };
+  }, [scale]);
 
   const handleFocusBlock = (key: ResumeBlockKey) => (el: HTMLElement) => {
     setActiveBlock(key);
     positionToolbar(el);
   };
   
-  // UPDATE: Check if the new focus target is inside our wrapper (e.g., clicking a toolbar dropdown)
-  // If it is, we prevent the toolbar from closing.
   const handleBlurBlock = (e: React.FocusEvent<HTMLElement>) => {
     if (wrapperRef.current?.contains(e.relatedTarget as Node)) {
       return;
@@ -245,7 +239,7 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange }, ref)
       window.removeEventListener("resize", reposition);
       window.removeEventListener("scroll", reposition, true);
     };
-  }, [activeBlock]);
+  }, [activeBlock, positionToolbar]);
 
   const patchBlockStyle = (patch: Partial<TextBlockStyle>) => {
     if (!activeBlock) return;
