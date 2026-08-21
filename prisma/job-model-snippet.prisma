@@ -1,0 +1,29 @@
+prisma/schema.prisma — ADD this model to your existing schema, don't replace the file.
+
+model Job {
+  id             String   @id @default(cuid())
+  employerId     String   // Clerk user id of the employer who posted this
+  title          String
+  company        String
+  location       String?
+  remote         Boolean  @default(false)
+  employmentType String   // "Full-time" | "Part-time" | "Contract" | "Internship"
+  salaryMin      Int?
+  salaryMax      Int?
+  description    String?  @db.Text
+  requirements   String?  @db.Text
+  skills         String[] // Postgres only — see MySQL note below
+  status         String   @default("draft") // "draft" | "published"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([employerId])
+}
+
+// ---
+// MySQL note: MySQL/PlanetScale don't support native String[] arrays.
+// If your DB is MySQL, change the `skills` line to:
+//   skills Json @default("[]")
+// and in src/app/api/jobs/route.ts, JSON.stringify(...) / JSON.parse(...) the
+// skills array instead of passing it straight through. I used the Postgres
+// version below — tell me if you're on MySQL and I'll swap it.
