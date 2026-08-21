@@ -1,5 +1,4 @@
-// C:\resumi\src\app\dashboard\page.tsx
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import DashboardClient from "@/components/dashboard/DashboardClient";
@@ -9,11 +8,18 @@ export default async function DashboardPage() {
   const { userId } = await auth();
 
   if (!userId) {
-    redirect("/sign-in"); 
+    redirect("/sign-in");
   }
+  
+  const client = await clerkClient();
+  const clerkUser = await client.users.getUser(userId);
+  const role = clerkUser.publicMetadata?.role as "employer" | "jobseeker" | undefined;
+
+  if (role === "employer") redirect("/employer/dashboard");
+  if (role !== "jobseeker") redirect("/onboarding");
 
   const resumes = await prisma.resume.findMany({
-    where: { userId }, 
+    where: { userId },
     orderBy: { updatedAt: "desc" },
   });
 
