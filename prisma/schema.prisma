@@ -11,6 +11,7 @@ model User {
   email     String   @unique
   name      String?
   resumes   Resume[]
+  jobs      Job[]
   createdAt DateTime @default(now())
 }
 
@@ -21,7 +22,6 @@ model Resume {
   
   title       String   @default("Untitled Resume")
   
-  // Personal Info
   fullName    String?
   jobTitle    String?
   email       String?
@@ -42,4 +42,33 @@ model Resume {
   updatedAt   DateTime @updatedAt
 
   @@index([userId])
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title           String
+  company         String
+  location        String?
+  remote          Boolean  @default(false)
+  employmentType  String   @default("Full-time")
+
+  // Compensation
+  salaryMin       Int?
+  salaryMax       Int?
+
+  description     String?  @db.Text
+  requirements    String?  @db.Text
+  skills          Json?    // Array of strings
+
+  // "draft" | "published"
+  status          String   @default("draft")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
