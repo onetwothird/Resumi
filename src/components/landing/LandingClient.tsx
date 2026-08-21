@@ -11,7 +11,8 @@ import {
   Target,
   Check,
 } from "lucide-react";
-import ResumiLogo from "@/components/logo/ResumiLogo";
+import PublicHeader from "@/components/marketing/PublicHeader";
+import PublicFooter from "@/components/marketing/PublicFooter";
 
 const FEATURES = [
   {
@@ -143,32 +144,7 @@ export default function LandingClient() {
     <div className="min-h-screen bg-[#F7F9FC] text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden relative">
       
       {/* Top Navigation - Instant Load */}
-      <nav className="relative z-50 border-b border-slate-200/80 backdrop-blur-xl bg-white/80 top-0">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
-          
-          {/* Replaced generic icon with the custom SVG Logo */}
-          <div className="flex items-center gap-2 font-bold text-xl text-indigo-600 tracking-tight cursor-pointer">
-            <ResumiLogo className="w-8 h-8" />
-            Resumi
-          </div>
-
-          <div className="hidden lg:flex flex-1 items-center justify-center gap-8 text-sm font-medium text-slate-600">
-            <a href="#features" className="hover:text-indigo-600 transition-colors">Features</a>
-            <a href="#examples" className="hover:text-indigo-600 transition-colors">Examples</a>
-            <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">How It Works</a>
-            <a href="#pricing" className="hover:text-indigo-600 transition-colors">Pricing</a>
-          </div>
-
-          <div className="flex items-center gap-4 shrink-0">
-            <Link href="/sign-in" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
-              Sign In
-            </Link>
-            <Link href="/sign-up" className="text-sm font-semibold bg-indigo-600 text-white px-5 py-2 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicHeader active="/" />
 
       {/* Hero Section - Page Load Animation */}
       <motion.main
@@ -354,22 +330,7 @@ export default function LandingClient() {
         </div>
       </motion.section>
 
-      {/* Footer */}
-      <footer className="relative z-10 bg-white py-12 border-t border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          
-          {/* Replaced generic icon with the custom SVG Logo */}
-          <div className="flex items-center gap-2 font-bold text-slate-900">
-            <ResumiLogo className="w-6 h-6" />
-            Resumi © {new Date().getFullYear()}
-          </div>
-          
-          <div className="flex items-center gap-6 text-sm text-slate-500 font-medium">
-            <a href="#features" className="hover:text-indigo-600 transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-indigo-600 transition-colors">Pricing</a>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }
