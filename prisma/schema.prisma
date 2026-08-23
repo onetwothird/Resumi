@@ -55,15 +55,15 @@ model Job {
   remote          Boolean  @default(false)
   employmentType  String   @default("Full-time")
 
-  // Compensation
   salaryMin       Int?
   salaryMax       Int?
 
   description     String?  @db.Text
   requirements    String?  @db.Text
-  skills          Json?    // Array of strings
+  skills          Json?
 
-  // "draft" | "published"
+  posterImageUrl  String?  // Clerk profile photo (from Google, etc.) of whoever posted this job
+
   status          String   @default("draft")
 
   createdAt   DateTime @default(now())
