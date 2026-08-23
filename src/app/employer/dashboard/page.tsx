@@ -29,6 +29,10 @@ export default async function EmployerDashboardPage() {
     remote: j.remote,
     location: j.location ?? null,
     employmentType: j.employmentType as JobListItem["employmentType"],
+    posterImageUrl: j.posterImageUrl ?? null,
+    salaryMin: j.salaryMin ?? null,
+    salaryMax: j.salaryMax ?? null,
+    skills: j.skills ?? [],
     createdAt: j.createdAt.toISOString(),
     updatedAt: j.updatedAt.toISOString(),
   }));
