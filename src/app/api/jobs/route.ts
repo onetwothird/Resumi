@@ -16,8 +16,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Ensure the user row exists (same guard your resume route uses) —
-    // without this, the insert below fails on the userId foreign key.
     await prisma.user.upsert({
       where: { id: userId },
       update: {},
@@ -37,7 +35,7 @@ export async function POST(req: Request) {
         salaryMax: body.salaryMax ? parseInt(body.salaryMax, 10) : null,
         description: body.description || null,
         requirements: body.requirements || null,
-        skills: Array.isArray(body.skills) ? body.skills : [], // Json field
+        skills: Array.isArray(body.skills) ? body.skills : [], 
         status: body.status === "published" ? "published" : "draft",
       },
     });
