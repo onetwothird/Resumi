@@ -1,7 +1,20 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Mail, Plus, MapPin, Clock, Briefcase } from "lucide-react";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { 
+  Bell, 
+  Mail, 
+  Plus, 
+  MapPin, 
+  Clock, 
+  Briefcase, 
+  MoreVertical, 
+  Edit3, 
+  Eye, 
+  Trash2 
+} from "lucide-react";
 import ResumiLogo from "@/components/logo/ResumiLogo";
 import { JobListItem } from "@/types/employer";
 
@@ -20,14 +33,38 @@ function timeAgo(iso: string) {
   return `${days}d ago`;
 }
 
+function salaryLabel(job: JobListItem) {
+  if (job.salaryMin && job.salaryMax) {
+    return `₱${job.salaryMin.toLocaleString()} – ₱${job.salaryMax.toLocaleString()}`;
+  }
+  if (job.salaryMin) return `From ₱${job.salaryMin.toLocaleString()}`;
+  if (job.salaryMax) return `Up to ₱${job.salaryMax.toLocaleString()}`;
+  return null;
+}
+
+function skillsOf(job: JobListItem): string[] {
+  return Array.isArray(job.skills) ? job.skills.filter((s): s is string => typeof s === "string") : [];
+}
+
 export default function EmployerDashboardClient({ initialJobs }: Props) {
   const router = useRouter();
+  const { user } = useUser();
+  
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
   const published = initialJobs.filter((j) => j.status === "published");
   const drafts = initialJobs.filter((j) => j.status === "draft");
 
+  // Close the dropdown menu if the user clicks anywhere else on the screen
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 shrink-0">
+    <div className="flex flex-col min-h-screen bg-[#F7F9FC]">
+      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-20">
         <div className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
           <ResumiLogo className="w-8 h-8" />
           <span className="hidden sm:inline">Resumi</span>
@@ -42,9 +79,8 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
           <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
             <Mail size={16} />
           </button>
-          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs shrink-0">
-            E
-          </div>
+          <div className="h-6 w-px bg-gray-200"></div>
+          <UserButton />
         </div>
       </header>
 
@@ -77,40 +113,144 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
             </button>
           </div>
         ) : (
-          <div className="space-y-3">
-            {initialJobs.map((job) => (
-              <div
-                key={job.id}
-                className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-sm font-bold text-gray-900">{job.title}</h3>
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                        job.status === "published"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {job.status}
-                    </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            {initialJobs.map((job) => {
+              const displayImage = job.posterImageUrl || user?.imageUrl;
+              const isMenuOpen = openMenuId === job.id;
+              const salary = salaryLabel(job);
+              const skills = skillsOf(job);
+
+              return (
+                <div
+                  key={job.id}
+                  className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col hover:shadow-md transition-shadow relative"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    {displayImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={displayImage}
+                        alt="Profile"
+                        className="w-14 h-14 rounded-2xl object-cover shrink-0 border border-gray-100"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white font-bold flex items-center justify-center text-lg shrink-0">
+                        {job.company?.charAt(0).toUpperCase() || "?"}
+                      </div>
+                    )}
+                    
+                    {/* Top Right Badges & Actions */}
+                    <div className="flex flex-col items-end gap-2 relative">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full text-center ${
+                            job.status === "published"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-gray-100 text-gray-500"
+                          }`}
+                        >
+                          {job.status}
+                        </span>
+                        
+                        {/* More Menu Trigger */}
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(isMenuOpen ? null : job.id);
+                          }}
+                          className="p-1 text-gray-400 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                      </div>
+
+                      {/* Dropdown Options */}
+                      {isMenuOpen && (
+                        <div className="absolute top-8 right-0 w-36 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-30 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); router.push(`/employer/jobs/${job.id}`); }}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center gap-2 transition-colors"
+                          >
+                            <Edit3 size={14} /> Edit Job
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); /* Add view logic */ }}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center gap-2 transition-colors"
+                          >
+                            <Eye size={14} /> View Public
+                          </button>
+                          <div className="h-px w-full bg-gray-100 my-1"></div>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); /* Add delete logic */ }}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                          >
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
+                      )}
+
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full text-center">
+                        {job.employmentType}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
-                    <span>{job.company}</span>
+
+                  <h3 className="text-base font-bold text-gray-900 mb-0.5 line-clamp-1">
+                    {job.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-4 line-clamp-1">{job.company}</p>
+
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500">
                     <span className="flex items-center gap-1">
-                      <MapPin size={12} /> {job.remote ? "Remote" : job.location || "—"}
+                      <MapPin size={12} /> {job.remote ? "Remote" : job.location || "Location not set"}
                     </span>
-                    <span className="flex items-center gap-1">
+                    {/* suppressHydrationWarning ADDED HERE */}
+                    <span className="flex items-center gap-1" suppressHydrationWarning>
                       <Clock size={12} /> Updated {timeAgo(job.updatedAt)}
                     </span>
                   </div>
+
+                  {salary && (
+                    <p className="text-xs font-semibold text-gray-700 mt-2">{salary}</p>
+                  )}
+
+                  {skills.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {skills.slice(0, 4).map((skill) => (
+                        <span
+                          key={skill}
+                          className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-2 py-1 rounded-full max-w-full truncate"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                      {skills.length > 4 && (
+                        <span className="text-[10px] font-semibold text-gray-400 px-1 py-1">
+                          +{skills.length - 4} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="mt-auto" />
+
+                  <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-xs text-gray-400 font-medium line-clamp-1">
+                      Posted by {user?.fullName || "you"}
+                    </span>
+                    
+                    {/* Clickable Manage Button */}
+                    <button 
+                      onClick={() => router.push(`/employer/jobs/${job.id}`)}
+                      className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 group"
+                    >
+                      Manage Job 
+                      <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+                    </button>
+                  </div>
                 </div>
-                <span className="text-xs font-semibold text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 self-start sm:self-center">
-                  {job.employmentType}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
