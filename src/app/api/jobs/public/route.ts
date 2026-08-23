@@ -1,4 +1,3 @@
-// src/app/api/jobs/public/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; 
 
@@ -11,8 +10,7 @@ export async function GET() {
       orderBy: {
         createdAt: "desc",
       },
-      // IF YOU HAVE A SELECT STATEMENT, MAKE SURE posterImageUrl IS TRUE
-      // If you don't use 'select' and just return everything, you can ignore this part.
+
       select: {
         id: true,
         title: true,
@@ -28,7 +26,7 @@ export async function GET() {
         status: true,
         createdAt: true,
         updatedAt: true,
-        posterImageUrl: true, // <-- Ensure this is being sent to the frontend
+        posterImageUrl: true, 
       }
     });
 
