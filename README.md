@@ -60,4 +60,3 @@ Make sure you have Node.js installed on your machine. You will also need a Postg
 The easiest way to deploy this Next.js app is to use the [Vercel Platform](https://vercel.com/new).
 
 Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details. Ensure you configure your build settings and environment variables (like `DATABASE_URL`) in your hosting provider's dashboard.
-
