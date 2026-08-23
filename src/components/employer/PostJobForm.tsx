@@ -2,19 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { UserButton, useUser } from "@clerk/nextjs";
 import {
-  Briefcase,
   MapPin,
-  DollarSign,
   Clock,
-  Building2,
-  Tag,
   X,
   Loader2,
   Save,
   Rocket,
   Bell,
   Mail,
+  Search,
+  Lock,
+  Wallet,
+  Eye,
+  ChevronUp,
 } from "lucide-react";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import ResumiLogo from "@/components/logo/ResumiLogo";
@@ -51,11 +53,13 @@ const emptyJob = (): JobFormState => ({
 
 export default function PostJobForm() {
   const router = useRouter();
+  const { user } = useUser();
   const [job, setJob] = useState<JobFormState>(emptyJob());
   const [skillInput, setSkillInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
 
   const pushToast = (message: string, variant: "success" | "error") => {
     const id = Date.now() + Math.random();
@@ -101,19 +105,26 @@ export default function PostJobForm() {
       const res = await fetch("/api/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...job, status }),
+        body: JSON.stringify({ 
+          ...job, 
+          salaryMin: job.salaryMin ? parseInt(job.salaryMin) : null,
+          salaryMax: job.salaryMax ? parseInt(job.salaryMax) : null,
+          status, 
+          posterImageUrl: user?.imageUrl 
+        }),
       });
-      if (!res.ok) throw new Error("Failed to save job");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to save job");
+      }
       const saved = await res.json();
       pushToast(status === "draft" ? "Draft saved" : "Job published!", "success");
       if (status === "published" && saved?.id) {
         router.push("/employer/dashboard");
       }
-    } catch {
-      pushToast(
-        status === "draft" ? "Couldn't save draft. Try again." : "Couldn't publish job. Try again.",
-        "error"
-      );
+    } catch (err) {
+      console.error(err);
+      pushToast(err instanceof Error ? err.message : "Couldn't save job.", "error");
     } finally {
       setLoading(false);
     }
@@ -121,12 +132,73 @@ export default function PostJobForm() {
 
   const salaryLabel =
     job.salaryMin && job.salaryMax
-      ? `$${job.salaryMin} – $${job.salaryMax}`
+      ? `₱${Number(job.salaryMin).toLocaleString()} – ₱${Number(job.salaryMax).toLocaleString()}`
       : job.salaryMin
-      ? `From $${job.salaryMin}`
+      ? `From ₱${Number(job.salaryMin).toLocaleString()}`
       : job.salaryMax
-      ? `Up to $${job.salaryMax}`
+      ? `Up to ₱${Number(job.salaryMax).toLocaleString()}`
       : null;
+
+  const previewCard = (
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div className="flex items-start justify-between mb-4">
+        {user?.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={user.imageUrl}
+            alt={user.fullName ?? "Your profile photo"}
+            className="w-14 h-14 rounded-2xl object-cover shrink-0 border border-gray-100"
+          />
+        ) : (
+          <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white font-bold flex items-center justify-center text-lg shrink-0">
+            {job.company?.charAt(0).toUpperCase() || "?"}
+          </div>
+        )}
+        <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full text-center">
+          {job.employmentType}
+        </span>
+      </div>
+
+      <h3 className="text-base font-bold text-gray-900 mb-0.5 wrap-break-word">
+        {job.title || "Job Title"}
+      </h3>
+      <p className="text-sm text-gray-500 mb-4 wrap-break-word">{job.company || "Your Company"}</p>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 mb-4">
+        <span className="flex items-center gap-1">
+          <MapPin size={12} /> {job.remote ? "Remote" : job.location || "Location"}
+        </span>
+        {salaryLabel && (
+          <span className="flex items-center gap-1">
+            {salaryLabel}
+          </span>
+        )}
+        <span className="flex items-center gap-1">
+          <Clock size={12} /> Just now
+        </span>
+      </div>
+
+      {job.description && (
+        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap wrap-break-word mb-4 line-clamp-5">
+          {job.description}
+        </p>
+      )}
+
+      {job.skills.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-5">
+          {job.skills.map((skill) => (
+            <span key={skill} className="text-[11px] font-medium bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full max-w-full truncate">
+              {skill}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <button className="w-full mt-2 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl">
+        Apply Now
+      </button>
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#F7F9FC]">
@@ -148,15 +220,14 @@ export default function PostJobForm() {
           <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
             <Mail size={16} />
           </button>
-          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs shrink-0">
-            {job.company?.charAt(0) || "E"}
-          </div>
+          <div className="h-6 w-px bg-gray-200"></div>
+          <UserButton />
         </div>
       </header>
 
       <div className="min-h-14 py-3 bg-white border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between px-4 shrink-0 z-10 shadow-sm gap-3 sm:gap-0">
         <div>
-          <h1 className="font-semibold text-gray-800">Post a Job</h1>
+          <h1 className="font-semibold text-gray-800">Job Details</h1>
           <p className="text-xs text-gray-400">Fill in the details, then publish or save for later.</p>
         </div>
         <div className="flex flex-row gap-2 w-full sm:w-auto justify-end">
@@ -180,213 +251,235 @@ export default function PostJobForm() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
-          <div className="max-w-2xl mx-auto space-y-6">
-            <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
-              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Briefcase size={16} className="text-gray-400" /> Job Basics
-              </h3>
-              <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">Job Title</label>
-                <input
-                  className="w-full p-2.5 border border-gray-200 rounded-md text-sm outline-none focus:border-indigo-500"
-                  placeholder="e.g. Senior Product Designer"
-                  value={job.title}
-                  onChange={(e) => update("title", e.target.value)}
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <main className="flex-1 overflow-y-auto p-4 pb-24 lg:p-10">
+          <div className="max-w-3xl mx-auto space-y-6">
+            
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900">Post a job</h1>
+              <p className="text-gray-600 mt-1">Share an app, product, or software role with Filipino builders.</p>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Company</label>
+                  <label className="text-sm font-bold text-gray-900 mb-2 block">Role title</label>
                   <input
-                    className="w-full p-2.5 border border-gray-200 rounded-md text-sm outline-none focus:border-indigo-500"
-                    placeholder="Your company name"
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-500"
+                    placeholder="Senior iOS Engineer"
+                    value={job.title}
+                    onChange={(e) => update("title", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-bold text-gray-900 mb-2 block">Company</label>
+                  <input
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-500"
+                    placeholder="Acme Apps"
                     value={job.company}
                     onChange={(e) => update("company", e.target.value)}
                   />
                 </div>
+
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Employment Type</label>
+                  <label className="text-sm font-bold text-gray-900 mb-2 block">Location</label>
+                  <div className="space-y-2">
+                    <input
+                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-500 disabled:opacity-60"
+                      placeholder="e.g. Remote, Philippines"
+                      value={job.location}
+                      onChange={(e) => update("location", e.target.value)}
+                      disabled={job.remote}
+                    />
+                    <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={job.remote}
+                        onChange={(e) => update("remote", e.target.checked)}
+                        className="w-4 h-4 accent-indigo-600 shrink-0"
+                      />
+                      This role is remote
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-gray-900 mb-2 block">Type</label>
                   <select
                     value={job.employmentType}
                     onChange={(e) => update("employmentType", e.target.value as EmploymentType)}
-                    className="w-full p-2.5 border border-gray-200 rounded-md text-sm bg-white outline-none focus:border-indigo-500"
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-500"
                   >
                     {EMPLOYMENT_TYPES.map((t) => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 sm:items-end">
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Location</label>
-                  <input
-                    className="w-full p-2.5 border border-gray-200 rounded-md text-sm outline-none focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-400"
-                    placeholder="e.g. Austin, TX"
-                    value={job.location}
-                    onChange={(e) => update("location", e.target.value)}
-                    disabled={job.remote}
-                  />
-                </div>
-                <label className="flex items-center gap-2 text-sm text-gray-600 sm:pb-2.5 pt-1 sm:pt-0 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={job.remote}
-                    onChange={(e) => update("remote", e.target.checked)}
-                    className="w-4 h-4 accent-indigo-600 shrink-0"
-                  />
-                  This role is remote
-                </label>
-              </div>
-            </div>
 
-            <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
-              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <DollarSign size={16} className="text-gray-400" /> Compensation
-                <span className="text-xs font-normal text-gray-400">(optional)</span>
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Min ($/yr)</label>
+                  <label className="text-sm font-bold text-gray-900 mb-2 block">
+                    Min Salary (₱/yr) <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
                   <input
                     type="number"
-                    className="w-full p-2.5 border border-gray-200 rounded-md text-sm outline-none focus:border-indigo-500"
-                    placeholder="80,000"
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-500"
+                    placeholder="800000"
                     value={job.salaryMin}
                     onChange={(e) => update("salaryMin", e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Max ($/yr)</label>
+                  <label className="text-sm font-bold text-gray-900 mb-2 block">
+                    Max Salary (₱/yr) <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
                   <input
                     type="number"
-                    className="w-full p-2.5 border border-gray-200 rounded-md text-sm outline-none focus:border-indigo-500"
-                    placeholder="110,000"
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-500"
+                    placeholder="1200000"
                     value={job.salaryMax}
                     onChange={(e) => update("salaryMax", e.target.value)}
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
-              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Building2 size={16} className="text-gray-400" /> Description
-              </h3>
               <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">About the Role</label>
+                <label className="text-sm font-bold text-gray-900 mb-2 block">Job Description</label>
                 <textarea
                   rows={5}
-                  className="w-full p-3 border border-gray-200 rounded-lg text-sm outline-none resize-none focus:border-indigo-500"
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none resize-none focus:border-indigo-500"
                   placeholder="Describe what this person will do day to day..."
                   value={job.description}
                   onChange={(e) => update("description", e.target.value)}
                 />
               </div>
+
               <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">Requirements</label>
+                <label className="text-sm font-bold text-gray-900 mb-2 block">Requirements</label>
                 <textarea
                   rows={4}
-                  className="w-full p-3 border border-gray-200 rounded-lg text-sm outline-none resize-none focus:border-indigo-500"
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none resize-none focus:border-indigo-500"
                   placeholder="One requirement per line..."
                   value={job.requirements}
                   onChange={(e) => update("requirements", e.target.value)}
                 />
               </div>
-            </div>
 
-            <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Tag size={16} className="text-gray-400" /> Skills & Tags
-              </h3>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  className="flex-1 p-2.5 border border-gray-200 rounded-md text-sm outline-none focus:border-indigo-500"
-                  placeholder="Type a skill and press Enter"
-                  value={skillInput}
-                  onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyDown={handleSkillKeyDown}
-                />
-                <button
-                  onClick={addSkill}
-                  className="px-4 py-2.5 sm:py-2 text-sm font-semibold border border-gray-200 rounded-md hover:bg-gray-50 transition-colors w-full sm:w-auto"
-                >
-                  Add
-                </button>
-              </div>
-              {job.skills.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {job.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-xs font-semibold pl-3 pr-2 py-1.5 rounded-full"
-                    >
-                      {skill}
-                      <button onClick={() => removeSkill(skill)} className="hover:text-indigo-900">
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
+              <div>
+                <label className="text-sm font-bold text-gray-900 mb-2 block">Skills & Tags</label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-500"
+                    placeholder="Type a skill and press Enter"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    onKeyDown={handleSkillKeyDown}
+                  />
+                  <button
+                    onClick={addSkill}
+                    className="px-6 py-3 text-sm font-semibold border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors w-full sm:w-auto"
+                  >
+                    Add
+                  </button>
                 </div>
-              )}
+                {job.skills.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-3">
+                    {job.skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-xs font-semibold pl-3 pr-2 py-1.5 rounded-full"
+                      >
+                        {skill}
+                        <button onClick={() => removeSkill(skill)} className="hover:text-indigo-900">
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </main>
 
-        <aside className="hidden lg:flex w-96 bg-gray-100/50 border-l border-gray-200 overflow-y-auto p-6 shrink-0 flex-col">
-          <span className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Live Preview</span>
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-11 h-11 rounded-xl bg-indigo-600 text-white font-bold flex items-center justify-center text-sm shrink-0">
-                {job.company?.charAt(0).toUpperCase() || "?"}
+        <aside className="hidden lg:flex w-96 bg-gray-100/50 border-l border-gray-200 overflow-y-auto p-6 shrink-0 flex-col gap-8">
+          {/* Posting Checklist Section */}
+          <div>
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-indigo-600 mb-2 block">Posting Checklist</span>
+            <h3 className="text-lg font-bold text-gray-900 mb-6">Before you publish</h3>
+
+            <div className="space-y-6">
+              <div className="flex gap-3">
+                <div className="relative shrink-0">
+                  <Search className="w-5 h-5 text-indigo-600" />
+                  <span className="absolute -bottom-1 -right-1 bg-gray-800 text-white text-[9px] font-bold w-3.5 h-3.5 flex items-center justify-center rounded-full border border-gray-50">1</span>
+                </div>
+                <div>
+                  <h5 className="text-sm font-bold text-gray-900">Make the role clear</h5>
+                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">Use the title people would search for.</p>
+                </div>
               </div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full text-center">
-                {job.employmentType}
-              </span>
-            </div>
 
-            <h3 className="text-base font-bold text-gray-900 mb-0.5">
-              {job.title || "Job Title"}
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">{job.company || "Your Company"}</p>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 mb-4">
-              <span className="flex items-center gap-1">
-                <MapPin size={12} /> {job.remote ? "Remote" : job.location || "Location"}
-              </span>
-              {salaryLabel && (
-                <span className="flex items-center gap-1">
-                  <DollarSign size={12} /> {salaryLabel}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Clock size={12} /> Just now
-              </span>
-            </div>
-
-            {job.description && (
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap mb-4 line-clamp-5">
-                {job.description}
-              </p>
-            )}
-
-            {job.skills.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-5">
-                {job.skills.map((skill) => (
-                  <span key={skill} className="text-[11px] font-medium bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">
-                    {skill}
-                  </span>
-                ))}
+              <div className="flex gap-3">
+                <div className="relative shrink-0">
+                  <Lock className="w-5 h-5 text-indigo-600" />
+                  <span className="absolute -bottom-1 -right-1 bg-gray-800 text-white text-[9px] font-bold w-3.5 h-3.5 flex items-center justify-center rounded-full border border-gray-50">2</span>
+                </div>
+                <div>
+                  <h5 className="text-sm font-bold text-gray-900">Keep contact private</h5>
+                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">Put emails and application notes in private details.</p>
+                </div>
               </div>
-            )}
 
-            <button className="w-full py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl">
-              Apply Now
-            </button>
+              <div className="flex gap-3">
+                <div className="relative shrink-0">
+                  <Wallet className="w-5 h-5 text-indigo-600" />
+                  <span className="absolute -bottom-1 -right-1 bg-gray-800 text-white text-[9px] font-bold w-3.5 h-3.5 flex items-center justify-center rounded-full border border-gray-50">3</span>
+                </div>
+                <div>
+                  <h5 className="text-sm font-bold text-gray-900">Add compensation</h5>
+                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">A range helps makers decide faster.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr className="border-gray-200" />
+
+          {/* Live Preview Section */}
+          <div>
+            <span className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 block">Live Preview</span>
+            {previewCard}
           </div>
         </aside>
       </div>
+
+      {/* Mobile / tablet preview toggle — the aside above is desktop-only */}
+      <button
+        onClick={() => setMobilePreviewOpen(true)}
+        className="lg:hidden fixed bottom-5 right-4 z-30 flex items-center gap-2 px-4 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full shadow-lg active:scale-95 transition-transform"
+      >
+        <Eye size={16} /> Preview
+      </button>
+
+      {mobilePreviewOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 flex items-end">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobilePreviewOpen(false)}
+          />
+          <div className="relative w-full max-h-[85vh] overflow-y-auto bg-gray-100/50 rounded-t-3xl p-5 pb-8 animate-in slide-in-from-bottom duration-200">
+            <button
+              onClick={() => setMobilePreviewOpen(false)}
+              className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-500 mb-4"
+            >
+              <ChevronUp size={14} className="rotate-180" /> Close preview
+            </button>
+            <span className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 block">Live Preview</span>
+            {previewCard}
+          </div>
+        </div>
+      )}
 
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
     </div>
