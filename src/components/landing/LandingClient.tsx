@@ -400,7 +400,6 @@ export default function LandingClient() {
         </div>
       </motion.section>
 
-      {/* Simple CTA — no fabricated pricing tiers */}
       <motion.section
         initial="hidden"
         whileInView="visible"
