@@ -239,7 +239,6 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
                       Posted by {user?.fullName || "you"}
                     </span>
                     
-                    {/* Clickable Manage Button */}
                     <button 
                       onClick={() => router.push(`/employer/jobs/${job.id}`)}
                       className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 group"
