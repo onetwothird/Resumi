@@ -139,7 +139,6 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
                       </div>
                     )}
                     
-                    {/* Top Right Badges & Actions */}
                     <div className="flex flex-col items-end gap-2 relative">
                       <div className="flex items-center gap-2">
                         <span
@@ -152,7 +151,6 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
                           {job.status}
                         </span>
                         
-                        {/* More Menu Trigger */}
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -164,7 +162,6 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
                         </button>
                       </div>
 
-                      {/* Dropdown Options */}
                       {isMenuOpen && (
                         <div className="absolute top-8 right-0 w-36 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-30 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                           <button 
@@ -174,7 +171,7 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
                             <Edit3 size={14} /> Edit Job
                           </button>
                           <button 
-                            onClick={(e) => { e.stopPropagation(); /* Add view logic */ }}
+                            onClick={(e) => { e.stopPropagation();  }}
                             className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center gap-2 transition-colors"
                           >
                             <Eye size={14} /> View Public
@@ -204,7 +201,6 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
                     <span className="flex items-center gap-1">
                       <MapPin size={12} /> {job.remote ? "Remote" : job.location || "Location not set"}
                     </span>
-                    {/* suppressHydrationWarning ADDED HERE */}
                     <span className="flex items-center gap-1" suppressHydrationWarning>
                       <Clock size={12} /> Updated {timeAgo(job.updatedAt)}
                     </span>
