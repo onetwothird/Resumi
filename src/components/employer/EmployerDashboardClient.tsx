@@ -55,7 +55,6 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
   const published = initialJobs.filter((j) => j.status === "published");
   const drafts = initialJobs.filter((j) => j.status === "draft");
 
-  // Close the dropdown menu if the user clicks anywhere else on the screen
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
     document.addEventListener("click", handleClickOutside);
