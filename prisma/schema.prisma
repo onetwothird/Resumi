@@ -19,25 +19,28 @@ model Resume {
   id          String   @id @default(cuid())
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   title       String   @default("Untitled Resume")
-  
-  fullName    String?
+
+  firstName   String?
+  lastName    String?
   jobTitle    String?
   email       String?
   phone       String?
   address     String?
   summary     String?  @db.Text
-  
-  // Structured JSON fields for multi-item sections
-  experience  Json?    // Array of { company, role, startDate, endDate, description }
-  education   Json?    // Array of { school, degree, year }
-  skills      Json?    // Array of strings or categories
 
-  // ATS Optimization
+  experience     Json?
+  education      Json?
+  skills         Json?
+  certifications String? @db.Text
+
+  theme       Json?
+  blockStyles Json?
+
   atsScore    Int?
   targetJob   String?  @db.Text
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -62,7 +65,7 @@ model Job {
   requirements    String?  @db.Text
   skills          Json?
 
-  posterImageUrl  String?  // Clerk profile photo (from Google, etc.) of whoever posted this job
+  posterImageUrl  String?
 
   status          String   @default("draft")
 
