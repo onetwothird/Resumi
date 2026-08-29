@@ -2,6 +2,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
+import Link from "next/link";
+import { UserButton } from "@clerk/nextjs";
 import { 
   Loader2, Undo, Redo, Share, Bell, Mail, ChevronDown, Save, 
   PenTool, Eye, Settings 
@@ -123,16 +125,17 @@ export default function EditorPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Save failed");
-      const saved = await res.json();
-      pushToast("Resume saved", "success");
-      setLastSaved(new Date());
 
-      if (resumeId === "new" && saved?.id) {
-        router.replace(`/resume/${saved.id}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || "Save failed");
       }
-    } catch {
-      pushToast("Couldn't save your resume. Try again.", "error");
+
+      pushToast("Resume saved", "success");
+      router.push("/dashboard");
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "Unknown error";
+      pushToast(`Couldn't save: ${detail}`, "error");
     } finally {
       setIsSaving(false);
     }
@@ -157,20 +160,18 @@ export default function EditorPage() {
           </div>
           
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <a href="/dashboard" className="hover:text-gray-900 transition-colors">Home</a>
-            <a href="/jobs" className="hover:text-gray-900 transition-colors">Jobs</a>
-            <a href="/companies" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Companies <ChevronDown size={14}/></a>
-            <a href="/ai-tools" className="flex items-center gap-1 text-gray-900 font-semibold transition-colors">AI Tools <ChevronDown size={14}/></a>
-            <a href="/for-employers" className="hover:text-gray-900 transition-colors">For Employers</a>
+            <Link href="/dashboard" className="hover:text-gray-900 transition-colors">Home</Link>
+            <Link href="/jobs" className="hover:text-gray-900 transition-colors">Jobs</Link>
+            <Link href="/companies" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Companies <ChevronDown size={14}/></Link>
+            <Link href="/ai-tools" className="flex items-center gap-1 text-gray-900 font-semibold transition-colors">AI Tools <ChevronDown size={14}/></Link>
+            <Link href="/for-employers" className="hover:text-gray-900 transition-colors">For Employers</Link>
           </nav>
         </div>
         <div className="flex items-center gap-2 lg:gap-4">
           <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors"><Bell size={16} /></button>
           <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors"><Mail size={16} /></button>
           <div className="flex items-center gap-2 sm:ml-2">
-             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
-                {data.firstName?.charAt(0) || "U"}
-             </div>
+            <UserButton />
           </div>
         </div>
       </header>
