@@ -47,12 +47,11 @@ export default async function BuilderPage({ params }: { params: Promise<{ id: st
 
     if (!existing) redirect("/dashboard");
 
-    // Fixes the ESLint 'any' errors by casting to proper types
     const metaData = existing.skills ? (existing.skills as SkillMeta) : {};
 
     initialData = {
-      firstName: existing.fullName?.split(" ")[0] || "",
-      lastName: existing.fullName?.split(" ").slice(1).join(" ") || "",
+      firstName: existing.firstName || "",
+      lastName: existing.lastName || "",
       jobTitle: existing.jobTitle || "",
       email: existing.email || "",
       phone: existing.phone || "",
