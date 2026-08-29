@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 
 export async function POST(
   req: Request,
@@ -15,21 +17,27 @@ export async function POST(
     const original = await prisma.resume.findFirst({
       where: { id, userId },
     });
+    
     if (!original) return new NextResponse("Not found", { status: 404 });
 
-    // Strip fields that must not be copied verbatim
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...rest } =
-      original;
+     
+    const { 
+      id: _id, 
+      createdAt: _createdAt, 
+      updatedAt: _updatedAt, 
+      ...rest 
+    } = original;
 
     const copy = await prisma.resume.create({
       data: {
         ...rest,
         userId,
         title: `${original.title} (Copy)`,
-        experience: rest.experience ?? undefined,
-        education: rest.education ?? undefined,
-        skills: rest.skills ?? undefined,
+        experience: rest.experience ? (rest.experience as Prisma.InputJsonValue) : undefined,
+        education: rest.education ? (rest.education as Prisma.InputJsonValue) : undefined,
+        skills: rest.skills ? (rest.skills as Prisma.InputJsonValue) : undefined,
+        theme: rest.theme ? (rest.theme as Prisma.InputJsonValue) : undefined,
+        blockStyles: rest.blockStyles ? (rest.blockStyles as Prisma.InputJsonValue) : undefined,
       },
     });
 
