@@ -13,18 +13,32 @@ export async function POST(
     const { id } = await params;
     const data = await req.json();
 
-    // Ensure user exists
-    await prisma.user.upsert({
-      where: { id: userId },
-      update: {},
-      create: { id: userId, email: "user@example.com" },
-    });
+    // Map the UI ResumeData state directly to your updated Prisma Schema
+    const dbPayload = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      jobTitle: data.jobTitle,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      summary: data.summary,
+      experience: data.experience ?? [],
+      education: data.education ?? [],
+      skills: data.skills ?? null,
+      certifications: data.certifications,
+      theme: data.theme ?? null,
+      blockStyles: data.blockStyles ?? null,
+    };
 
     // Save Resume
     const resume = await prisma.resume.upsert({
       where: { id: id === "new" ? "temp-id-prevent-match" : id },
-      update: { ...data },
-      create: { ...data, userId, id: undefined },
+      update: dbPayload,
+      create: { 
+        ...dbPayload, 
+        userId, 
+        title: data.jobTitle || "Untitled Resume" 
+      },
     });
 
     return NextResponse.json(resume);
@@ -34,7 +48,7 @@ export async function POST(
   }
 }
 
-// Rename (or otherwise partially update) a resume owned by the current user
+// Rename a resume
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -63,7 +77,7 @@ export async function PATCH(
   }
 }
 
-// Delete a resume owned by the current user
+// Delete a resume
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
