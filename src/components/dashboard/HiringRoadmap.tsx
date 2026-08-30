@@ -51,7 +51,6 @@ const STEPS: RoadmapStep[] = [
       "Prepare a 60-second \"tell me about yourself\" that maps to the role",
       "Bring 2–3 thoughtful questions for the interviewer",
     ],
-    // New action linked to our Voice AI
     action: { label: "Practice with AI Voice Coach", trigger: 'ai_coach' }
   },
   {
@@ -113,7 +112,6 @@ export default function HiringRoadmap({ hasResumes, onStartAiInterview }: { hasR
                   />
                 )}
                 
-                {/* Circle Icon */}
                 <button
                   onClick={() => setOpenStep(isOpen ? null : i)}
                   className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ease-out outline-none
@@ -125,7 +123,6 @@ export default function HiringRoadmap({ hasResumes, onStartAiInterview }: { hasR
                   {isDone ? <Check className="w-5 h-5" strokeWidth={3} /> : <Icon className="w-4 h-4" strokeWidth={2.5} />}
                 </button>
 
-                {/* Step Labels */}
                 <button 
                   onClick={() => setOpenStep(isOpen ? null : i)} 
                   className="mt-4 flex flex-col items-center outline-none px-2"
@@ -143,7 +140,6 @@ export default function HiringRoadmap({ hasResumes, onStartAiInterview }: { hasR
         </div>
       </div>
 
-      {/* Expanded Tips Box */}
       {openStep !== null && (
         <div className="mt-8 bg-gray-50/50 border border-gray-200 rounded-xl p-6 md:p-8 transition-all animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
@@ -171,7 +167,6 @@ export default function HiringRoadmap({ hasResumes, onStartAiInterview }: { hasR
             ))}
           </ul>
           
-          {/* AI Interactive Button inside Roadmap */}
           {STEPS[openStep].action && (
             <div className="mt-6 pt-6 border-t border-gray-200/60">
               <button 
