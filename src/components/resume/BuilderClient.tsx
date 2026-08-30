@@ -18,7 +18,6 @@ export default function BuilderClient({ initialData, resumeId }: Props) {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [toastMsg, setToastMsg] = useState<{msg: string, type: string} | null>(null);
 
-  // Declared BEFORE saveResume to fix the ESLint hoisting error
   const pushToast = (msg: string, type: "success" | "error") => {
     setToastMsg({ msg, type });
     setTimeout(() => setToastMsg(null), 3000);
