@@ -2,6 +2,35 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+
+    const { id } = await params;
+
+    // A brand-new, unsaved resume has no id to look up yet — return an
+    // empty 200 rather than treating it as a lookup failure.
+    if (id === "new") {
+      return NextResponse.json(null);
+    }
+
+    const resume = await prisma.resume.findFirst({
+      where: { id, userId },
+    });
+
+    if (!resume) return new NextResponse("Not found", { status: 404 });
+
+    return NextResponse.json(resume);
+  } catch (error) {
+    console.error(error);
+    return new NextResponse("Database Error", { status: 500 });
+  }
+}
+
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -13,7 +42,29 @@ export async function POST(
     const { id } = await params;
     const data = await req.json();
 
+    // If the user has explicitly renamed the resume (data.titleIsCustom),
+    // trust whatever title they typed and keep the flag set — autosave
+    // must never clobber a manual rename. Otherwise, auto-derive the title
+    // from the resume's content on every save: Job Title, then full name,
+    // then a generic placeholder.
+    const isCustomTitle =
+      data.titleIsCustom === true &&
+      typeof data.title === "string" &&
+      data.title.trim().length > 0;
+
+    const fullName = [data.firstName, data.lastName]
+      .filter((part: unknown) => typeof part === "string" && part.trim())
+      .join(" ")
+      .trim();
+
+    const derivedTitle =
+      (typeof data.jobTitle === "string" && data.jobTitle.trim()) ||
+      fullName ||
+      "Untitled Resume";
+
     const dbPayload = {
+      title: isCustomTitle ? data.title.trim() : derivedTitle,
+      titleIsCustom: isCustomTitle,
       firstName: data.firstName,
       lastName: data.lastName,
       jobTitle: data.jobTitle,
@@ -32,10 +83,9 @@ export async function POST(
     const resume = await prisma.resume.upsert({
       where: { id: id === "new" ? "temp-id-prevent-match" : id },
       update: dbPayload,
-      create: { 
-        ...dbPayload, 
-        userId, 
-        title: data.jobTitle || "Untitled Resume" 
+      create: {
+        ...dbPayload,
+        userId,
       },
     });
 
@@ -64,7 +114,7 @@ export async function PATCH(
 
     const resume = await prisma.resume.update({
       where: { id },
-      data: { title: body.title },
+      data: { title: body.title, titleIsCustom: true },
     });
 
     return NextResponse.json(resume);
