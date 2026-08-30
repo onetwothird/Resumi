@@ -1,4 +1,3 @@
-// src/components/resume/BuilderSidebar.tsx
 import { useState } from "react";
 import { ResumeData, ExperienceItem, EducationItem } from "@/types";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
@@ -57,7 +56,6 @@ export default function BuilderSidebar({ data, onChange }: Props) {
     update("education", (data.education || []).map(e => e.id === id ? { ...e, [field]: value } : e));
   };
 
-  // ... (Keep existing rewriteWithAI function)
   const rewriteWithAI = async () => {
     if (!data.summary?.trim()) {
       setRewriteError("Write a short summary first.");
@@ -91,7 +89,6 @@ export default function BuilderSidebar({ data, onChange }: Props) {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-20">
-        {/* Personal Details */}
         <div className="border-b border-gray-100">
           <button onClick={() => toggleSection('personal')} className="w-full flex items-center justify-between p-4 font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
             Personal Details
@@ -127,7 +124,6 @@ export default function BuilderSidebar({ data, onChange }: Props) {
           )}
         </div>
 
-        {/* Summary */}
         <div className="border-b border-gray-100">
           <button onClick={() => toggleSection('summary')} className="w-full flex items-center justify-between p-4 font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
             Professional Summary
@@ -148,7 +144,6 @@ export default function BuilderSidebar({ data, onChange }: Props) {
           )}
         </div>
 
-        {/* Work Experience */}
         <div className="border-b border-gray-100">
           <button onClick={() => toggleSection('experience')} className="w-full flex items-center justify-between p-4 font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
             Work Experience
@@ -184,7 +179,6 @@ export default function BuilderSidebar({ data, onChange }: Props) {
           )}
         </div>
 
-        {/* Education */}
         <div className="border-b border-gray-100">
           <button onClick={() => toggleSection('education')} className="w-full flex items-center justify-between p-4 font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
             Education
@@ -220,7 +214,6 @@ export default function BuilderSidebar({ data, onChange }: Props) {
           )}
         </div>
 
-        {/* Skills & Certifications */}
         {['Skills', 'Certifications'].map((sectionName) => {
           const key = sectionName.toLowerCase() as 'skills' | 'certifications';
           return (
