@@ -119,8 +119,6 @@ export default function JobBoard() {
     }
   }, []);
 
-  // Initial load, then poll quietly + refetch whenever the tab regains focus,
-  // so a job an employer just published shows up here without a hard reload.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchJobs();
