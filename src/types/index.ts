@@ -66,6 +66,8 @@ export interface EducationItem {
 
 export interface ResumeData {
   id?: string;
+  title?: string;
+  titleIsCustom?: boolean;
   firstName: string;
   lastName: string;
   jobTitle: string;
