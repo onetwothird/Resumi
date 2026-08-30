@@ -1,4 +1,3 @@
-// src/components/resume/ResumePreview.tsx
 import { forwardRef } from "react";
 import {
   ResumeData,
@@ -13,8 +12,6 @@ interface Props {
   data: ResumeData;
 }
 
-// Base text sizes per section, keyed by the user's chosen font size.
-// Kept as static Tailwind class strings (not interpolated) so Tailwind can see and generate them.
 const SIZE_MAP: Record<
   ResumeFontSize,
   { name: string; title: string; meta: string; heading: string; body: string }
@@ -42,9 +39,6 @@ const SIZE_MAP: Record<
   },
 };
 
-// Mirrors CanvasEditor's styleToCss so exported/printed output matches what
-// was styled on the canvas. If you extract that helper into a shared file,
-// swap this local copy for an import instead.
 function styleToCss(s: TextBlockStyle | undefined): React.CSSProperties {
   if (!s) return {};
   const decoration = [s.underline && "underline", s.strike && "line-through"].filter(Boolean).join(" ");
@@ -153,7 +147,6 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
     );
   }
 
-  // classic (default)
   return (
     <div
       ref={ref}
