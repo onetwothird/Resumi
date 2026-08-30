@@ -116,7 +116,6 @@ export default function ResumeForm({ data, onChange }: Props) {
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
-      {/* --- Tabs --- */}
       <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit sticky top-0 z-10">
         <button
           onClick={() => setTab("content")}
@@ -143,7 +142,6 @@ export default function ResumeForm({ data, onChange }: Props) {
 
       {tab === "content" && (
         <div className="space-y-8">
-          {/* --- Personal Information Section --- */}
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
 
@@ -227,7 +225,6 @@ export default function ResumeForm({ data, onChange }: Props) {
             )}
           </div>
 
-          {/* --- ATS Optimizer Section --- */}
           <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <div>
@@ -293,7 +290,6 @@ export default function ResumeForm({ data, onChange }: Props) {
 
       {tab === "design" && (
         <div className="space-y-8">
-          {/* --- Layout --- */}
           <div>
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-1">
               <LayoutTemplate className="w-5 h-5 text-indigo-600" />
@@ -324,7 +320,6 @@ export default function ResumeForm({ data, onChange }: Props) {
             </div>
           </div>
 
-          {/* --- Color --- */}
           <div>
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-1">
               <Palette className="w-5 h-5 text-indigo-600" />
@@ -366,7 +361,6 @@ export default function ResumeForm({ data, onChange }: Props) {
             </div>
           </div>
 
-          {/* --- Font --- */}
           <div>
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-1">
               <Type className="w-5 h-5 text-indigo-600" />
@@ -391,7 +385,6 @@ export default function ResumeForm({ data, onChange }: Props) {
             </div>
           </div>
 
-          {/* --- Font size --- */}
           <div>
             <h2 className="text-lg font-bold text-gray-900 mb-1">Text Size</h2>
             <p className="text-sm text-gray-500 mb-4">Fine-tune density and readability.</p>
@@ -417,7 +410,6 @@ export default function ResumeForm({ data, onChange }: Props) {
   );
 }
 
-// Small SVG-free visual preview of each layout option, tinted with the current accent color
 function LayoutSwatch({ layout, color }: { layout: ResumeLayout; color: string }) {
   if (layout === "modern") {
     return (
@@ -440,7 +432,6 @@ function LayoutSwatch({ layout, color }: { layout: ResumeLayout; color: string }
       </div>
     );
   }
-  // classic
   return (
     <div className="w-full h-16 rounded-md border border-gray-200 overflow-hidden bg-white p-2 flex flex-col items-center">
       <div className="h-1.5 w-1/2 bg-gray-800 rounded-full mt-1" />
