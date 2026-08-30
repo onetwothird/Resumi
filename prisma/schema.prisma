@@ -20,7 +20,8 @@ model Resume {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  title       String   @default("Untitled Resume")
+  title         String   @default("Untitled Resume")
+  titleIsCustom Boolean  @default(false)
 
   firstName   String?
   lastName    String?
