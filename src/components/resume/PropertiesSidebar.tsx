@@ -1,4 +1,3 @@
-// src/components/resume/PropertiesSidebar.tsx
 import { useState } from "react";
 import { ResumeData, ResumeTheme, DEFAULT_THEME, THEME_COLOR_PRESETS, THEME_FONT_OPTIONS, ResumeLayout, ResumeFontSize } from "@/types";
 import { Sparkles, Activity, LayoutTemplate, Palette, Type, Check } from "lucide-react";
@@ -45,7 +44,6 @@ export default function PropertiesSidebar({ data, onChange, pushToast }: Props) 
 
   return (
     <>
-      {/* AI Skill Alignment Card */}
       <div className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-2">
            <div className="flex items-center gap-2 text-indigo-700 font-bold text-sm">
@@ -67,7 +65,6 @@ export default function PropertiesSidebar({ data, onChange, pushToast }: Props) 
 
       <hr className="border-gray-100" />
 
-      {/* Theme Controls */}
       <div className="space-y-6">
         <div>
           <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
