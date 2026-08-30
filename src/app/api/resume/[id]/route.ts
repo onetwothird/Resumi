@@ -13,7 +13,6 @@ export async function POST(
     const { id } = await params;
     const data = await req.json();
 
-    // Map the UI ResumeData state directly to your updated Prisma Schema
     const dbPayload = {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -30,7 +29,6 @@ export async function POST(
       blockStyles: data.blockStyles ?? null,
     };
 
-    // Save Resume
     const resume = await prisma.resume.upsert({
       where: { id: id === "new" ? "temp-id-prevent-match" : id },
       update: dbPayload,
@@ -48,7 +46,6 @@ export async function POST(
   }
 }
 
-// Rename a resume
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -77,7 +74,6 @@ export async function PATCH(
   }
 }
 
-// Delete a resume
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
