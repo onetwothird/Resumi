@@ -4,7 +4,8 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Plus, Search, FileX2, FilePlus2, Bell, Mail, Mic, Bot, X, PlaySquare, Square,
-  Video, VideoOff, Loader2, RotateCcw, TrendingUp, ThumbsUp, Target,
+  Video, VideoOff, RotateCcw, TrendingUp, ThumbsUp, Target, ChevronDown,
+  Sparkles, Briefcase, FileText, ChevronRight,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { ResumeListItem } from "@/types/dashboard";
@@ -12,20 +13,6 @@ import { formatRelativeDate } from "@/lib/format";
 import ResumeCard from "@/components/dashboard/ResumeCard";
 import PdfUploader from "@/components/dashboard/PdfUploader";
 
-const HiringRoadmap = ({ hasResumes, onStartAiInterview }: { hasResumes: boolean; onStartAiInterview: () => void }) => {
-  if (!hasResumes) return null;
-  return (
-    <div className="mt-8">
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-        <h3 className="text-sm font-bold text-gray-900">Hiring roadmap</h3>
-        <p className="text-xs text-gray-500 mt-1">Get started with the AI coach to prepare for interviews.</p>
-        <div className="mt-3">
-          <button onClick={onStartAiInterview} className="text-sm font-semibold text-indigo-600">Start AI Coach</button>
-        </div>
-      </div>
-    </div>
-  );
-};
 import JobBoard from "@/components/dashboard/JobBoard";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
@@ -84,6 +71,8 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   const [resumes, setResumes] = useState<ResumeListItem[]>(initialResumes);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("updated");
+  const [page, setPage] = useState(1);
+  const RESUMES_PER_PAGE = 8;
   const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
@@ -360,6 +349,33 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     });
   }, [resumes, query, sortBy]);
 
+  // RESUMES_PER_PAGE slots per page. Page 1 gives up one slot to the
+  // "Create New Resume" tile, so every page — including the first — renders
+  // as exactly 2 full rows of 4 on large screens instead of spilling a lone
+  // card onto a 3rd row.
+  const resumesOnFirstPage = RESUMES_PER_PAGE - 1;
+  const totalPages = Math.max(
+    1,
+    1 + Math.ceil(Math.max(0, filteredAndSorted.length - resumesOnFirstPage) / RESUMES_PER_PAGE)
+  );
+
+  const [prevFilterKey, setPrevFilterKey] = useState(`${query}|${sortBy}`);
+  const filterKey = `${query}|${sortBy}`;
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setPage(1);
+  }
+
+  const currentPage = Math.min(page, totalPages);
+
+  const paginatedResumes = useMemo(() => {
+    if (currentPage === 1) {
+      return filteredAndSorted.slice(0, resumesOnFirstPage);
+    }
+    const start = resumesOnFirstPage + (currentPage - 2) * RESUMES_PER_PAGE;
+    return filteredAndSorted.slice(start, start + RESUMES_PER_PAGE);
+  }, [filteredAndSorted, currentPage, resumesOnFirstPage]);
+
   const handleRename = async (id: string, title: string) => {
     const previous = resumes;
     setResumes((prev) => prev.map((r) => (r.id === id ? { ...r, title } : r)));
@@ -421,43 +437,48 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
   return (
     <>
-      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-20 shadow-xs">
-        <div className="flex items-center gap-8">
+      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 shadow-xs">
+        <div className="flex items-center gap-4 lg:gap-8">
           <Link href="/dashboard" onClick={() => setActiveTab("resumes")} className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
             <ResumiLogo className="w-8 h-8" />
-            Resumi
+            <span className="hidden sm:inline">Resumi</span>
           </Link>
+
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <button 
-              onClick={() => setActiveTab("resumes")} 
-              className={`font-semibold transition-colors ${activeTab === "resumes" ? "text-indigo-600" : "hover:text-gray-900"}`}
+            <button
+              onClick={() => setActiveTab("resumes")}
+              className={`transition-colors ${activeTab === "resumes" ? "text-gray-900 font-semibold" : "hover:text-gray-900"}`}
             >
-              Dashboard
+              Home
             </button>
-            <button 
-              onClick={() => setActiveTab("jobs")} 
-              className={`font-semibold transition-colors flex items-center gap-1 ${activeTab === "jobs" ? "text-indigo-600" : "hover:text-gray-900"}`}
+            <button
+              onClick={() => setActiveTab("jobs")}
+              className={`transition-colors ${activeTab === "jobs" ? "text-gray-900 font-semibold" : "hover:text-gray-900"}`}
             >
               Jobs
             </button>
-
-            <Link href="/resume/new" className="hover:text-gray-900 transition-colors">Builder</Link>
-
-            <button onClick={startAiInterview} className="flex items-center gap-1 text-indigo-600 font-semibold hover:text-indigo-800 transition-colors bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
-              <Bot size={16} /> AI Coach
+            <Link href="/companies" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Companies <ChevronDown size={14}/></Link>
+            <Link href="/resume/new" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Builder <ChevronDown size={14}/></Link>
+            <button
+              onClick={startAiInterview}
+              className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-linear-to-r from-indigo-500/10 to-violet-500/10 text-indigo-700 font-semibold hover:from-indigo-500/15 hover:to-violet-500/15 transition-colors"
+            >
+              <Sparkles size={14} className="text-indigo-500" /> AI Coach
             </button>
+            
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
-          <button onClick={() => pushToast("You have 0 new notifications.", "info")} className="p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
+        <div className="flex items-center gap-2 lg:gap-4">
+          <button onClick={() => pushToast("You have 0 new notifications.", "info")} className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
             <Bell size={16} />
           </button>
-          <button onClick={() => pushToast("Inbox is currently empty.", "info")} className="p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
+          <button onClick={() => pushToast("Inbox is currently empty.", "info")} className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
             <Mail size={16} />
           </button>
-          <div className="h-6 w-px bg-gray-200"></div>
-          <UserButton />
+          <div className="flex items-center gap-2 sm:ml-2">
+            <UserButton />
+          </div>
         </div>
       </header>
 
@@ -550,20 +571,53 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
               {hasResumes && hasResults && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  <Link href="/resume/new" className="group flex flex-col items-center justify-center h-80 bg-white border-2 border-dashed border-indigo-200 rounded-2xl hover:bg-indigo-50/40 hover:border-indigo-500 transition-all duration-200 cursor-pointer shadow-xs">
-                    <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white mb-3 group-hover:scale-105 transition-transform">
-                      <Plus size={24} strokeWidth={2.5} />
-                    </div>
-                    <p className="font-bold text-indigo-700 text-base">Create New Resume</p>
-                    <p className="text-xs text-indigo-400 mt-0.5">Start from scratch</p>
-                  </Link>
-                  {filteredAndSorted.map((resume) => (
+                  {currentPage === 1 && (
+                    <Link href="/resume/new" className="group flex flex-col items-center justify-center h-80 bg-white border-2 border-dashed border-indigo-200 rounded-2xl hover:bg-indigo-50/40 hover:border-indigo-500 transition-all duration-200 cursor-pointer shadow-xs">
+                      <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white mb-3 group-hover:scale-105 transition-transform">
+                        <Plus size={24} strokeWidth={2.5} />
+                      </div>
+                      <p className="font-bold text-indigo-700 text-base">Create New Resume</p>
+                      <p className="text-xs text-indigo-400 mt-0.5">Start from scratch</p>
+                    </Link>
+                  )}
+                  {paginatedResumes.map((resume) => (
                     <ResumeCard key={resume.id} resume={resume} isBusy={busyIds.has(resume.id)} onRename={handleRename} onDuplicate={handleDuplicate} onDeleteRequest={requestDelete} pushToast={pushToast} />
                   ))}
                 </div>
               )}
 
-              <HiringRoadmap hasResumes={hasResumes} onStartAiInterview={startAiInterview} />
+              {hasResumes && hasResults && totalPages > 1 && (
+                <div className="w-full flex items-center justify-center gap-1.5 mt-8">
+                  <button
+                    onClick={() => setPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 text-sm font-semibold text-gray-500 rounded-lg hover:bg-white hover:text-gray-900 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                  >
+                    Prev
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`w-9 h-9 text-sm font-semibold rounded-lg transition-colors ${
+                        p === currentPage
+                          ? "bg-indigo-600 text-white shadow-sm"
+                          : "text-gray-600 hover:bg-white hover:text-gray-900"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 text-sm font-semibold text-gray-500 rounded-lg hover:bg-white hover:text-gray-900 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+
             </div>
           </>
         )}
@@ -571,27 +625,48 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
       {isAiModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-125 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-3xl shadow-2xl ring-1 ring-black/5 w-full max-w-125 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
 
-            <div className="bg-linear-to-r from-[#6366F1] to-[#8B5CF6] px-6 py-5 text-white relative flex items-center gap-4 shrink-0">
+            <div className="relative overflow-hidden bg-linear-to-br from-indigo-600 via-indigo-600 to-violet-600 px-6 pt-6 pb-5 text-white shrink-0">
+              <div className="pointer-events-none absolute -top-12 -right-8 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+              <div className="pointer-events-none absolute -bottom-16 -left-10 w-40 h-40 bg-violet-400/20 rounded-full blur-2xl" />
+
               <button
                 onClick={closeAiInterview}
-                className="absolute top-5 right-5 w-7 h-7 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+                className="absolute top-5 right-5 w-7 h-7 bg-white/15 hover:bg-white/25 rounded-full flex items-center justify-center transition-colors backdrop-blur-sm"
               >
                 <X size={14} strokeWidth={2.5} />
               </button>
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-                <Bot size={20} className="text-white" strokeWidth={2.5} />
+
+              <div className="relative flex items-center gap-3.5">
+                <div className="w-11 h-11 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                  <Bot size={21} className="text-white" strokeWidth={2.25} />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-[17px] font-bold leading-tight tracking-tight">AI Interview Coach</h2>
+                  <p className="text-[13px] font-medium text-white/75 mt-0.5 truncate">
+                    {interviewStage === "setup" && "Set up your mock interview"}
+                    {interviewStage === "preparing" && "Preparing tailored questions..."}
+                    {interviewStage === "live" && `Question ${questionIndex + 1} of ${questions.length}`}
+                    {interviewStage === "reviewing" && "Reviewing your answers..."}
+                    {interviewStage === "complete" && "Session complete"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-[17px] font-bold leading-tight tracking-tight">AI Interview Coach</h2>
-                <p className="text-[13px] font-medium text-white/80 mt-0.5">
-                  {interviewStage === "setup" && "Set up your mock interview"}
-                  {interviewStage === "preparing" && "Preparing tailored questions..."}
-                  {interviewStage === "live" && `Question ${questionIndex + 1} of ${questions.length}`}
-                  {interviewStage === "reviewing" && "Reviewing your answers..."}
-                  {interviewStage === "complete" && "Session complete"}
-                </p>
+
+              <div className="relative flex items-center gap-1.5 mt-5">
+                {(() => {
+                  const stepIndex =
+                    interviewStage === "setup" || interviewStage === "preparing" ? 0 :
+                    interviewStage === "live" || interviewStage === "reviewing" ? 1 : 2;
+                  return ["Setup", "Interview", "Feedback"].map((label, i) => (
+                    <div key={label} className="flex-1 h-1 rounded-full bg-white/20 overflow-hidden">
+                      <div
+                        className={`h-full bg-white rounded-full transition-all duration-500 ${i <= stepIndex ? "w-full" : "w-0"}`}
+                      />
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
 
@@ -600,8 +675,11 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                 <div className="w-full space-y-5">
                   {!hasResumes && !uploadedResumeData ? (
                     <div className="text-center py-6">
-                      <p className="text-sm text-gray-600 mb-4">You&rsquo;ll need a resume before practicing — the AI reads it to ask relevant questions.</p>
-                      <Link href="/resume/new" onClick={closeAiInterview} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl">
+                      <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mx-auto mb-4">
+                        <FileText size={24} />
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4 max-w-70 mx-auto leading-relaxed">You&rsquo;ll need a resume before practicing — the AI reads it to ask relevant questions.</p>
+                      <Link href="/resume/new" onClick={closeAiInterview} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors shadow-sm">
                         <Plus size={16} /> Create a resume
                       </Link>
                     </div>
@@ -609,23 +687,28 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                     <>
                       {!uploadedResumeData && (
                         <div>
-                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">Which resume are we prepping with?</label>
-                          <select
-                            value={selectedResumeId}
-                            onChange={(e) => {
-                              const id = e.target.value;
-                              setSelectedResumeId(id);
-                              const r = resumes.find((x) => x.id === id);
-                              setTargetJobTitle(r?.jobTitle || "");
-                            }}
-                            className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 bg-white"
-                          >
-                            {resumes.map((r) => (
-                              <option key={r.id} value={r.id}>
-                                {r.title && r.title !== "My Resume" ? r.title : r.jobTitle || "Untitled resume"}
-                              </option>
-                            ))}
-                          </select>
+                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                            <FileText size={12} /> Which resume are we prepping with?
+                          </label>
+                          <div className="relative">
+                            <select
+                              value={selectedResumeId}
+                              onChange={(e) => {
+                                const id = e.target.value;
+                                setSelectedResumeId(id);
+                                const r = resumes.find((x) => x.id === id);
+                                setTargetJobTitle(r?.jobTitle || "");
+                              }}
+                              className="w-full p-3 pr-9 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white appearance-none shadow-xs transition-all"
+                            >
+                              {resumes.map((r) => (
+                                <option key={r.id} value={r.id}>
+                                  {r.title && r.title !== "My Resume" ? r.title : r.jobTitle || "Untitled resume"}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          </div>
                         </div>
                       )}
 
@@ -636,25 +719,36 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                       )}
 
                       <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">Target job title</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                          <Briefcase size={12} /> Target job title
+                        </label>
                         <input
                           value={targetJobTitle}
                           onChange={(e) => setTargetJobTitle(e.target.value)}
                           placeholder="e.g. Frontend Web Engineer"
-                          className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500"
+                          className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-xs transition-all"
                         />
                       </div>
 
-                      <label className="flex items-center gap-3 cursor-pointer bg-gray-50 border border-gray-200 rounded-xl p-3">
-                        <input type="checkbox" checked={cameraOn} onChange={(e) => setCameraOn(e.target.checked)} className="w-4 h-4 accent-indigo-600" />
+                      <label className="flex items-center justify-between gap-3 cursor-pointer bg-gray-50 border border-gray-200 rounded-xl p-3.5">
                         <span className="text-sm text-gray-700 flex items-center gap-2">
-                          <Video size={15} className="text-gray-400" /> Practice on camera (self-view only — never sent anywhere)
+                          <Video size={15} className="text-gray-400 shrink-0" />
+                          <span>Practice on camera <span className="text-gray-400 font-normal">— self-view only, never sent anywhere</span></span>
                         </span>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={cameraOn}
+                          onClick={() => setCameraOn(!cameraOn)}
+                          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 border-transparent transition-colors ${cameraOn ? "bg-indigo-600" : "bg-gray-300"}`}
+                        >
+                          <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${cameraOn ? "translate-x-5" : "translate-x-0"}`} />
+                        </button>
                       </label>
 
                       <button
                         onClick={beginInterview}
-                        className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#6366F1] hover:bg-indigo-600 text-white font-bold text-[14px] rounded-xl transition-all shadow-sm hover:shadow"
+                        className="w-full flex items-center justify-center gap-2 py-3.5 bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-[14px] rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99]"
                       >
                         <PlaySquare size={16} /> Start Mock Interview
                       </button>
@@ -664,28 +758,41 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               )}
 
               {interviewStage === "preparing" && (
-                <div className="py-14 flex flex-col items-center gap-3 text-gray-500">
-                  <Loader2 className="w-7 h-7 animate-spin text-indigo-500" />
-                  <p className="text-sm font-medium text-center">Reading your resume and writing questions for {targetJobTitle}&hellip;</p>
+                <div className="py-14 flex flex-col items-center gap-4 text-gray-500">
+                  <div className="relative w-14 h-14 flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full bg-indigo-100 animate-ping opacity-40" />
+                    <div className="relative w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                      <Sparkles className="w-6 h-6 text-indigo-500" />
+                    </div>
+                  </div>
+                  <p className="text-sm font-medium text-center max-w-60">Reading your resume and writing questions for {targetJobTitle}&hellip;</p>
                 </div>
               )}
 
               {interviewStage === "live" && (
                 <div className="w-full">
                   {cameraOn && (
-                    <div className="relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden mb-6 border border-gray-200">
+                    <div className={`relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden mb-6 border transition-all ${isListening ? "border-violet-300 ring-4 ring-violet-100" : "border-gray-200"}`}>
                       <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover -scale-x-100" />
                       {cameraError && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-900 px-6">
                           <p className="text-white/70 text-xs text-center flex items-center gap-2"><VideoOff size={14} /> {cameraError}</p>
                         </div>
                       )}
+                      {isListening && !cameraError && (
+                        <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/40 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" /> Listening
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  <div className="bg-white rounded-2xl p-5 w-full mb-6 border border-gray-200 shadow-sm">
+                  <div className="relative bg-gray-50 rounded-2xl p-5 pt-4 w-full mb-6 border border-gray-200">
+                    <span className="inline-block bg-white px-2 py-0.5 mb-2 text-[10px] font-bold text-indigo-500 uppercase tracking-wide border border-gray-200 rounded-full">
+                      Question {questionIndex + 1}
+                    </span>
                     <p className="text-gray-800 font-medium text-[15px] leading-relaxed">
-                      &ldquo;{questions[questionIndex]}&rdquo;
+                      {questions[questionIndex]}
                     </p>
                   </div>
 
@@ -694,7 +801,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                     <button
                       onClick={toggleInterview}
                       disabled={!speechSupported}
-                      className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 outline-none disabled:opacity-40 disabled:cursor-not-allowed ${isListening ? 'bg-violet-50 scale-105 shadow-md' : 'bg-gray-50 hover:bg-gray-100'}`}
+                      className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 outline-none disabled:opacity-40 disabled:cursor-not-allowed ${isListening ? 'bg-violet-50 scale-105 shadow-md ring-4 ring-violet-100' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'}`}
                     >
                       <Mic size={28} strokeWidth={1.5} className={isListening ? "text-violet-600 animate-pulse" : "text-gray-400"} />
                     </button>
@@ -708,22 +815,22 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                     onChange={(e) => setTranscript(e.target.value)}
                     placeholder={isListening ? "Listening to your answer..." : "Your answer will appear here — or just type it"}
                     rows={4}
-                    className="w-full bg-white rounded-2xl p-5 border border-gray-200 mb-6 shadow-sm text-[14px] leading-relaxed text-gray-700 outline-none focus:border-indigo-400 resize-none"
+                    className="w-full bg-white rounded-2xl p-5 border border-gray-200 mb-6 shadow-xs text-[14px] leading-relaxed text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 resize-none transition-all"
                   />
 
-                  <div className="flex gap-4 w-full mb-3">
+                  <div className="flex gap-3 w-full mb-3">
                     <button
                       onClick={toggleInterview}
                       disabled={!speechSupported}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[14px] text-white transition-all outline-none shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${isInterviewActive ? 'bg-rose-500 hover:bg-rose-600' : 'bg-[#6366F1] hover:bg-indigo-600'}`}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[14px] text-white transition-all outline-none shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${isInterviewActive ? 'bg-rose-500 hover:bg-rose-600' : 'bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'}`}
                     >
                       {isInterviewActive ? <><Square size={16} fill="currentColor" /> Stop</> : <><PlaySquare size={16} /> Read Aloud</>}
                     </button>
                     <button
                       onClick={handleNextQuestion}
-                      className="flex-1 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-[14px] rounded-xl transition-colors outline-none border border-transparent"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold text-[14px] rounded-xl transition-colors outline-none border border-gray-200"
                     >
-                      {questionIndex === questions.length - 1 ? "Finish" : "Next Question"}
+                      {questionIndex === questions.length - 1 ? "Finish" : "Next Question"} <ChevronRight size={15} />
                     </button>
                   </div>
                   <div className="text-center">
@@ -735,8 +842,13 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               )}
 
               {interviewStage === "reviewing" && (
-                <div className="py-14 flex flex-col items-center gap-3 text-gray-500">
-                  <Loader2 className="w-7 h-7 animate-spin text-indigo-500" />
+                <div className="py-14 flex flex-col items-center gap-4 text-gray-500">
+                  <div className="relative w-14 h-14 flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full bg-indigo-100 animate-ping opacity-40" />
+                    <div className="relative w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                      <Target className="w-6 h-6 text-indigo-500" />
+                    </div>
+                  </div>
                   <p className="text-sm font-medium">Analyzing your answers&hellip;</p>
                 </div>
               )}
@@ -746,47 +858,69 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                   {feedback ? (
                     <>
                       <div className="flex items-center justify-center mb-6">
-                        <div className="w-20 h-20 rounded-full bg-indigo-50 border-4 border-indigo-100 flex flex-col items-center justify-center">
-                          <span className="text-2xl font-extrabold text-indigo-700">{feedback.score}</span>
-                          <span className="text-[10px] font-bold text-indigo-400 -mt-1">/ 100</span>
+                        <div className="relative w-24 h-24">
+                          <svg viewBox="0 0 80 80" className="w-24 h-24 -rotate-90">
+                            <circle cx="40" cy="40" r="34" fill="none" stroke="#EEF2FF" strokeWidth="8" />
+                            <circle
+                              cx="40" cy="40" r="34" fill="none"
+                              stroke="url(#aiCoachScoreGradient)"
+                              strokeWidth="8"
+                              strokeLinecap="round"
+                              strokeDasharray={2 * Math.PI * 34}
+                              strokeDashoffset={2 * Math.PI * 34 * (1 - Math.min(Math.max(feedback.score, 0), 100) / 100)}
+                              className="transition-all duration-700 ease-out"
+                            />
+                            <defs>
+                              <linearGradient id="aiCoachScoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#6366F1" />
+                                <stop offset="100%" stopColor="#8B5CF6" />
+                              </linearGradient>
+                            </defs>
+                          </svg>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-2xl font-extrabold text-gray-900">{feedback.score}</span>
+                            <span className="text-[10px] font-bold text-gray-400 -mt-1">/ 100</span>
+                          </div>
                         </div>
                       </div>
                       <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">{feedback.summary}</p>
 
-                      <div className="w-full bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-3">
-                        <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-wide mb-2">
-                          <ThumbsUp size={14} /> Strengths
+                      <div className="w-full bg-emerald-50/70 border border-emerald-100 rounded-2xl p-4 mb-3">
+                        <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-wide mb-2.5">
+                          <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0"><ThumbsUp size={11} /></span> Strengths
                         </div>
                         <ul className="space-y-1.5">
                           {feedback.strengths.map((s, i) => (
-                            <li key={i} className="text-sm text-emerald-800 flex gap-2"><span>•</span><span>{s}</span></li>
+                            <li key={i} className="text-sm text-emerald-800 flex gap-2 leading-relaxed"><span className="text-emerald-400 mt-0.5">•</span><span>{s}</span></li>
                           ))}
                         </ul>
                       </div>
 
-                      <div className="w-full bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6">
-                        <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wide mb-2">
-                          <TrendingUp size={14} /> Room to grow
+                      <div className="w-full bg-amber-50/70 border border-amber-100 rounded-2xl p-4 mb-6">
+                        <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wide mb-2.5">
+                          <span className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center shrink-0"><TrendingUp size={11} /></span> Room to grow
                         </div>
                         <ul className="space-y-1.5">
                           {feedback.improvements.map((s, i) => (
-                            <li key={i} className="text-sm text-amber-800 flex gap-2"><span>•</span><span>{s}</span></li>
+                            <li key={i} className="text-sm text-amber-800 flex gap-2 leading-relaxed"><span className="text-amber-400 mt-0.5">•</span><span>{s}</span></li>
                           ))}
                         </ul>
                       </div>
                     </>
                   ) : (
                     <div className="text-center py-8">
-                      <Target size={28} className="mx-auto text-gray-300 mb-3" />
+                      <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                        <Target size={24} className="text-gray-300" />
+                      </div>
                       <p className="text-sm text-gray-500">Nice work finishing the mock interview! We couldn&rsquo;t generate written feedback this time — but reviewing your own answers is a great next step.</p>
                     </div>
                   )}
 
                   <div className="flex gap-3 w-full">
-                    <button onClick={restartInterview} className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-[13px] rounded-xl transition-colors">
+                    <button onClick={restartInterview} className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold text-[13px] rounded-xl transition-colors border border-gray-200">
                       <RotateCcw size={15} /> Practice Again
                     </button>
-                    <button onClick={closeAiInterview} className="flex-1 py-3 bg-[#6366F1] hover:bg-indigo-600 text-white font-bold text-[13px] rounded-xl transition-colors">
+                    <button onClick={closeAiInterview} className="flex-1 py-3 bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-[13px] rounded-xl transition-colors">
                       Done
                     </button>
                   </div>
