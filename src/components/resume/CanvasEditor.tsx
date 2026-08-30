@@ -1,4 +1,3 @@
-// src/components/resume/CanvasEditor.tsx
 "use client";
 
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
@@ -277,7 +276,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
 
       <div ref={ref} style={{ fontFamily: fontStack }} className="w-[210mm] min-h-[297mm] bg-white text-black shadow-lg ring-1 ring-gray-200/50 shrink-0">
         
-        {/* --- MODERN LAYOUT --- */}
         {theme.layout === "modern" && (
           <>
             <div className="px-12 py-10 text-white" style={{ backgroundColor: accent }}>
@@ -296,13 +294,11 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
             </div>
 
             <div className="px-12 py-8 space-y-6">
-              {/* Summary */}
               <div>
                 <h2 className={`${sizes.heading} font-bold uppercase tracking-widest mb-3`} style={{ color: accent, ...blockCss("sectionHeading") }}>Summary</h2>
                 <Editable value={data.summary} placeholder="Your professional summary will appear here." onCommit={(v) => update("summary", v)} {...editableCommon("summaryBody")} multiline className={`block ${sizes.body} leading-relaxed text-gray-700 whitespace-pre-wrap min-h-6`} style={blockCss("summaryBody")} />
               </div>
 
-              {/* Experience */}
               {data.experience && data.experience.length > 0 && (
                 <div>
                   <h2 className={`${sizes.heading} font-bold uppercase tracking-widest mb-3`} style={{ color: accent, ...blockCss("sectionHeading") }}>Experience</h2>
@@ -327,7 +323,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
                 </div>
               )}
 
-              {/* Education */}
               {data.education && data.education.length > 0 && (
                 <div>
                   <h2 className={`${sizes.heading} font-bold uppercase tracking-widest mb-3`} style={{ color: accent, ...blockCss("sectionHeading") }}>Education</h2>
@@ -351,7 +346,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
                 </div>
               )}
 
-              {/* Skills & Certs */}
               <div className="grid grid-cols-2 gap-6">
                 {data.skills && (
                   <div>
@@ -370,7 +364,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
           </>
         )}
 
-        {/* --- CLASSIC LAYOUT --- */}
         {theme.layout === "classic" && (
            <div className="p-12">
             <div className="text-center border-b pb-6 mb-6" style={{ borderColor: accent }}>
@@ -389,13 +382,11 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
             </div>
             
             <div className="space-y-6">
-              {/* Summary */}
               <div>
                 <h2 className={`${sizes.heading} font-bold uppercase tracking-widest mb-3 border-b pb-1`} style={{ color: accent, borderColor: accent, ...blockCss("sectionHeading") }}>Summary</h2>
                 <Editable value={data.summary} placeholder="Professional summary..." onCommit={(v) => update("summary", v)} {...editableCommon("summaryBody")} multiline className={`block ${sizes.body} leading-relaxed text-gray-700 whitespace-pre-wrap min-h-6`} style={blockCss("summaryBody")} />
               </div>
 
-              {/* Experience */}
               {data.experience && data.experience.length > 0 && (
                 <div>
                   <h2 className={`${sizes.heading} font-bold uppercase tracking-widest mb-3 border-b pb-1`} style={{ color: accent, borderColor: accent, ...blockCss("sectionHeading") }}>Experience</h2>
@@ -417,7 +408,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
                 </div>
               )}
 
-              {/* Education */}
               {data.education && data.education.length > 0 && (
                 <div>
                   <h2 className={`${sizes.heading} font-bold uppercase tracking-widest mb-3 border-b pb-1`} style={{ color: accent, borderColor: accent, ...blockCss("sectionHeading") }}>Education</h2>
@@ -441,7 +431,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
                 </div>
               )}
               
-              {/* Skills & Certs */}
               <div className="grid grid-cols-2 gap-6">
                 {data.skills && (
                   <div>
@@ -460,7 +449,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
           </div>
         )}
 
-        {/* --- MINIMAL LAYOUT --- */}
         {theme.layout === "minimal" && (
           <div className="p-14">
             <div className="mb-10">
@@ -479,13 +467,11 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
             </div>
 
             <div className="space-y-8">
-              {/* Summary */}
               <div>
                 <h2 className={`${sizes.heading} font-semibold uppercase tracking-[0.2em] text-gray-400 mb-3`} style={blockCss("sectionHeading")}>Summary</h2>
                 <Editable value={data.summary} placeholder="Professional summary..." onCommit={(v) => update("summary", v)} {...editableCommon("summaryBody")} multiline className={`block ${sizes.body} leading-loose text-gray-700 whitespace-pre-wrap`} style={blockCss("summaryBody")} />
               </div>
 
-              {/* Experience */}
               {data.experience && data.experience.length > 0 && (
                 <div>
                   <h2 className={`${sizes.heading} font-semibold uppercase tracking-[0.2em] text-gray-400 mb-4`} style={blockCss("sectionHeading")}>Experience</h2>
@@ -510,7 +496,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
                 </div>
               )}
 
-              {/* Education */}
               {data.education && data.education.length > 0 && (
                 <div>
                   <h2 className={`${sizes.heading} font-semibold uppercase tracking-[0.2em] text-gray-400 mb-4`} style={blockCss("sectionHeading")}>Education</h2>
@@ -534,7 +519,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
                 </div>
               )}
               
-              {/* Skills & Certs */}
               {(data.skills || data.certifications) && (
                 <div className="grid grid-cols-[1fr_3fr] gap-4">
                   <div className="space-y-6">
