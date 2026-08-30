@@ -18,7 +18,7 @@ export function ToastStack({ toasts, onDismiss }: ToastStackProps) {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-60 flex flex-col gap-2 w-full max-w-xs">
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-60 flex flex-col gap-2 w-full max-w-xs px-4">
       {toasts.map((toast) => (
         <ToastCard key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}
@@ -53,7 +53,7 @@ function ToastCard({
     <div
       role="status"
       className={`flex items-start gap-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-lg rounded-xl px-4 py-3 transition-all duration-300 ease-out ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+        visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
       }`}
     >
       {isSuccess ? (
