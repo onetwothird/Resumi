@@ -1,4 +1,3 @@
-// C:\resumi\src\components\dashboard\ResumeCard.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
