@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion, Variants } from "framer-motion";
-import { Check, Sparkles } from "lucide-react";
+import { motion, Variants, AnimatePresence } from "framer-motion";
+import { Check, Sparkles, ChevronDown } from "lucide-react";
 import PublicHeader from "@/components/marketing/PublicHeader";
 import PublicFooter from "@/components/marketing/PublicFooter";
 
@@ -82,6 +82,21 @@ const FAQS = [
     answer:
       "Reach out within 14 days of your first payment for a full refund, no questions asked.",
   },
+  {
+    question: "How does the AI resume matching work?",
+    answer:
+      "Our AI compares your resume to a target job description, scoring your match based on skills and keywords, then suggests specific improvements to help you pass Applicant Tracking Systems (ATS).",
+  },
+  {
+    question: "Can I cancel my subscription anytime?",
+    answer:
+      "Absolutely. There are no long-term contracts. You can cancel your subscription at any time from your billing dashboard.",
+  },
+  {
+    question: "Do you offer discounts for students or non-profits?",
+    answer:
+      "Yes! Reach out to our support team with a valid student or organization email, and we'll provide a 50% discount on any paid plan.",
+  },
 ];
 
 const fadeUp: Variants = {
@@ -93,6 +108,41 @@ const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
+
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="rounded-2xl bg-white border border-slate-200/60 overflow-hidden transition-colors hover:border-slate-300">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-6 text-left outline-none"
+      >
+        <span className="text-sm font-semibold text-slate-900">{question}</span>
+        <ChevronDown
+          size={18}
+          className={`text-slate-400 shrink-0 transition-transform duration-300 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            <div className="px-6 pb-6 pt-0 text-sm text-slate-500 leading-relaxed">
+              {answer}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
@@ -229,15 +279,9 @@ export default function PricingPage() {
           <h2 className="font-serif text-xl font-bold text-slate-900 mb-6 text-center">
             Questions about pricing
           </h2>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             {FAQS.map((faq) => (
-              <div
-                key={faq.question}
-                className="p-6 rounded-2xl bg-white border border-slate-200/60"
-              >
-                <p className="text-sm font-semibold text-slate-900 mb-1.5">{faq.question}</p>
-                <p className="text-sm text-slate-500 leading-relaxed">{faq.answer}</p>
-              </div>
+              <FaqItem key={faq.question} question={faq.question} answer={faq.answer} />
             ))}
           </div>
         </div>
