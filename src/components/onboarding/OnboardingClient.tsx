@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Briefcase, FileText, Loader2, ArrowRight } from "lucide-react";
 import ResumiLogo from "@/components/logo/ResumiLogo";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
@@ -33,6 +34,7 @@ const ROLE_OPTIONS: RoleOption[] = [
 ];
 
 export default function OnboardingClient() {
+  const { getToken } = useAuth();
   const [selecting, setSelecting] = useState<Role | null>(null);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
@@ -72,6 +74,8 @@ export default function OnboardingClient() {
         const detail = await res.text().catch(() => "");
         throw new Error(`Request failed (${res.status}): ${detail || "no response body"}`);
       }
+
+      await getToken({ skipCache: true });
 
       setPendingRedirect(option.redirectTo);
     } catch (err) {
