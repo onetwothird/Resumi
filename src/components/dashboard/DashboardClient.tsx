@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { ResumeListItem } from "@/types/dashboard";
+import { ResumeData } from "@/types";
 import { formatRelativeDate } from "@/lib/format";
 import ResumeCard from "@/components/dashboard/ResumeCard";
 import PdfUploader from "@/components/dashboard/PdfUploader";
@@ -131,11 +132,17 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   };
 
   const closeAiInterview = () => {
-    window.speechSynthesis?.cancel();
-    if (recognitionRef.current) recognitionRef.current.stop();
-    stopCamera();
-    setIsInterviewActive(false);
-    setIsAiModalOpen(false);
+    try {
+      window.speechSynthesis?.cancel();
+      recognitionRef.current?.stop();
+      stopCamera();
+    } catch (err) {
+      console.error("Error while closing AI Coach:", err);
+    } finally {
+      // Always reset state and close, even if cleanup above threw.
+      setIsInterviewActive(false);
+      setIsAiModalOpen(false);
+    }
   };
 
   const startCamera = async () => {
@@ -175,9 +182,11 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
       if (uploadedResumeData) {
         resumeData = uploadedResumeData;
       } else {
+        if (!selectedResumeId) throw new Error("No resume selected");
         const resumeRes = await fetch(`/api/resume/${selectedResumeId}`);
         if (!resumeRes.ok) throw new Error("Failed to load resume");
-        resumeData = await resumeRes.json();
+        resumeData = await resumeRes.json().catch(() => null);
+        if (!resumeData) throw new Error("Resume data was empty or malformed");
       }
 
       const qRes = await fetch("/api/ai/interview-questions", {
@@ -265,13 +274,22 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     recognitionRef.current = recognition;
 
     recognition.onresult = (event: MockSpeechRecognitionEvent) => {
-      const current = event.resultIndex;
-      const result = event.results[current][0].transcript;
-      setTranscript((prev) => prev + " " + result);
+      try {
+        const current = event.resultIndex;
+        const result = event.results?.[current]?.[0]?.transcript;
+        if (result) setTranscript((prev) => prev + " " + result);
+      } catch (err) {
+        console.error("Speech recognition result error:", err);
+      }
     };
     recognition.onend = () => setIsListening(false);
     setIsListening(true);
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (err) {
+      console.error("Speech recognition failed to start:", err);
+      setIsListening(false);
+    }
   };
 
   const handleNextQuestion = () => {
@@ -302,13 +320,19 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   };
 
   const toggleInterview = () => {
-    if (isInterviewActive) {
-      window.speechSynthesis.cancel();
-      if (recognitionRef.current) recognitionRef.current.stop();
+    try {
+      if (isInterviewActive) {
+        window.speechSynthesis?.cancel();
+        recognitionRef.current?.stop();
+        setIsInterviewActive(false);
+      } else {
+        setIsInterviewActive(true);
+        speakAndListen(questions[questionIndex]);
+      }
+    } catch (err) {
+      console.error("Toggle interview failed:", err);
       setIsInterviewActive(false);
-    } else {
-      setIsInterviewActive(true);
-      speakAndListen(questions[questionIndex]);
+      pushToast("Voice playback hit a snag — you can keep typing your answer.", "error");
     }
   };
 
@@ -349,11 +373,11 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     });
   }, [resumes, query, sortBy]);
 
-  // RESUMES_PER_PAGE slots per page. Page 1 gives up one slot to the
-  // "Create New Resume" tile, so every page — including the first — renders
-  // as exactly 2 full rows of 4 on large screens instead of spilling a lone
-  // card onto a 3rd row.
-  const resumesOnFirstPage = RESUMES_PER_PAGE - 1;
+  // RESUMES_PER_PAGE slots per page. Page 1 gives up two slots to the
+  // "Create New Resume" and "Upload Existing" tiles, so every page —
+  // including the first — renders as exactly 2 full rows of 4 on large
+  // screens instead of spilling a lone card onto a 3rd row.
+  const resumesOnFirstPage = RESUMES_PER_PAGE - 2;
   const totalPages = Math.max(
     1,
     1 + Math.ceil(Math.max(0, filteredAndSorted.length - resumesOnFirstPage) / RESUMES_PER_PAGE)
@@ -432,6 +456,20 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     }
   };
 
+  const handlePdfScanComplete = (parsedData: Partial<ResumeData>) => {
+    setUploadedResumeData({
+      jobTitle: parsedData.jobTitle,
+      summary: parsedData.summary,
+      skills: typeof parsedData.skills === "string"
+        ? parsedData.skills.split(",").map((s) => s.trim())
+        : parsedData.skills,
+      experience: parsedData.experience,
+    });
+    setTargetJobTitle(parsedData.jobTitle || "");
+    setIsAiModalOpen(true);
+    setInterviewStage("setup");
+  };
+
   const hasResumes = resumes.length > 0;
   const hasResults = filteredAndSorted.length > 0;
 
@@ -461,7 +499,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
             <Link href="/resume/new" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Builder <ChevronDown size={14}/></Link>
             <button
               onClick={startAiInterview}
-              className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-linear-to-r from-indigo-500/10 to-violet-500/10 text-indigo-700 font-semibold hover:from-indigo-500/15 hover:to-violet-500/15 transition-colors"
+              className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 transition-colors"
             >
               <Sparkles size={14} className="text-indigo-500" /> AI Coach
             </button>
@@ -542,19 +580,9 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                   </div>
 
                   <div className="h-full">
-                    <PdfUploader 
-                      pushToast={pushToast} 
-                      onScanComplete={(parsedData) => {
-                        setUploadedResumeData({
-                          jobTitle: parsedData.jobTitle,
-                          summary: parsedData.summary,
-                          skills: typeof parsedData.skills === 'string' ? parsedData.skills.split(',').map(s => s.trim()) : parsedData.skills,
-                          experience: parsedData.experience,
-                        });
-                        setTargetJobTitle(parsedData.jobTitle || "");
-                        setIsAiModalOpen(true);
-                        setInterviewStage("setup");
-                      }} 
+                    <PdfUploader
+                      pushToast={pushToast}
+                      onScanComplete={handlePdfScanComplete}
                     />
                   </div>
                 </div>
@@ -572,13 +600,19 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               {hasResumes && hasResults && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {currentPage === 1 && (
-                    <Link href="/resume/new" className="group flex flex-col items-center justify-center h-80 bg-white border-2 border-dashed border-indigo-200 rounded-2xl hover:bg-indigo-50/40 hover:border-indigo-500 transition-all duration-200 cursor-pointer shadow-xs">
-                      <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white mb-3 group-hover:scale-105 transition-transform">
-                        <Plus size={24} strokeWidth={2.5} />
-                      </div>
-                      <p className="font-bold text-indigo-700 text-base">Create New Resume</p>
-                      <p className="text-xs text-indigo-400 mt-0.5">Start from scratch</p>
-                    </Link>
+                    <>
+                      <Link href="/resume/new" className="group flex flex-col items-center justify-center h-80 bg-white border-2 border-dashed border-indigo-200 rounded-2xl hover:bg-indigo-50/40 hover:border-indigo-500 transition-all duration-200 cursor-pointer shadow-xs">
+                        <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white mb-3 group-hover:scale-105 transition-transform">
+                          <Plus size={24} strokeWidth={2.5} />
+                        </div>
+                        <p className="font-bold text-indigo-700 text-base">Create New Resume</p>
+                        <p className="text-xs text-indigo-400 mt-0.5">Start from scratch</p>
+                      </Link>
+                      <PdfUploader
+                        pushToast={pushToast}
+                        onScanComplete={handlePdfScanComplete}
+                      />
+                    </>
                   )}
                   {paginatedResumes.map((resume) => (
                     <ResumeCard key={resume.id} resume={resume} isBusy={busyIds.has(resume.id)} onRename={handleRename} onDuplicate={handleDuplicate} onDeleteRequest={requestDelete} pushToast={pushToast} />
@@ -624,27 +658,24 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
       </main>
 
       {isAiModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all">
-          <div className="bg-white rounded-3xl shadow-2xl ring-1 ring-black/5 w-full max-w-125 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] transition-all">
+          <div className="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 w-full max-w-125 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
 
-            <div className="relative overflow-hidden bg-linear-to-br from-indigo-600 via-indigo-600 to-violet-600 px-6 pt-6 pb-5 text-white shrink-0">
-              <div className="pointer-events-none absolute -top-12 -right-8 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-              <div className="pointer-events-none absolute -bottom-16 -left-10 w-40 h-40 bg-violet-400/20 rounded-full blur-2xl" />
-
+            <div className="relative px-6 pt-6 pb-5 border-b border-gray-100 shrink-0">
               <button
                 onClick={closeAiInterview}
-                className="absolute top-5 right-5 w-7 h-7 bg-white/15 hover:bg-white/25 rounded-full flex items-center justify-center transition-colors backdrop-blur-sm"
+                className="absolute top-5 right-5 w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full flex items-center justify-center transition-colors"
               >
                 <X size={14} strokeWidth={2.5} />
               </button>
 
-              <div className="relative flex items-center gap-3.5">
-                <div className="w-11 h-11 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0 ring-1 ring-white/20">
-                  <Bot size={21} className="text-white" strokeWidth={2.25} />
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+                  <Bot size={19} className="text-indigo-600" strokeWidth={2} />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-[17px] font-bold leading-tight tracking-tight">AI Interview Coach</h2>
-                  <p className="text-[13px] font-medium text-white/75 mt-0.5 truncate">
+                  <h2 className="font-serif text-lg text-gray-900 leading-tight">AI Interview Coach</h2>
+                  <p className="text-[13px] text-gray-500 mt-0.5 truncate">
                     {interviewStage === "setup" && "Set up your mock interview"}
                     {interviewStage === "preparing" && "Preparing tailored questions..."}
                     {interviewStage === "live" && `Question ${questionIndex + 1} of ${questions.length}`}
@@ -654,15 +685,15 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                 </div>
               </div>
 
-              <div className="relative flex items-center gap-1.5 mt-5">
+              <div className="flex items-center gap-1.5 mt-5">
                 {(() => {
                   const stepIndex =
                     interviewStage === "setup" || interviewStage === "preparing" ? 0 :
                     interviewStage === "live" || interviewStage === "reviewing" ? 1 : 2;
                   return ["Setup", "Interview", "Feedback"].map((label, i) => (
-                    <div key={label} className="flex-1 h-1 rounded-full bg-white/20 overflow-hidden">
+                    <div key={label} className="flex-1 h-1 rounded-full bg-gray-100 overflow-hidden">
                       <div
-                        className={`h-full bg-white rounded-full transition-all duration-500 ${i <= stepIndex ? "w-full" : "w-0"}`}
+                        className={`h-full bg-indigo-600 rounded-full transition-all duration-500 ${i <= stepIndex ? "w-full" : "w-0"}`}
                       />
                     </div>
                   ));
@@ -748,7 +779,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
                       <button
                         onClick={beginInterview}
-                        className="w-full flex items-center justify-center gap-2 py-3.5 bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-[14px] rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99]"
+                        className="w-full flex items-center justify-center gap-2 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[14px] rounded-xl transition-colors active:scale-[0.99]"
                       >
                         <PlaySquare size={16} /> Start Mock Interview
                       </button>
@@ -822,7 +853,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                     <button
                       onClick={toggleInterview}
                       disabled={!speechSupported}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[14px] text-white transition-all outline-none shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${isInterviewActive ? 'bg-rose-500 hover:bg-rose-600' : 'bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'}`}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[14px] text-white transition-colors outline-none active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${isInterviewActive ? 'bg-rose-500 hover:bg-rose-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                     >
                       {isInterviewActive ? <><Square size={16} fill="currentColor" /> Stop</> : <><PlaySquare size={16} /> Read Aloud</>}
                     </button>
@@ -855,7 +886,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
               {interviewStage === "complete" && (
                 <div className="w-full">
-                  {feedback ? (
+                  {feedback && typeof feedback.score === "number" ? (
                     <>
                       <div className="flex items-center justify-center mb-6">
                         <div className="relative w-24 h-24">
@@ -883,29 +914,35 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                           </div>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">{feedback.summary}</p>
+                      {feedback.summary && (
+                        <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">{feedback.summary}</p>
+                      )}
 
-                      <div className="w-full bg-emerald-50/70 border border-emerald-100 rounded-2xl p-4 mb-3">
-                        <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-wide mb-2.5">
-                          <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0"><ThumbsUp size={11} /></span> Strengths
+                      {Array.isArray(feedback.strengths) && feedback.strengths.length > 0 && (
+                        <div className="w-full bg-emerald-50/70 border border-emerald-100 rounded-2xl p-4 mb-3">
+                          <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-wide mb-2.5">
+                            <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0"><ThumbsUp size={11} /></span> Strengths
+                          </div>
+                          <ul className="space-y-1.5">
+                            {feedback.strengths.map((s, i) => (
+                              <li key={i} className="text-sm text-emerald-800 flex gap-2 leading-relaxed"><span className="text-emerald-400 mt-0.5">•</span><span>{s}</span></li>
+                            ))}
+                          </ul>
                         </div>
-                        <ul className="space-y-1.5">
-                          {feedback.strengths.map((s, i) => (
-                            <li key={i} className="text-sm text-emerald-800 flex gap-2 leading-relaxed"><span className="text-emerald-400 mt-0.5">•</span><span>{s}</span></li>
-                          ))}
-                        </ul>
-                      </div>
+                      )}
 
-                      <div className="w-full bg-amber-50/70 border border-amber-100 rounded-2xl p-4 mb-6">
-                        <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wide mb-2.5">
-                          <span className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center shrink-0"><TrendingUp size={11} /></span> Room to grow
+                      {Array.isArray(feedback.improvements) && feedback.improvements.length > 0 && (
+                        <div className="w-full bg-amber-50/70 border border-amber-100 rounded-2xl p-4 mb-6">
+                          <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wide mb-2.5">
+                            <span className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center shrink-0"><TrendingUp size={11} /></span> Room to grow
+                          </div>
+                          <ul className="space-y-1.5">
+                            {feedback.improvements.map((s, i) => (
+                              <li key={i} className="text-sm text-amber-800 flex gap-2 leading-relaxed"><span className="text-amber-400 mt-0.5">•</span><span>{s}</span></li>
+                            ))}
+                          </ul>
                         </div>
-                        <ul className="space-y-1.5">
-                          {feedback.improvements.map((s, i) => (
-                            <li key={i} className="text-sm text-amber-800 flex gap-2 leading-relaxed"><span className="text-amber-400 mt-0.5">•</span><span>{s}</span></li>
-                          ))}
-                        </ul>
-                      </div>
+                      )}
                     </>
                   ) : (
                     <div className="text-center py-8">
@@ -920,7 +957,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                     <button onClick={restartInterview} className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold text-[13px] rounded-xl transition-colors border border-gray-200">
                       <RotateCcw size={15} /> Practice Again
                     </button>
-                    <button onClick={closeAiInterview} className="flex-1 py-3 bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-[13px] rounded-xl transition-colors">
+                    <button onClick={closeAiInterview} className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[13px] rounded-xl transition-colors">
                       Done
                     </button>
                   </div>
