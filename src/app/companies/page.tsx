@@ -154,7 +154,7 @@ export default function CompaniesPage() {
   const totalOpenRoles = jobs.length;
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] text-slate-900">
+    <div className="min-h-screen bg-background text-slate-900">
       <PublicHeader active="/companies" />
 
       <section className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-14 md:pt-24 md:pb-16 text-center">
@@ -162,7 +162,7 @@ export default function CompaniesPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 max-w-3xl mx-auto leading-[1.15]"
+          className="font-serif text-3xl md:text-5xl font-extrabold tracking-tight mb-4 max-w-3xl mx-auto leading-[1.15]"
         >
           Discover companies that are hiring
         </motion.h1>
@@ -255,7 +255,7 @@ export default function CompaniesPage() {
 
           {!isLoading && !error && companies.length > 0 && filtered.length === 0 && (
             <div className="text-center py-20 text-slate-500 text-sm">
-              No companies match “{query}”. Try a different search or filter.
+              No companies match &quot;{query}&quot;. Try a different search or filter.
             </div>
           )}
 
