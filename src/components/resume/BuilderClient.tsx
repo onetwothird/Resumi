@@ -17,6 +17,7 @@ export default function BuilderClient({ initialData, resumeId }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [toastMsg, setToastMsg] = useState<{msg: string, type: string} | null>(null);
+  const effectiveIdRef = useRef(resumeId);
 
   const pushToast = (msg: string, type: "success" | "error") => {
     setToastMsg({ msg, type });
@@ -26,7 +27,7 @@ export default function BuilderClient({ initialData, resumeId }: Props) {
   const saveResume = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch(`/api/resumes/${resumeId}`, {
+      const res = await fetch(`/api/resumes/${effectiveIdRef.current}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -36,7 +37,8 @@ export default function BuilderClient({ initialData, resumeId }: Props) {
       
       const responseData = await res.json();
       
-      if (resumeId === "new" && responseData.id) {
+      if (effectiveIdRef.current === "new" && responseData.id) {
+        effectiveIdRef.current = responseData.id;
         window.history.replaceState(null, "", `/builder/${responseData.id}`);
       }
 
