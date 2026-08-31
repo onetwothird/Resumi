@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Lora } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 
-const inter = Inter({ subsets: ["latin"] });
+const jakarta = Plus_Jakarta_Sans({ 
+  subsets: ["latin"], 
+  variable: "--font-sans" 
+});
+
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-serif",
+});
 
 export const metadata: Metadata = {
   title: "Resumi - Smart Resume Builder",
@@ -30,7 +38,7 @@ export default function RootLayout({
       }}
     >
       <html lang="en">
-        <body className={`${inter.className} bg-[#F7F9FC] text-slate-900 antialiased`}>
+        <body className={`${jakarta.variable} ${lora.variable} font-sans text-slate-900 antialiased`}>
           {children}
         </body>
       </html>
