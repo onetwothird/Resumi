@@ -152,16 +152,38 @@ export default function EditorPage() {
   }, [data]);
 
   const isSavingRef = useRef(false);
-
+  const [past, setPast] = useState<ResumeData[]>([]);
+  const [future, setFuture] = useState<ResumeData[]>([]);
   // Every place that used to hand off a plain `setData` to a child now goes
   // through this instead, so editing anything automatically marks the
   // resume dirty. The initial fetch below calls `setData` directly (not
   // this), so loading a resume from the server never itself counts as an
   // "unsaved change".
   const updateData = useCallback((next: ResumeData) => {
+  setPast((p) => [...p, dataRef.current].slice(-50)); // Keep last 50 states
+  setFuture([]); // Clear redo history when a new edit is made
+  setData(next);
+  setHasUnsavedChanges(true);
+}, []);
+
+
+    const handleUndo = useCallback(() => {
+    if (past.length === 0) return;
+    const previous = past[past.length - 1];
+    setPast((p) => p.slice(0, -1));
+    setFuture((f) => [dataRef.current, ...f]);
+    setData(previous);
+    setHasUnsavedChanges(true);
+  }, [past]);
+
+    const handleRedo = useCallback(() => {
+    if (future.length === 0) return;
+    const next = future[0];
+    setFuture((f) => f.slice(1));
+    setPast((p) => [...p, dataRef.current]);
     setData(next);
     setHasUnsavedChanges(true);
-  }, []);
+  }, [future]);
 
   const performSave = useCallback(
     async (opts?: { redirectAfter?: boolean }): Promise<boolean> => {
@@ -400,8 +422,20 @@ export default function EditorPage() {
       <div className="min-h-14 py-2 bg-white border-b border-gray-200 flex flex-wrap items-center justify-between px-4 shrink-0 z-10 shadow-sm gap-3">
         <div className="flex items-center gap-4 text-gray-500 order-2 md:order-1 w-full md:w-auto justify-between md:justify-start">
           <div className="flex gap-1 border-r border-gray-200 pr-4">
-            <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"><Undo size={16} /></button>
-            <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"><Redo size={16} /></button>
+            <button 
+              onClick={handleUndo} 
+              disabled={past.length === 0}
+              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-30"
+            >
+              <Undo size={16} />
+            </button>
+            <button 
+              onClick={handleRedo} 
+              disabled={future.length === 0}
+              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-30"
+            >
+              <Redo size={16} />
+            </button>
           </div>
           <span className="text-xs flex items-center gap-1 italic">
              {isSaving
