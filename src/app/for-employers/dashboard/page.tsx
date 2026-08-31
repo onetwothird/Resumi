@@ -33,7 +33,7 @@ export default async function EmployerDashboardPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] text-gray-900">
+    <div className="min-h-screen bg-surface-marketing text-gray-900">
       <EmployerDashboardClient initialJobs={initialJobs} />
     </div>
   );
