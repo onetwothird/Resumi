@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
+import { ensureUser } from "@/lib/ensure-user";
 
 export async function POST(
   req: Request,
@@ -11,6 +12,8 @@ export async function POST(
   try {
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+
+    await ensureUser(userId);
 
     const { id } = await params;
 
