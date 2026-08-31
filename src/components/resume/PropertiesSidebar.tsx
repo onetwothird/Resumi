@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
-import { ResumeData, ResumeTheme, DEFAULT_THEME, THEME_COLOR_PRESETS, THEME_FONT_OPTIONS, ResumeLayout, ResumeFontSize } from "@/types";
-import { Sparkles, Activity, LayoutTemplate, Palette, Type, Check } from "lucide-react";
+import { ResumeData, ResumeTheme, DEFAULT_THEME, THEME_COLOR_PRESETS, ResumeFontSize } from "@/types";
+import { Sparkles, Activity, Palette, Type, Check, Image as ImageIcon, Upload, X } from "lucide-react";
 
 interface Props {
   data: ResumeData;
@@ -8,19 +9,83 @@ interface Props {
   pushToast: (msg: string, variant: "success" | "error") => void;
 }
 
-const LAYOUTS: { value: ResumeLayout; label: string; }[] = [
-  { value: "classic", label: "Classic" },
-  { value: "modern", label: "Modern" },
-  { value: "minimal", label: "Minimal" },
+const EXTENDED_FONTS = [
+  { value: "inter", label: "Inter", stack: "'Inter', sans-serif" },
+  { value: "roboto", label: "Roboto", stack: "'Roboto', sans-serif" },
+  { value: "opensans", label: "Open Sans", stack: "'Open Sans', sans-serif" },
+  { value: "lato", label: "Lato", stack: "'Lato', sans-serif" },
+  { value: "montserrat", label: "Montserrat", stack: "'Montserrat', sans-serif" },
+  { value: "poppins", label: "Poppins", stack: "'Poppins', sans-serif" },
+  { value: "sourcesanspro", label: "Source Sans Pro", stack: "'Source Sans Pro', sans-serif" },
+  { value: "raleway", label: "Raleway", stack: "'Raleway', sans-serif" },
+  { value: "ubuntu", label: "Ubuntu", stack: "'Ubuntu', sans-serif" },
+  { value: "merriweather", label: "Merriweather", stack: "'Merriweather', serif" },
+  { value: "playfair", label: "Playfair Display", stack: "'Playfair Display', serif" },
+  { value: "lora", label: "Lora", stack: "'Lora', serif" },
+  { value: "ptserif", label: "PT Serif", stack: "'PT Serif', serif" },
+  { value: "notosans", label: "Noto Sans", stack: "'Noto Sans', sans-serif" },
+  { value: "nunito", label: "Nunito", stack: "'Nunito', sans-serif" },
+  { value: "mukta", label: "Mukta", stack: "'Mukta', sans-serif" },
+  { value: "firasans", label: "Fira Sans", stack: "'Fira Sans', sans-serif" },
+  { value: "droidsans", label: "Droid Sans", stack: "'Droid Sans', sans-serif" },
+  { value: "arial", label: "Arial", stack: "Arial, sans-serif" },
+  { value: "helvetica", label: "Helvetica", stack: "Helvetica, sans-serif" },
+  { value: "timesnewroman", label: "Times New Roman", stack: "'Times New Roman', serif" },
+  { value: "couriernew", label: "Courier New", stack: "'Courier New', monospace" },
+  { value: "georgia", label: "Georgia", stack: "Georgia, serif" },
+  { value: "garamond", label: "Garamond", stack: "Garamond, serif" },
+  { value: "trebuchetms", label: "Trebuchet MS", stack: "'Trebuchet MS', sans-serif" },
+  { value: "verdana", label: "Verdana", stack: "Verdana, sans-serif" },
+  { value: "tahoma", label: "Tahoma", stack: "Tahoma, sans-serif" },
+  { value: "palatino", label: "Palatino", stack: "Palatino, serif" },
+  { value: "lucidasans", label: "Lucida Sans", stack: "'Lucida Sans', sans-serif" },
+  { value: "impact", label: "Impact", stack: "Impact, sans-serif" },
+  { value: "josefinsans", label: "Josefin Sans", stack: "'Josefin Sans', sans-serif" },
+  { value: "worksans", label: "Work Sans", stack: "'Work Sans', sans-serif" },
+  { value: "quicksand", label: "Quicksand", stack: "'Quicksand', sans-serif" },
+  { value: "rubik", label: "Rubik", stack: "'Rubik', sans-serif" },
+  { value: "inconsolata", label: "Inconsolata", stack: "'Inconsolata', monospace" },
+  { value: "oswald", label: "Oswald", stack: "'Oswald', sans-serif" },
+  { value: "bebasneue", label: "Bebas Neue", stack: "'Bebas Neue', sans-serif" },
+  { value: "anton", label: "Anton", stack: "'Anton', sans-serif" },
+  { value: "dancingscript", label: "Dancing Script", stack: "'Dancing Script', cursive" },
+  { value: "pacifico", label: "Pacifico", stack: "'Pacifico', cursive" },
+  { value: "caveat", label: "Caveat", stack: "'Caveat', cursive" },
+  { value: "satisfy", label: "Satisfy", stack: "'Satisfy', cursive" },
+  { value: "amaticsc", label: "Amatic SC", stack: "'Amatic SC', cursive" },
+  { value: "creepster", label: "Creepster", stack: "'Creepster', cursive" },
+  { value: "righteous", label: "Righteous", stack: "'Righteous', cursive" },
+  { value: "cinzel", label: "Cinzel", stack: "'Cinzel', serif" },
+  { value: "exo2", label: "Exo 2", stack: "'Exo 2', sans-serif" },
+  { value: "orbitron", label: "Orbitron", stack: "'Orbitron', sans-serif" },
+  { value: "titilliumweb", label: "Titillium Web", stack: "'Titillium Web', sans-serif" },
+  { value: "varelaround", label: "Varela Round", stack: "'Varela Round', sans-serif" },
+  { value: "zillaslab", label: "Zilla Slab", stack: "'Zilla Slab', serif" },
+  { value: "bitter", label: "Bitter", stack: "'Bitter', serif" },
+  { value: "crimsontext", label: "Crimson Text", stack: "'Crimson Text', serif" }
 ];
+
+type ExtendedTheme = ResumeTheme & { profileImage?: string | null };
 
 export default function PropertiesSidebar({ data, onChange, pushToast }: Props) {
   const theme = data.theme ?? DEFAULT_THEME;
+  const exTheme = theme as unknown as ExtendedTheme;
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [atsScore, setAtsScore] = useState<number | null>(null);
 
-  const updateTheme = <K extends keyof ResumeTheme>(field: K, value: ResumeTheme[K]) => {
-    onChange({ ...data, theme: { ...theme, [field]: value } });
+  const updateTheme = (field: string, value: unknown) => {
+    onChange({ ...data, theme: { ...theme, [field]: value } as ResumeTheme });
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateTheme("profileImage", reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const analyzeATS = async () => {
@@ -68,23 +133,27 @@ export default function PropertiesSidebar({ data, onChange, pushToast }: Props) 
       <div className="space-y-6">
         <div>
           <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
-            <LayoutTemplate size={16} className="text-gray-400" /> Layout
+            <ImageIcon size={16} className="text-gray-400" /> Photo (Draggable)
           </h3>
-          <div className="grid grid-cols-3 gap-2">
-            {LAYOUTS.map((l) => (
-              <button
-                key={l.value}
-                onClick={() => updateTheme("layout", l.value)}
-                className={`py-2 px-1 text-xs font-semibold rounded-lg border transition-all ${
-                  theme.layout === l.value
-                    ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                    : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {l.label}
+          {exTheme.profileImage ? (
+            <div className="flex items-center justify-between p-3 border border-indigo-200 bg-indigo-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                 <img src={exTheme.profileImage} alt="Profile" className="w-8 h-8 rounded-full object-cover shadow-sm border border-white" />
+                 <span className="text-xs font-semibold text-indigo-700">Photo Attached</span>
+              </div>
+              <button onClick={() => updateTheme("profileImage", null)} className="text-indigo-400 hover:text-red-500 transition-colors p-1">
+                 <X size={16} />
               </button>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors bg-white">
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <Upload className="w-5 h-5 text-gray-400 mb-2" />
+                <p className="text-xs text-gray-500 font-medium">Click to upload photo</p>
+              </div>
+              <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+            </label>
+          )}
         </div>
 
         <div>
@@ -96,7 +165,7 @@ export default function PropertiesSidebar({ data, onChange, pushToast }: Props) 
             onChange={(e) => updateTheme("fontFamily", e.target.value)}
             className="w-full p-2 border border-gray-200 rounded-lg text-sm bg-white mb-2 outline-none focus:border-indigo-500"
           >
-             {THEME_FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+             {EXTENDED_FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
           <div className="flex bg-gray-100 p-1 rounded-lg">
              {(['sm', 'md', 'lg'] as ResumeFontSize[]).map(size => (
