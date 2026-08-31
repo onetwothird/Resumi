@@ -2,7 +2,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
-import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import {
   Undo, Redo, Share, Bell, Mail, ChevronDown, Save,
@@ -28,8 +27,6 @@ const emptyResume = (): ResumeData => ({
   summary: "",
   theme: { ...DEFAULT_THEME },
 });
-
-const AUTOSAVE_DELAY_MS = 1500;
 
 function CanvasSkeleton() {
   return (
@@ -59,6 +56,56 @@ function SidebarSkeleton() {
   );
 }
 
+/** Modal shown when the user tries to leave with unsaved edits. */
+function UnsavedChangesModal({
+  open,
+  isSaving,
+  onSaveAndLeave,
+  onDiscard,
+  onCancel,
+}: {
+  open: boolean;
+  isSaving: boolean;
+  onSaveAndLeave: () => void;
+  onDiscard: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in zoom-in-95 duration-150">
+        <h2 className="text-base font-bold text-gray-900 mb-1.5">You have unsaved changes</h2>
+        <p className="text-sm text-gray-500 leading-relaxed mb-6">
+          If you leave now, the changes you made won&rsquo;t be saved. Do you want to save before leaving?
+        </p>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={onSaveAndLeave}
+            disabled={isSaving}
+            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+          >
+            {isSaving ? "Saving..." : "Save & leave"}
+          </button>
+          <button
+            onClick={onDiscard}
+            disabled={isSaving}
+            className="w-full py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+          >
+            Discard changes
+          </button>
+          <button
+            onClick={onCancel}
+            disabled={isSaving}
+            className="w-full py-2 text-gray-400 hover:text-gray-600 text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function EditorPage() {
   const params = useParams<{ id: string }>();
   const resumeId = params.id as string;
@@ -69,6 +116,19 @@ export default function EditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  // Manual save only — no autosave. This flag is the single source of
+  // truth for "does the user have edits that haven't been persisted yet".
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const hasUnsavedChangesRef = useRef(false);
+  useEffect(() => {
+    hasUnsavedChangesRef.current = hasUnsavedChanges;
+  }, [hasUnsavedChanges]);
+
+  // Where the "leave anyway?" modal should send the user once they've
+  // either saved or explicitly discarded their changes.
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const pendingNavigationRef = useRef<(() => void) | null>(null);
 
   const [activeTab, setActiveTab] = useState<"builder" | "preview" | "settings">("preview");
 
@@ -91,66 +151,65 @@ export default function EditorPage() {
     dataRef.current = data;
   }, [data]);
 
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSavingRef = useRef(false);
-  const pendingSaveRef = useRef(false);
 
-  const skipNextAutosaveRef = useRef(true);
+  // Every place that used to hand off a plain `setData` to a child now goes
+  // through this instead, so editing anything automatically marks the
+  // resume dirty. The initial fetch below calls `setData` directly (not
+  // this), so loading a resume from the server never itself counts as an
+  // "unsaved change".
+  const updateData = useCallback((next: ResumeData) => {
+    setData(next);
+    setHasUnsavedChanges(true);
+  }, []);
 
   const performSave = useCallback(
-    async (opts?: { redirectAfter?: boolean }) => {
-      if (isSavingRef.current) {
-        pendingSaveRef.current = true;
-        return;
-      }
+    async (opts?: { redirectAfter?: boolean }): Promise<boolean> => {
+      if (isSavingRef.current) return false;
 
       isSavingRef.current = true;
       setIsSaving(true);
 
       let savedOk = true;
       try {
-        do {
-          pendingSaveRef.current = false;
+        const payload = { ...dataRef.current } as Record<string, unknown>;
+        delete payload.id;
 
-          try {
-            const payload = { ...dataRef.current } as Record<string, unknown>;
-            delete payload.id;
+        const res = await fetch(`/api/resume/${effectiveIdRef.current}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-            const res = await fetch(`/api/resume/${effectiveIdRef.current}`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          throw new Error(body?.error || "Save failed");
+        }
 
-            if (!res.ok) {
-              const body = await res.json().catch(() => null);
-              throw new Error(body?.error || "Save failed");
-            }
+        const saved = await res.json();
 
-            const saved = await res.json();
+        if (effectiveIdRef.current === "new" && saved?.id) {
+          effectiveIdRef.current = saved.id;
+          window.history.replaceState(null, "", `/resume/${saved.id}`);
+        }
 
-            if (effectiveIdRef.current === "new" && saved?.id) {
-              effectiveIdRef.current = saved.id;
-              window.history.replaceState(null, "", `/resume/${saved.id}`);
-            }
+        setLastSaved(new Date());
+        setHasUnsavedChanges(false);
 
-            setLastSaved(new Date());
-          } catch (err) {
-            savedOk = false;
-            const detail = err instanceof Error ? err.message : "Unknown error";
-            pushToast(`Couldn't save: ${detail}`, "error");
-            break;
-          }
-        } while (pendingSaveRef.current);
-
-        if (savedOk && opts?.redirectAfter) {
+        if (opts?.redirectAfter) {
           pushToast("Resume saved", "success");
           router.push("/dashboard");
         }
+      } catch (err) {
+        savedOk = false;
+        const detail = err instanceof Error ? err.message : "Unknown error";
+        pushToast(`Couldn't save: ${detail}`, "error");
       } finally {
         isSavingRef.current = false;
         setIsSaving(false);
       }
+
+      return savedOk;
     },
     [pushToast, router]
   );
@@ -186,23 +245,6 @@ export default function EditorPage() {
   }, [resumeId, pushToast]);
 
   useEffect(() => {
-    if (isLoading) return;
-
-    if (skipNextAutosaveRef.current) {
-      skipNextAutosaveRef.current = false;
-      return;
-    }
-
-    saveTimeoutRef.current = setTimeout(() => {
-      performSave();
-    }, AUTOSAVE_DELAY_MS);
-
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [data, isLoading, performSave]);
-
-  useEffect(() => {
     const updateScale = () => {
       if (!mainRef.current) return;
       const padding = 32;
@@ -234,7 +276,7 @@ export default function EditorPage() {
   const titleValue = data.titleIsCustom ? data.title ?? "" : derivedTitle;
 
   const handleTitleChange = (value: string) => {
-    setData((prev) => ({ ...prev, title: value, titleIsCustom: true }));
+    updateData({ ...dataRef.current, title: value, titleIsCustom: true });
   };
 
   const printRef = useRef<HTMLDivElement>(null);
@@ -245,16 +287,15 @@ export default function EditorPage() {
   });
 
   const handleSave = () => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
     performSave({ redirectAfter: true });
   };
 
+  // Native browser warning for hard exits (tab close, refresh, typing a
+  // new URL) — this is the one case a custom modal can't cover, since the
+  // browser tears the page down before any of our own code can run.
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isSavingRef.current || saveTimeoutRef.current) {
+      if (hasUnsavedChangesRef.current) {
         e.preventDefault();
         e.returnValue = "";
       }
@@ -263,19 +304,88 @@ export default function EditorPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
 
+  // Routes through the "unsaved changes" modal when there's something to
+  // lose; otherwise just runs the navigation immediately. Every in-app
+  // exit point (logo, nav links, browser back button) should call this
+  // instead of navigating directly.
+  const attemptNavigation = useCallback((navigate: () => void) => {
+    if (!hasUnsavedChangesRef.current) {
+      navigate();
+      return;
+    }
+    pendingNavigationRef.current = navigate;
+    setIsLeaveModalOpen(true);
+  }, []);
+
+  const handleSaveAndLeave = async () => {
+    const ok = await performSave();
+    if (ok) {
+      setIsLeaveModalOpen(false);
+      pendingNavigationRef.current?.();
+      pendingNavigationRef.current = null;
+    }
+    // If the save failed, performSave already surfaced a toast — leave the
+    // modal open so the user doesn't lose their only warning that the
+    // save didn't go through.
+  };
+
+  const handleDiscardAndLeave = () => {
+    setHasUnsavedChanges(false);
+    setIsLeaveModalOpen(false);
+    pendingNavigationRef.current?.();
+    pendingNavigationRef.current = null;
+  };
+
+  const handleCancelLeave = () => {
+    setIsLeaveModalOpen(false);
+    pendingNavigationRef.current = null;
+  };
+
+  // Best-effort interception of the browser's own Back/Forward buttons.
+  // The browser has already changed the URL by the time `popstate` fires,
+  // so we immediately re-push the current URL to cancel that navigation,
+  // then route the real "go back" action through the same confirmation
+  // flow as everything else.
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    window.history.pushState(null, "", window.location.href);
+
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+      attemptNavigation(() => router.back());
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [hasUnsavedChanges, attemptNavigation, router]);
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#F7F9FC]">
 
       <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-20">
         <div className="flex items-center gap-4 lg:gap-8">
-          <div className="flex items-center gap-2 font-bold text-indigo-600 text-xl cursor-pointer" onClick={() => router.push('/dashboard')}>
+          <div
+            className="flex items-center gap-2 font-bold text-indigo-600 text-xl cursor-pointer"
+            onClick={() => attemptNavigation(() => router.push('/dashboard'))}
+          >
             <ResumiLogo className="w-8 h-8" />
             <span className="hidden sm:inline">Resumi</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <Link href="/dashboard" className="hover:text-gray-900 transition-colors">Home</Link>
-            <Link href="/ai-tools" className="flex items-center gap-1 text-gray-900 font-semibold transition-colors">AI Tools <ChevronDown size={14}/></Link>
+            <button
+              onClick={() => attemptNavigation(() => router.push('/dashboard'))}
+              className="hover:text-gray-900 transition-colors"
+            >
+              Home
+            </button>
+            <button
+              onClick={() => attemptNavigation(() => router.push('/ai-tools'))}
+              className="flex items-center gap-1 text-gray-900 font-semibold transition-colors"
+            >
+              AI Tools <ChevronDown size={14}/>
+            </button>
           </nav>
         </div>
         <div className="flex items-center gap-2 lg:gap-4">
@@ -294,7 +404,13 @@ export default function EditorPage() {
             <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"><Redo size={16} /></button>
           </div>
           <span className="text-xs flex items-center gap-1 italic">
-             {isSaving ? "Saving..." : lastSaved ? `Saved at ${lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : "Unsaved changes"}
+             {isSaving
+               ? "Saving..."
+               : hasUnsavedChanges
+               ? "Unsaved changes"
+               : lastSaved
+               ? `Saved at ${lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
+               : "Unsaved changes"}
           </span>
         </div>
 
@@ -326,7 +442,7 @@ export default function EditorPage() {
 
       <div className="flex flex-1 overflow-hidden relative">
         <aside className={`${activeTab === 'builder' ? 'flex' : 'hidden'} lg:flex w-full lg:w-85 bg-white border-r border-gray-200 overflow-y-auto flex-col shrink-0 absolute lg:relative z-10 h-full left-0`}>
-          {isLoading ? <SidebarSkeleton /> : <BuilderSidebar data={data} onChange={setData} />}
+          {isLoading ? <SidebarSkeleton /> : <BuilderSidebar data={data} onChange={updateData} />}
         </aside>
 
         <main
@@ -345,7 +461,7 @@ export default function EditorPage() {
               <CanvasSkeleton />
             ) : (
               <div className="animate-in fade-in duration-300">
-                <CanvasEditor ref={printRef} data={data} onChange={setData} scale={scale} />
+                <CanvasEditor ref={printRef} data={data} onChange={updateData} scale={scale} />
               </div>
             )}
           </div>
@@ -354,7 +470,7 @@ export default function EditorPage() {
         </main>
 
         <aside className={`${activeTab === 'settings' ? 'flex' : 'hidden'} lg:flex w-full lg:w-75 bg-white border-l border-gray-200 overflow-y-auto p-5 flex-col gap-6 shrink-0 absolute lg:relative z-10 h-full right-0`}>
-          {isLoading ? <SidebarSkeleton /> : <PropertiesSidebar data={data} onChange={setData} pushToast={pushToast} />}
+          {isLoading ? <SidebarSkeleton /> : <PropertiesSidebar data={data} onChange={updateData} pushToast={pushToast} />}
         </aside>
       </div>
 
@@ -381,6 +497,14 @@ export default function EditorPage() {
           <span className="text-[10px] mt-1 font-semibold">Settings</span>
         </button>
       </div>
+
+      <UnsavedChangesModal
+        open={isLeaveModalOpen}
+        isSaving={isSaving}
+        onSaveAndLeave={handleSaveAndLeave}
+        onDiscard={handleDiscardAndLeave}
+        onCancel={handleCancelLeave}
+      />
 
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
     </div>
