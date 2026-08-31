@@ -8,8 +8,8 @@ import ResumiLogo from "@/components/logo/ResumiLogo";
 
 const NAV_LINKS: { href: string; label: string }[] = [
   { href: "/#features", label: "Features" },
-  { href: "/#pricing", label: "Pricing" },
   { href: "/companies", label: "Companies" },
+   { href: "/pricing", label: "Pricing" },
   { href: "/for-employers", label: "For Employers" },
 ];
 
