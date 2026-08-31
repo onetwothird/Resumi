@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { ensureUser } from "@/lib/ensure-user";
 
 export async function GET(
   req: Request,
@@ -11,9 +12,7 @@ export async function GET(
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
     const { id } = await params;
-
-    // A brand-new, unsaved resume has no id to look up yet — return an
-    // empty 200 rather than treating it as a lookup failure.
+    
     if (id === "new") {
       return NextResponse.json(null);
     }
@@ -38,15 +37,11 @@ export async function POST(
   try {
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+    await ensureUser(userId);
 
     const { id } = await params;
     const data = await req.json();
 
-    // If the user has explicitly renamed the resume (data.titleIsCustom),
-    // trust whatever title they typed and keep the flag set — autosave
-    // must never clobber a manual rename. Otherwise, auto-derive the title
-    // from the resume's content on every save: Job Title, then full name,
-    // then a generic placeholder.
     const isCustomTitle =
       data.titleIsCustom === true &&
       typeof data.title === "string" &&
