@@ -9,6 +9,8 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/companies(.*)",
   "/jobs(.*)",
+  "/pricing(.*)",
+  "/for-employers(.*)",
 ]);
 
 const isApiRoute = createRouteMatcher(["/api(.*)", "/trpc(.*)"]);
