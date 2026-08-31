@@ -6,7 +6,7 @@ import ResumiLogo from "@/components/logo/ResumiLogo";
 
 const FOOTER_LINKS: { href: string; label: string }[] = [
   { href: "/#features", label: "Features" },
-  { href: "/#pricing", label: "Pricing" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/companies", label: "Companies" },
   { href: "/for-employers", label: "For Employers" },
 ];
