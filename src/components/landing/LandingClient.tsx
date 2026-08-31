@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import {
   ArrowRight,
-  ArrowDown,
   CheckCircle,
   Wand2,
   Layout,
@@ -15,6 +15,8 @@ import {
   Briefcase,
   Users,
   Building2,
+  Sparkles,
+  Gauge,
 } from "lucide-react";
 import PublicHeader from "@/components/marketing/PublicHeader";
 import PublicFooter from "@/components/marketing/PublicFooter";
@@ -25,36 +27,31 @@ const FEATURES = [
     icon: CheckCircle,
     title: "ATS-Friendly Formatting",
     desc: "Every resume is structured so applicant tracking systems can parse it correctly, no hidden tables or graphics that get your resume rejected before a human sees it.",
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-500/10",
   },
   {
     icon: Target,
     title: "Target Job Matching",
     desc: "Point your resume at a specific job posting and see how well your experience lines up with what it's asking for.",
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-500/10",
   },
   {
     icon: Wand2,
     title: "Structured Experience",
     desc: "Work history, education, and skills live in a clean structured builder, so reordering or updating a section never means reformatting the whole page.",
-    color: "text-purple-600 dark:text-purple-400",
-    bg: "bg-purple-50 dark:bg-purple-500/10",
   },
   {
     icon: Layout,
     title: "Recruiter-Ready Layout",
     desc: "One clean, minimalist layout designed for readability, not a wall of templates you have to pick between.",
-    color: "text-rose-600 dark:text-rose-400",
-    bg: "bg-rose-50 dark:bg-rose-500/10",
   },
   {
     icon: Download,
     title: "Instant PDF Export",
     desc: "Download a properly formatted PDF the moment you're ready to apply.",
-    color: "text-indigo-600 dark:text-indigo-400",
-    bg: "bg-indigo-50 dark:bg-indigo-500/10",
+  },
+  {
+    icon: Gauge,
+    title: "Real-Time Resume Score",
+    desc: "Watch your ATS compatibility score update as you edit, so you know exactly how strong your resume is before you apply.",
   },
 ];
 
@@ -84,24 +81,21 @@ const STEPS = [
     number: "1",
     title: "Enter Your Details",
     desc: "Input your work experience, education, and skills into our structured builder.",
-    accent:
-      "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
   },
   {
     number: "2",
     title: "Refine Content",
     desc: "Tighten your phrasing and match your resume against a specific job you're targeting.",
-    accent:
-      "bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/30",
   },
   {
     number: "3",
     title: "Export & Apply",
     desc: "Download a clean, ATS-optimized PDF, then browse open roles and apply straight from Resumi.",
-    accent:
-      "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30",
   },
 ];
+
+const STEP_ACCENT =
+  "text-indigo-600 border-indigo-200 dark:text-indigo-400 dark:border-indigo-500/30";
 
 interface PlatformSide {
   icon: typeof Users;
@@ -133,7 +127,7 @@ const PLATFORM_SIDES: PlatformSide[] = [
     bullets: ["Free to post, no listing limits", "Draft and publish on your own timeline", "Manage every posting from one dashboard"],
     cta: "Post a job",
     href: "/employer/post-job",
-    accent: "bg-slate-800 dark:bg-slate-700",
+    accent: "bg-slate-900 dark:bg-slate-700",
   },
 ];
 
@@ -173,18 +167,18 @@ export default function LandingClient() {
         setStats({ openRoles: jobs.length, companies });
       })
       .catch(() => {
-        /* silently omit the stat pill if the board can't be reached */
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  const hasLiveStats = !!stats && stats.openRoles > 0;
+
   return (
-    <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-indigo-100 selection:text-indigo-900 dark:selection:bg-indigo-500/30 dark:selection:text-indigo-100 overflow-hidden relative transition-colors duration-300">
+    <div className="min-h-screen bg-background dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-indigo-100 selection:text-indigo-900 dark:selection:bg-indigo-500/30 dark:selection:text-indigo-100 overflow-hidden relative transition-colors duration-300">
       <PublicHeader active="/" />
 
-      {/* Hero Section — the aurora background lives behind this section only */}
       <div className="relative">
         <AuroraBackground />
 
@@ -192,52 +186,147 @@ export default function LandingClient() {
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
-          className="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-20 md:pt-32 md:pb-28 text-center flex flex-col items-center"
+          className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32"
         >
-          {stats && stats.openRoles > 0 && (
-            <motion.div
-              variants={fadeUp}
-              className="flex items-center gap-2 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-sm rounded-full pl-2 pr-4 py-1.5 mb-8 text-xs font-semibold text-slate-600 dark:text-slate-300"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              {stats.openRoles} open role{stats.openRoles === 1 ? "" : "s"} from {stats.companies} compan{stats.companies === 1 ? "y" : "ies"} right now
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-10 items-center">
+            <div className="text-center lg:text-left flex flex-col items-center lg:items-start">
+              <motion.div
+                variants={fadeUp}
+                className="inline-flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full pl-3 pr-4 py-1.5 mb-7 text-xs font-medium text-slate-600 dark:text-slate-300 shadow-sm"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${hasLiveStats ? "bg-emerald-500" : "bg-indigo-400"}`} />
+                {hasLiveStats
+                  ? `${stats!.openRoles} open role${stats!.openRoles === 1 ? "" : "s"} · ${stats!.companies} compan${stats!.companies === 1 ? "y" : "ies"} hiring now`
+                  : "Free to build · No paywall to apply"}
+              </motion.div>
+
+              <motion.h1
+                variants={fadeUp}
+                className="font-serif text-4xl sm:text-5xl md:text-[3.25rem] leading-[1.12] text-slate-900 dark:text-white mb-6 max-w-xl"
+              >
+                <span className="block font-normal">Build a professional resume,</span>
+                <span className="block font-bold">then go land the job.</span>
+              </motion.h1>
+
+              <motion.p variants={fadeUp} className="text-base md:text-lg text-slate-600 dark:text-slate-400 mb-10 max-w-md leading-relaxed">
+                Resumi is a structured resume builder and a live job board in one place. Write a clean, ATS-friendly resume, then browse roles companies are hiring for right now.
+              </motion.p>
+
+              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+                <Link
+                  href="/sign-up"
+                  className="flex items-center gap-2 bg-indigo-600 text-white px-7 py-3.5 rounded-lg font-semibold text-sm hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md w-full sm:w-auto justify-center group"
+                >
+                  Start Building
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  href="/jobs"
+                  className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-7 py-3.5 rounded-lg font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all w-full sm:w-auto justify-center"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  Browse Open Roles
+                </Link>
+              </motion.div>
+
+              <motion.p variants={fadeUp} className="text-xs text-slate-400 dark:text-slate-500">
+                Free to build. Free to browse. No paywall between you and your next job.
+              </motion.p>
+            </div>
+
+            <motion.div variants={fadeUp} className="relative hidden lg:block max-w-md ml-auto w-full">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-900/6 dark:shadow-black/20 p-7">
+                <div className="flex items-start justify-between mb-5">
+                  <div>
+                    <span className="inline-block rounded-md ring-2 ring-indigo-500/60 px-2 py-0.5 font-serif text-xl font-semibold text-slate-900 dark:text-white">
+                      Angelito P. Decatoria III
+                    </span>
+                    <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium mt-1.5">Full Stack Developer</p>
+                  </div>
+                  <Image
+                    src="/icon/cover1.png"
+                    alt=""
+                    width={44}
+                    height={44}
+                    className="w-11 h-11 rounded-full object-cover object-top shrink-0 ring-2 ring-white dark:ring-slate-900"
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400 dark:text-slate-500 mb-5">
+                  <span>angelitodecatoriaa@gmail.com</span>
+                  <span>&middot;</span>
+                  <span>Portfolio</span>
+                  <span>&middot;</span>
+                  <span>LinkedIn</span>
+                </div>
+
+                <p className="text-[12px] leading-relaxed text-slate-500 dark:text-slate-400 mb-5">
+                  Full stack developer focused on clean, maintainable code &mdash; four years shipping features end to end.
+                </p>
+
+                <div className="h-px bg-slate-100 dark:bg-slate-800 mb-5" />
+
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-3">
+                  Work Experience
+                </p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Full Stack Developer</p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-3">Northwind Studio &middot; 2022&ndash;Present</p>
+                <ul className="space-y-2">
+                  <li className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 w-full" />
+                  <li className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 w-5/6" />
+                  <li className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 w-3/4" />
+                </ul>
+              </div>
+
+              <div className="absolute -left-22 bottom-52 w-28 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg p-3">
+                <p className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mb-2 text-center">Resume Score</p>
+                <div className="relative w-14 h-14 mx-auto">
+                  <svg viewBox="0 0 56 56" className="w-14 h-14 -rotate-90">
+                    <circle cx="28" cy="28" r="24" fill="none" strokeWidth="5" className="stroke-slate-100 dark:stroke-slate-800" />
+                    <circle
+                      cx="28"
+                      cy="28"
+                      r="24"
+                      fill="none"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeDasharray="150.8"
+                      strokeDashoffset="9"
+                      className="stroke-emerald-500"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    94%
+                  </span>
+                </div>
+              </div>
+
+              <div className="absolute -bottom-7 -right-4 w-60 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg p-4">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-snug">
+                    Tightened the wording on your last bullet and added a measurable result.
+                  </p>
+                </div>
+              </div>
             </motion.div>
-          )}
-
-          <motion.h1 variants={fadeUp} className="text-4xl md:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-6 max-w-4xl mx-auto leading-[1.15]">
-            Build a professional resume, <br className="hidden md:block" />
-            <span className="text-indigo-600 dark:text-indigo-400">then go land the job.</span>
-          </motion.h1>
-
-          <motion.p variants={fadeUp} className="text-base md:text-lg text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Resumi is a structured resume builder and a live job board in one place. Write a clean, ATS-friendly resume, then browse roles companies are hiring for right now.
-          </motion.p>
-
-          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/sign-up" className="flex items-center gap-2 bg-indigo-600 text-white px-8 py-4 rounded-xl font-semibold text-base hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 w-full sm:w-auto justify-center group">
-              Start Building
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link href="/jobs" className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-8 py-4 rounded-xl font-semibold text-base hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 w-full sm:w-auto justify-center">
-              <Briefcase className="w-4 h-4" />
-              Browse Open Roles
-            </Link>
-          </motion.div>
+          </div>
         </motion.main>
       </div>
 
-      {/* Features Section */}
       <motion.section
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
         variants={staggerContainer}
         id="features"
-        className="relative z-10 py-24 bg-white dark:bg-slate-900 border-y border-slate-200/80 dark:border-slate-800"
+        className="relative z-10 py-24 bg-background dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800"
       >
         <div className="max-w-7xl mx-auto px-6">
           <motion.div variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-3">Tools to strengthen your application</h2>
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 dark:text-white mb-3">Tools to strengthen your application</h2>
             <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Everything you need to structure, refine, and export your resume.</p>
           </motion.div>
 
@@ -246,12 +335,12 @@ export default function LandingClient() {
               <motion.div
                 key={feature.title}
                 variants={staggerItem}
-                className="group p-8 rounded-2xl bg-[#F7F9FC] dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:bg-white dark:hover:bg-slate-800 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+                className="group p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:shadow-sm transition-colors duration-300"
               >
-                <div className={`w-12 h-12 rounded-xl ${feature.bg} flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-300`}>
-                  <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                <div className="w-11 h-11 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-5">
+                  <feature.icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{feature.title}</h3>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">{feature.title}</h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{feature.desc}</p>
               </motion.div>
             ))}
@@ -259,18 +348,17 @@ export default function LandingClient() {
         </div>
       </motion.section>
 
-      {/* One platform, two sides */}
       <motion.section
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
         variants={staggerContainer}
         id="platform"
-        className="relative z-10 py-24 bg-[#F7F9FC] dark:bg-slate-950"
+        className="relative z-10 py-24 bg-background dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800"
       >
         <div className="max-w-6xl mx-auto px-6">
           <motion.div variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-3">One platform, both sides of hiring</h2>
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 dark:text-white mb-3">One platform, both sides of hiring</h2>
             <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Job seekers build and apply. Employers post and manage. Same place.</p>
           </motion.div>
 
@@ -279,13 +367,13 @@ export default function LandingClient() {
               <motion.div
                 key={side.title}
                 variants={staggerItem}
-                className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col"
+                className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/40 transition-colors duration-300 flex flex-col"
               >
                 <div className={`w-12 h-12 rounded-xl ${side.accent} flex items-center justify-center mb-5 shrink-0`}>
                   <side.icon className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-2">{side.eyebrow}</span>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{side.title}</h3>
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-2">{side.eyebrow}</span>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">{side.title}</h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-6">{side.desc}</p>
 
                 <ul className="space-y-3 mb-8 flex-1">
@@ -299,7 +387,7 @@ export default function LandingClient() {
 
                 <Link
                   href={side.href}
-                  className="inline-flex items-center justify-center gap-2 bg-slate-900 dark:bg-indigo-600 text-white text-sm font-semibold py-3 rounded-xl hover:bg-slate-800 dark:hover:bg-indigo-500 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 bg-slate-900 dark:bg-indigo-600 text-white text-sm font-semibold py-3 rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-500 transition-colors"
                 >
                   {side.cta}
                   <ArrowRight className="w-4 h-4" />
@@ -310,89 +398,57 @@ export default function LandingClient() {
         </div>
       </motion.section>
 
-      {/* Before / After Examples */}
       <motion.section
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
         variants={staggerContainer}
         id="examples"
-        className="relative z-10 py-24 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800"
+        className="relative z-10 py-24 bg-background dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800"
       >
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-2xl mx-auto px-6">
           <motion.div variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-3">Upgrade your experience with impact</h2>
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 dark:text-white mb-3">Upgrade your experience with impact</h2>
             <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Illustrative examples of how sharper phrasing and measurable outcomes change a bullet point.</p>
           </motion.div>
 
-          <div className="space-y-10 md:space-y-8">
+          <div className="divide-y divide-slate-200/70 dark:divide-slate-800">
             {TRANSFORMATIONS.map((item) => (
-              <motion.div
-                key={item.tag}
-                variants={staggerItem}
-                className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300"
-              >
-                <div className="px-6 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                  <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">{item.tag}</span>
-                </div>
-
-                {/* Mobile: stacked panels with an in-flow connector between them */}
-                <div className="md:hidden">
-                  <div className="p-6 bg-slate-50/30 dark:bg-slate-800/30">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3 block">Before</span>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 line-through decoration-slate-300 dark:decoration-slate-600 leading-relaxed wrap-break-word">{item.before}</p>
-                  </div>
-                  <div className="flex justify-center py-1">
-                    <div className="w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center shadow-sm">
-                      <ArrowDown className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                    </div>
-                  </div>
-                  <div className="p-6 bg-indigo-50/10 dark:bg-indigo-500/5">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-3 block">After (ATS Optimized)</span>
-                    <p className="text-sm text-slate-900 dark:text-slate-100 font-medium leading-relaxed wrap-break-word">{item.after}</p>
-                  </div>
-                </div>
-
-                {/* Desktop: side-by-side panels, connector centered exactly on the divider */}
-                <div className="hidden md:grid md:grid-cols-2 md:divide-x divide-slate-100 dark:divide-slate-800 relative">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center shadow-sm z-10">
-                    <ArrowRight className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                  </div>
-                  <div className="p-8 bg-slate-50/30 dark:bg-slate-800/30">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3 block">Before</span>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 line-through decoration-slate-300 dark:decoration-slate-600 leading-relaxed wrap-break-word">{item.before}</p>
-                  </div>
-                  <div className="p-8 bg-indigo-50/10 dark:bg-indigo-500/5">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-3 block">After (ATS Optimized)</span>
-                    <p className="text-sm text-slate-900 dark:text-slate-100 font-medium leading-relaxed wrap-break-word">{item.after}</p>
-                  </div>
-                </div>
+              <motion.div key={item.tag} variants={staggerItem} className="py-8 first:pt-0 last:pb-0">
+                <span className="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-400 mb-4">
+                  {item.tag}
+                </span>
+                <p className="pl-4 mb-3 border-l-2 border-slate-200 dark:border-slate-700 text-sm text-slate-400 dark:text-slate-500 leading-relaxed wrap-break-word">
+                  {item.before}
+                </p>
+                <p className="pl-4 border-l-2 border-indigo-500 dark:border-indigo-400 text-base text-slate-900 dark:text-slate-100 font-medium leading-relaxed wrap-break-word">
+                  {item.after}
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
       </motion.section>
 
-      {/* How It Works */}
       <motion.section
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
         variants={staggerContainer}
         id="how-it-works"
-        className="relative z-10 py-24 bg-[#F7F9FC] dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800"
+        className="relative z-10 py-24 bg-background dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800"
       >
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <motion.h2 variants={fadeUp} className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-16">Built in three simple steps</motion.h2>
+          <motion.h2 variants={fadeUp} className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 dark:text-white mb-16">Built in three simple steps</motion.h2>
 
           <div className="relative grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto">
             <div className="hidden md:block absolute top-8 left-[calc(16.66%+2rem)] right-[calc(16.66%+2rem)] h-0.5 bg-slate-200 dark:bg-slate-800" aria-hidden />
             {STEPS.map((step) => (
               <motion.div key={step.number} variants={staggerItem} className="relative flex flex-col items-center group">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold mb-6 border-2 bg-[#F7F9FC] dark:bg-slate-950 transition-transform duration-300 group-hover:scale-110 ${step.accent}`}>
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-serif font-semibold mb-6 border-2 bg-background dark:bg-slate-950 transition-transform duration-300 group-hover:scale-110 ${STEP_ACCENT}`}>
                   {step.number}
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{step.title}</h3>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">{step.title}</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
@@ -406,25 +462,31 @@ export default function LandingClient() {
         viewport={{ once: true, margin: "-100px" }}
         variants={staggerContainer}
         id="get-started"
-        className="relative z-10 py-24 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800"
+        className="relative z-10 py-24 bg-background dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800"
       >
-        <div className="max-w-3xl mx-auto px-6 text-center">
+        <div className="max-w-4xl mx-auto px-6 text-center">
           <motion.div
               variants={fadeUp}
-              className="rounded-3xl bg-slate-800 dark:bg-slate-900 dark:border dark:border-slate-800 px-8 py-14 sm:px-14"
+              className="relative overflow-hidden rounded-3xl bg-slate-900 dark:bg-slate-950 dark:border dark:border-slate-800 px-8 py-16 sm:px-16 sm:py-20"
             >
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Free to build. Free to browse.</h2>
-              <p className="text-sm md:text-base text-slate-300 max-w-lg mx-auto mb-8 leading-relaxed">
-                Create your resume and start applying to real, open roles today. No paywall between you and your next job.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Link href="/sign-up" className="flex items-center justify-center gap-2 bg-white text-slate-900 px-8 py-3.5 rounded-xl font-semibold text-sm hover:bg-slate-100 transition-colors w-full sm:w-auto">
-                  Start Building
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link href="/jobs" className="flex items-center justify-center gap-2 bg-transparent text-white px-8 py-3.5 rounded-xl font-semibold text-sm border border-slate-600 hover:bg-slate-700 transition-colors w-full sm:w-auto">
-                  Browse Open Roles
-                </Link>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-125 h-125 rounded-full bg-indigo-500/20 blur-[110px]"
+              />
+              <div className="relative">
+                <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white mb-3">Free to build. Free to browse.</h2>
+                <p className="text-sm md:text-base text-slate-300 max-w-lg mx-auto mb-8 leading-relaxed">
+                  Create your resume and start applying to real, open roles today. No paywall between you and your next job.
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Link href="/sign-up" className="flex items-center justify-center gap-2 bg-white text-slate-900 px-8 py-3.5 rounded-lg font-semibold text-sm hover:bg-slate-100 transition-colors w-full sm:w-auto">
+                    Start Building
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link href="/jobs" className="flex items-center justify-center gap-2 bg-transparent text-white px-8 py-3.5 rounded-lg font-semibold text-sm border border-slate-600 hover:bg-slate-800 transition-colors w-full sm:w-auto">
+                    Browse Open Roles
+                  </Link>
+                </div>
               </div>
             </motion.div>
         </div>
