@@ -235,14 +235,14 @@ export default function PricingPage() {
                   </div>
 
                   <div className="flex items-end gap-1 mb-1">
-                    <span className="text-3xl font-extrabold tracking-tight">${price}</span>
+                    <span className="text-3xl font-extrabold tracking-tight">₱{price}</span>
                     <span className="text-sm text-slate-500 mb-1">/mo</span>
                   </div>
                   <p className="text-xs text-slate-400 mb-4">
                     {price === 0
                       ? "Free forever"
                       : annual
-                      ? `Billed $${price * 12} annually`
+                      ? `Billed ₱${price * 12} annually`
                       : "Billed monthly"}
                   </p>
 
