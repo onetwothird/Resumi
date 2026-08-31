@@ -1,6 +1,6 @@
 // src/types/index.ts
 
-export type ResumeLayout = "classic" | "modern" | "minimal";
+export type ResumeLayout = string;
 export type ResumeFontSize = "sm" | "md" | "lg";
 // Added keys for the new section headers and list items
 export type ResumeBlockKey = "name" | "jobTitle" | "contact" | "summaryBody" | "sectionHeading" | "itemTitle" | "itemSubtitle" | "itemMeta" | "itemBody";
@@ -72,6 +72,7 @@ export interface ResumeData {
   lastName: string;
   jobTitle: string;
   email: string;
+  
   phone: string;
   address: string;
   summary: string;
