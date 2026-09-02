@@ -639,6 +639,5 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
     </div>
   );
 });
-
 CanvasEditor.displayName = "CanvasEditor";
 export default CanvasEditor;
