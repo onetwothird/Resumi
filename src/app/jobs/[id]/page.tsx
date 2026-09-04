@@ -1,8 +1,11 @@
-import { clerkClient } from "@clerk/nextjs/server";
+// C:\resumi\src\app\jobs\[id]\page.tsx
+
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Briefcase, MapPin, Calendar, ArrowLeft, Mail, Link as LinkIcon, Wallet } from "lucide-react";
+import { Briefcase, MapPin, Calendar, ArrowLeft, Wallet } from "lucide-react";
 import prisma from "@/lib/prisma";
+import ApplyButton from "@/components/jobs/ApplyButton";
 
 export default async function PublicJobPage({
   params,
@@ -10,6 +13,9 @@ export default async function PublicJobPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  
+  // 1. Get the current user viewing the page
+  const { userId } = await auth();
 
   const job = await prisma.job.findFirst({
     where: {
@@ -19,14 +25,26 @@ export default async function PublicJobPage({
   });
 
   if (!job) {
-    redirect("/"); 
+    redirect("/dashboard"); // Redirect back to job board if job doesn't exist
+  }
+
+  // 2. Check if the current user is the employer who posted it
+  const isOwner = userId === job.userId;
+
+  // 3. Fetch job seeker's resumes if they are logged in and not the owner
+  let userResumes: { id: string; title: string }[] = [];
+  if (userId && !isOwner) {
+    userResumes = await prisma.resume.findMany({
+      where: { userId },
+      select: { id: true, title: true },
+      orderBy: { updatedAt: "desc" },
+    });
   }
 
   const client = await clerkClient();
   const poster = await client.users.getUser(job.userId).catch(() => null);
 
   const posterFullName = poster?.fullName || "Employer";
-  const posterEmail = poster?.primaryEmailAddress?.emailAddress || "Not provided";
   const posterImage = poster?.imageUrl || job.posterImageUrl;
 
   const postDate = new Date(job.createdAt).toLocaleDateString("en-US", {
@@ -53,8 +71,8 @@ export default async function PublicJobPage({
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <div className="text-sm font-medium text-gray-500 mb-6 flex items-center gap-2">
-            <Link href="/" className="hover:text-indigo-600 transition-colors">
-              Jobs
+            <Link href="/dashboard" className="hover:text-indigo-600 transition-colors">
+              Job Board
             </Link>
             <span>/</span>
             <span className="text-gray-900">{job.title}</span>
@@ -145,6 +163,23 @@ export default async function PublicJobPage({
           </div>
 
           <div className="space-y-6">
+            
+            {/* Direct Application Card */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
+              <h2 className="text-base font-bold mb-5 text-gray-900">Application</h2>
+              {isOwner ? (
+                <div className="bg-gray-50 text-gray-600 p-4 rounded-xl text-center text-sm font-medium border border-gray-200">
+                  You posted this job. You cannot apply to your own posting.
+                </div>
+              ) : (
+                <ApplyButton 
+                  jobId={job.id} 
+                  resumes={userResumes} 
+                  isLoggedIn={!!userId} 
+                />
+              )}
+            </div>
+
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
               <h2 className="text-base font-bold mb-5 text-gray-900">Posted by</h2>
               <div className="flex items-center gap-4 mb-6">
@@ -161,44 +196,13 @@ export default async function PublicJobPage({
                   <div className="text-xs font-semibold text-gray-500">{postDate}</div>
                 </div>
               </div>
-              <button className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition-colors text-sm">
-                View profile
-              </button>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
-              <h2 className="text-base font-bold mb-5 text-gray-900">Contact</h2>
-              <div className="space-y-5">
-                <div>
-                  <div className="text-xs font-semibold text-gray-500 mb-1">Name</div>
-                  <div className="font-bold text-gray-900 text-sm">{posterFullName}</div>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-gray-500 mb-1">Email</div>
-                  <div className="flex items-center gap-2 font-bold text-indigo-600 text-sm">
-                    <Mail size={14} />
-                    <a href={`mailto:${posterEmail}`} className="hover:underline break-all">
-                      {posterEmail}
-                    </a>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-gray-500 mb-1">Apply link</div>
-                  <div className="flex items-center gap-2 font-bold text-indigo-600 text-sm">
-                    <LinkIcon size={14} />
-                    <span className="hover:underline cursor-pointer break-all">
-                      {job.company.toLowerCase().replace(/\s+/g, '')}.services
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <Link 
-              href="/"
+              href="/dashboard"
               className="flex items-center justify-center gap-2 w-full py-3.5 bg-gray-200/60 hover:bg-gray-300 text-gray-800 font-bold rounded-2xl transition-colors text-sm"
             >
-              <ArrowLeft size={16} /> Back to jobs
+              <ArrowLeft size={16} /> Back to Job Board
             </Link>
           </div>
         </div>
