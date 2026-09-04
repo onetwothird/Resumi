@@ -1,3 +1,5 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,72 +9,91 @@ datasource db {
 }
 
 model User {
-  id        String   @id // Maps to Clerk User ID
-  email     String   @unique
-  name      String?
-  resumes   Resume[]
-  jobs      Job[]
-  createdAt DateTime @default(now())
+  id           String        @id // Maps to Clerk User ID
+  email        String        @unique
+  name         String?
+  resumes      Resume[]
+  jobs         Job[]
+  applications Application[] 
+  createdAt    DateTime      @default(now())
 }
 
 model Resume {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  title         String   @default("Untitled Resume")
-  titleIsCustom Boolean  @default(false)
+  title          String   @default("Untitled Resume")
+  titleIsCustom  Boolean  @default(false)
 
-  firstName   String?
-  lastName    String?
-  jobTitle    String?
-  email       String?
-  phone       String?
-  address     String?
-  summary     String?  @db.Text
+  firstName      String?
+  lastName       String?
+  jobTitle       String?
+  email          String?
+  phone          String?
+  address        String?
+  summary        String?  @db.Text
 
   experience     Json?
   education      Json?
   skills         Json?
-  certifications String? @db.Text
+  certifications String?  @db.Text
 
-  theme       Json?
-  blockStyles Json?
+  theme          Json?
+  blockStyles    Json?
 
-  atsScore    Int?
-  targetJob   String?  @db.Text
+  atsScore       Int?
+  targetJob      String?  @db.Text
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([userId])
 }
 
 model Job {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  title           String
-  company         String
-  location        String?
-  remote          Boolean  @default(false)
-  employmentType  String   @default("Full-time")
+  title          String
+  company        String
+  location       String?
+  remote         Boolean       @default(false)
+  employmentType String        @default("Full-time")
 
-  salaryMin       Int?
-  salaryMax       Int?
+  salaryMin      Int?
+  salaryMax      Int?
 
-  description     String?  @db.Text
-  requirements    String?  @db.Text
-  skills          Json?
+  description    String?       @db.Text
+  requirements   String?       @db.Text
+  skills         Json?
 
-  posterImageUrl  String?
+  posterImageUrl String?
 
-  status          String   @default("draft")
+  status         String        @default("draft")
+  applications   Application[] 
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([userId])
   @@index([status])
+}
+
+model Application {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String   @default("pending") // pending, reviewing, interviewing, hired, rejected
+  resumeId  String?  
+  notes     String?  @db.Text // Add this field for employer notes
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobId, userId]) 
+  @@index([jobId])
+  @@index([userId])
 }
