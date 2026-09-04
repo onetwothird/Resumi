@@ -13,13 +13,16 @@ import {
   MoreVertical, 
   Edit3, 
   Eye, 
-  Trash2 
+  Trash2,
+  Users,
+  TrendingUp
 } from "lucide-react";
 import ResumiLogo from "@/components/logo/ResumiLogo";
-import { JobListItem } from "@/types/employer";
+import { JobListItem, EmployerAnalytics } from "@/types/employer";
 
 interface Props {
   initialJobs: JobListItem[];
+  analytics?: EmployerAnalytics;
 }
 
 function timeAgo(iso: string) {
@@ -46,7 +49,7 @@ function skillsOf(job: JobListItem): string[] {
   return Array.isArray(job.skills) ? job.skills.filter((s): s is string => typeof s === "string") : [];
 }
 
-export default function EmployerDashboardClient({ initialJobs }: Props) {
+export default function EmployerDashboardClient({ initialJobs, analytics }: Props) {
   const router = useRouter();
   const { user } = useUser();
   
@@ -84,10 +87,12 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
       </header>
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 lg:px-6 py-6 sm:py-8">
+        
+        {/* Header & Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Your Job Posts</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-xl font-bold text-gray-900">Your Dashboard</h1>
+            <p className="text-sm text-gray-500 mt-1">
               {published.length} published &middot; {drafts.length} draft{drafts.length === 1 ? "" : "s"}
             </p>
           </div>
@@ -98,6 +103,37 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
             <Plus size={16} /> Post a Job
           </button>
         </div>
+
+        {/* Analytics Overview Cards */}
+        {analytics && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col">
+              <div className="flex items-center gap-2 text-gray-500 mb-2">
+                <Briefcase size={16} />
+                <span className="text-sm font-medium">Total Jobs</span>
+              </div>
+              <span className="text-3xl font-extrabold text-gray-900">{analytics.totalJobs}</span>
+            </div>
+            
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col">
+              <div className="flex items-center gap-2 text-gray-500 mb-2">
+                <TrendingUp size={16} />
+                <span className="text-sm font-medium">Active Roles</span>
+              </div>
+              <span className="text-3xl font-extrabold text-gray-900">{analytics.activeJobs}</span>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-indigo-100 shadow-sm flex flex-col">
+              <div className="flex items-center gap-2 text-indigo-600 mb-2">
+                <Users size={16} />
+                <span className="text-sm font-medium">Total Applicants</span>
+              </div>
+              <span className="text-3xl font-extrabold text-indigo-700">{analytics.totalApplicants}</span>
+            </div>
+          </div>
+        )}
+
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Postings</h2>
 
         {initialJobs.length === 0 ? (
           <div className="text-center py-16 sm:py-24 bg-white border border-dashed border-gray-200 rounded-2xl px-4">
@@ -196,13 +232,19 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
                   </h3>
                   <p className="text-sm text-gray-500 mb-4 line-clamp-1">{job.company}</p>
 
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 mb-1">
                     <span className="flex items-center gap-1">
                       <MapPin size={12} /> {job.remote ? "Remote" : job.location || "Location not set"}
                     </span>
                     <span className="flex items-center gap-1" suppressHydrationWarning>
                       <Clock size={12} /> Updated {timeAgo(job.updatedAt)}
                     </span>
+                  </div>
+                  
+                  {/* Highlighted Applicants Count */}
+                  <div className="flex items-center gap-1.5 mt-2 text-sm font-semibold text-indigo-600">
+                    <Users size={14} />
+                    <span>{job.applicantCount || 0} Applicants</span>
                   </div>
 
                   {salary && (
@@ -238,7 +280,7 @@ export default function EmployerDashboardClient({ initialJobs }: Props) {
                       onClick={() => router.push(`/employer/jobs/${job.id}`)}
                       className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 group"
                     >
-                      Manage Job 
+                      {job.applicantCount > 0 ? "Review Applicants" : "Manage Job"} 
                       <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
                     </button>
                   </div>
