@@ -1,9 +1,10 @@
+// C:\resumi\src\app\employer\dashboard\page.tsx
+
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import EmployerDashboardClient from "@/components/employer/EmployerDashboardClient";
 import prisma from "@/lib/prisma"; 
-import type { Job } from "@prisma/client";
-import { JobListItem } from "@/types/employer";
+import { JobListItem, EmployerAnalytics } from "@/types/employer";
 
 export default async function EmployerDashboardPage() {
   const { userId } = await auth();
@@ -19,9 +20,20 @@ export default async function EmployerDashboardPage() {
   const rows = await prisma.job.findMany({
     where: { userId },
     orderBy: { updatedAt: "desc" },
+    include: {
+      _count: {
+        select: { applications: true }
+      }
+    }
   });
 
-  const jobs: JobListItem[] = rows.map((j: Job) => ({
+  const analytics: EmployerAnalytics = {
+    totalJobs: rows.length,
+    activeJobs: rows.filter((j) => j.status === "published").length,
+    totalApplicants: rows.reduce((acc, job) => acc + job._count.applications, 0),
+  };
+
+  const jobs: JobListItem[] = rows.map((j) => ({
     id: j.id,
     title: j.title,
     company: j.company,
@@ -35,7 +47,8 @@ export default async function EmployerDashboardPage() {
     skills: j.skills ?? [],
     createdAt: j.createdAt.toISOString(),
     updatedAt: j.updatedAt.toISOString(),
+    applicantCount: j._count.applications,
   }));
 
-  return <EmployerDashboardClient initialJobs={jobs} />;
+  return <EmployerDashboardClient initialJobs={jobs} analytics={analytics} />;
 }
