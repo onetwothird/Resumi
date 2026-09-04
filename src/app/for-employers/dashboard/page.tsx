@@ -14,6 +14,11 @@ export default async function EmployerDashboardPage() {
   const jobs = await prisma.job.findMany({
     where: { userId },
     orderBy: { updatedAt: "desc" },
+    include: {
+      _count: {
+        select: { applications: true }
+      }
+    }
   });
 
   const initialJobs: JobListItem[] = jobs.map((j) => ({
@@ -30,6 +35,7 @@ export default async function EmployerDashboardPage() {
     skills: j.skills as JobListItem["skills"],
     updatedAt: j.updatedAt.toISOString(),
     createdAt: j.createdAt.toISOString(),
+    applicantCount: j._count.applications, // Added this line
   }));
 
   return (
