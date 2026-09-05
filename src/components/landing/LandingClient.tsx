@@ -234,21 +234,21 @@ export default function LandingClient() {
               </motion.p>
             </div>
 
-            <motion.div variants={fadeUp} className="relative hidden lg:block max-w-md ml-auto w-full">
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-900/6 dark:shadow-black/20 p-7">
-                <div className="flex items-start justify-between mb-5">
-                  <div>
-                    <span className="inline-block rounded-md ring-2 ring-indigo-500/60 px-2 py-0.5 font-serif text-xl font-semibold text-slate-900 dark:text-white">
+            <motion.div variants={fadeUp} className="relative max-w-md mx-auto lg:ml-auto w-full mt-12 lg:mt-0">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-900/6 dark:shadow-black/20 p-6 sm:p-7">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-5">
+                  <div className="order-2 sm:order-1">
+                    <span className="inline-block rounded-md ring-2 ring-indigo-500/60 px-2 py-0.5 font-serif text-lg sm:text-xl font-semibold text-slate-900 dark:text-white wrap-break-word max-w-full">
                       Angelito P. Decatoria III
                     </span>
-                    <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium mt-1.5">Full Stack Developer</p>
+                    <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium mt-2 sm:mt-1.5">Full Stack Developer</p>
                   </div>
                   <Image
                     src="/icon/image.webp"
                     alt=""
                     width={44}
                     height={44}
-                    className="w-11 h-11 rounded-full object-cover object-top shrink-0 ring-2 ring-white dark:ring-slate-900"
+                    className="w-11 h-11 rounded-full object-cover object-top shrink-0 ring-2 ring-white dark:ring-slate-900 order-1 sm:order-2 self-start"
                   />
                 </div>
 
@@ -278,10 +278,10 @@ export default function LandingClient() {
                 </ul>
               </div>
 
-              <div className="absolute -left-22 bottom-52 w-28 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg p-3">
-                <p className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mb-2 text-center">Resume Score</p>
-                <div className="relative w-14 h-14 mx-auto">
-                  <svg viewBox="0 0 56 56" className="w-14 h-14 -rotate-90">
+              <div className="absolute -right-2 sm:-right-6 lg:right-auto lg:-left-22 bottom-65 sm:bottom-40 lg:bottom-52 w-24 sm:w-28 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg p-2 sm:p-3 z-10">
+                <p className="text-[8px] sm:text-[9px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 sm:mb-2 text-center">Resume Score</p>
+                <div className="relative w-12 h-12 sm:w-14 sm:h-14 mx-auto">
+                  <svg viewBox="0 0 56 56" className="w-12 h-12 sm:w-14 sm:h-14 -rotate-90">
                     <circle cx="28" cy="28" r="24" fill="none" strokeWidth="5" className="stroke-slate-100 dark:stroke-slate-800" />
                     <circle
                       cx="28"
@@ -295,18 +295,18 @@ export default function LandingClient() {
                       className="stroke-emerald-500"
                     />
                   </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400">
                     94%
                   </span>
                 </div>
               </div>
 
-              <div className="absolute -bottom-7 -right-4 w-60 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg p-4">
-                <div className="flex items-start gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center shrink-0 mt-0.5">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <div className="absolute -bottom-10 sm:-bottom-7 right-2 sm:right-0 lg:-right-4 w-48 sm:w-60 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg p-3 sm:p-4 z-10">
+                <div className="flex items-start gap-2 sm:gap-2.5">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                    <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600 dark:text-indigo-400" />
                   </div>
-                  <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-snug">
+                  <p className="text-[10px] sm:text-[12px] text-slate-600 dark:text-slate-300 leading-snug">
                     Tightened the wording on your last bullet and added a measurable result.
                   </p>
                 </div>
