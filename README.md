@@ -62,7 +62,27 @@ Whether you're a job seeker perfecting your resume or an employer building your 
 *   **Database Hosting:** Neon (serverless PostgreSQL)
 *   **Deployment:** Vercel
 
-## 📁 Project Structure
+## �️ Database Setup (Neon)
+
+> **Important for cloners:** Resumi uses **Neon** for PostgreSQL hosting. You don't need to install PostgreSQL locally!
+
+### Why Neon?
+- ✅ **Serverless** - No server management needed
+- ✅ **Auto-scaling** - Scales to zero when not in use (saves money)
+- ✅ **FREE tier** - Perfect for development and side projects
+- ✅ **Connection pooling** - Better performance with unlimited connections
+- ✅ **Web console** - Manage your database from a dashboard
+
+### Quick Setup
+1. Create a **FREE** account at [neon.tech](https://neon.tech/)
+2. Create a PostgreSQL project (takes ~30 seconds)
+3. Copy your `DATABASE_URL` connection string
+4. Paste into `.env.local`
+5. Run `npx prisma db push`
+
+📖 **Full guide:** See [SETUP.md](SETUP.md) for detailed Neon configuration instructions
+
+## �📁 Project Structure
 
 The project follows a **feature-based architecture** for scalability and maintainability:
 
@@ -103,57 +123,43 @@ prisma/
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### ⚡ Fast Track (5 minutes)
 
-*   **Node.js** 18+ ([Download](https://nodejs.org/))
-*   **PostgreSQL** 14+ ([Setup Guide](https://www.postgresql.org/download/))
-*   **Git** ([Download](https://git-scm.com/))
-*   API Keys:
-    *   Clerk account for authentication
-    *   OpenAI API (optional, for AI features)
-
-### Installation
-
-1. **Clone the repository:**
+1. **Clone & install:**
    ```bash
    git clone https://github.com/yourusername/resumi.git
    cd resumi
-   ```
-
-2. **Install dependencies:**
-   ```bash
    npm install
    ```
 
-3. **Set up environment variables:**
-   Create a `.env.local` file in the root directory:
-   ```bash
-   # Database
-   DATABASE_URL="postgresql://user:password@localhost:5432/resumi"
+2. **Follow [SETUP.md](SETUP.md)** for detailed configuration:
+   - Set up Neon PostgreSQL database
+   - Configure Clerk authentication
+   - Add API keys for AI & file uploads
 
-   # Clerk Authentication
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
-   CLERK_SECRET_KEY=your_clerk_secret
-
-   # AI Services (Optional)
-   OPENAI_API_KEY=your_openai_key
-
-   # App URLs
-   NEXT_PUBLIC_APP_URL=http://localhost:3000
-   ```
-
-4. **Run database migrations:**
-   ```bash
-   npx prisma migrate dev
-   ```
-
-5. **Start the development server:**
+3. **Start development:**
    ```bash
    npm run dev
    ```
 
-6. **Open your browser:**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+### Prerequisites
+
+*   **Node.js** 18+ ([Download](https://nodejs.org/))
+*   **Git** ([Download](https://git-scm.com/))
+*   Accounts for:
+    *   [Neon](https://neon.tech/) - Serverless PostgreSQL (FREE)
+    *   [Clerk](https://clerk.com/) - Authentication (FREE)
+    *   [Google AI Studio](https://makersuite.google.com/app/apikey) - Gemini API (optional, FREE)
+    *   [Cloudinary](https://cloudinary.com/) - File uploads (optional, FREE)
+
+### Detailed Setup Guide
+
+📖 **See [SETUP.md](SETUP.md)** for comprehensive step-by-step instructions including:
+- How to create and configure Neon database
+- Setting up Clerk authentication
+- Configuring all external services
+- Database initialization and management
+- Troubleshooting common issues
 
 ## 📦 Available Scripts
 
