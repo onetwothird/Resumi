@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { 
-  Bell, 
   Mail, 
   Plus, 
   MapPin, 
@@ -19,6 +18,7 @@ import {
 } from "lucide-react";
 import ResumiLogo from "@/components/logo/ResumiLogo";
 import { JobListItem, EmployerAnalytics } from "@/types/employer";
+import NotificationBell from "@/components/dashboard/NotificationBell";
 
 interface Props {
   initialJobs: JobListItem[];
@@ -75,9 +75,9 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
           </span>
         </div>
         <div className="flex items-center gap-2 lg:gap-4">
-          <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
-            <Bell size={16} />
-          </button>
+          <div className="hidden sm:block">
+            <NotificationBell />
+          </div>
           <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
             <Mail size={16} />
           </button>
