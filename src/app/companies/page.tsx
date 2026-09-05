@@ -7,7 +7,6 @@ import {
   Search,
   MapPin,
   Briefcase,
-  ArrowUpRight,
   AlertCircle,
   Building2,
 } from "lucide-react";
@@ -325,10 +324,10 @@ export default function CompaniesPage() {
                   </div>
 
                   <Link
-                    href={`/jobs?company=${encodeURIComponent(c.name)}`}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-colors"
+                    href={`/sign-in?redirect_url=${encodeURIComponent(`/dashboard?tab=jobs`)}`}
+                    className="w-full flex items-center justify-center gap-2 bg-gray-50 hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 font-bold py-2.5 rounded-xl border border-gray-200 transition-colors text-sm shadow-xs"
                   >
-                    <Briefcase size={14} /> View Jobs <ArrowUpRight size={14} />
+                    <Briefcase size={16} /> View Jobs ↗
                   </Link>
                 </motion.div>
               ))}
