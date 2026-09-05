@@ -15,6 +15,7 @@ model User {
   resumes      Resume[]
   jobs         Job[]
   applications Application[] 
+  receivedMessages Message[] @relation("ReceivedMessages")
   notifications Notification[]
   createdAt    DateTime      @default(now())
 }
@@ -110,4 +111,18 @@ model Application {
   @@unique([jobId, userId]) 
   @@index([jobId])
   @@index([userId])
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  senderName  String
+  content     String   @db.Text
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([receiverId])
 }
