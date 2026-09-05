@@ -35,5 +35,6 @@ export default async function ProfilePage() {
     };
   }
 
+  
   return <ProfileClient initialData={dbUser} />;
 }
