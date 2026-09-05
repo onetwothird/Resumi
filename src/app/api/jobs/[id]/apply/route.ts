@@ -1,38 +1,71 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
-export async function PATCH(
+export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
-    if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { id: applicationId } = await params;
-    const body = await req.json();
+    const { id: jobId } = await params;
 
-    const application = await prisma.application.findUnique({
-      where: { id: applicationId },
-      include: { job: true },
-    });
+    const client = await clerkClient();
+    const clerkUser = await client.users.getUser(userId);
+    const email = clerkUser.primaryEmailAddress?.emailAddress || `${userId}@placeholder.com`;
 
-    if (!application || application.job.userId !== userId) {
-      return new NextResponse("Not Found or Unauthorized", { status: 404 });
-    }
-
-    const updatedApplication = await prisma.application.update({
-      where: { id: applicationId },
-      data: {
-        status: body.status !== undefined ? body.status : application.status,
-        notes: body.notes !== undefined ? body.notes : application.notes,
+    await prisma.user.upsert({
+      where: { id: userId },
+      update: {},
+      create: { 
+        id: userId, 
+        email: email 
       },
     });
 
-    return NextResponse.json(updatedApplication);
-  } catch (error) {
-    console.error("Update Application Error:", error);
-    return new NextResponse("Database Error", { status: 500 });
+    const body = await req.json().catch(() => ({}));
+    const resumeId = body.resumeId || null;
+
+    // Create the application
+    const application = await prisma.application.create({
+      data: {
+        jobId,
+        userId,
+        resumeId,
+        status: "pending",
+      },
+    });
+
+    const job = await prisma.job.findUnique({ 
+      where: { id: jobId }, 
+      select: { userId: true, title: true } 
+    });
+    
+    if (job) {
+      await prisma.notification.create({
+        data: {
+          userId: job.userId,
+          title: "New Application",
+          message: `Someone just applied for your ${job.title} position.`,
+          link: `/employer/jobs/${jobId}/applicants`,
+        }
+      });
+    }
+
+    return NextResponse.json(application);
+  } catch (error: unknown) {
+    console.error("Application Error:", error);
+    
+    if (error && typeof error === 'object' && 'code' in error && error.code === "P2002") {
+      return NextResponse.json(
+        { error: "You have already applied for this role." },
+        { status: 400 }
+      );
+    }
+
+    const errorMessage = error instanceof Error ? error.message : "Database Error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
