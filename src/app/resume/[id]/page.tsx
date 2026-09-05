@@ -10,8 +10,8 @@ import {
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import { ResumeData, DEFAULT_THEME } from "@/types";
 
-import BuilderSidebar from "../../../components/resume/BuilderSidebar";
-import CanvasEditor from "../../../components/resume/CanvasEditor";
+import BuilderSidebar from "@/components/features/resume/BuilderSidebar";
+import CanvasEditor from "@/components/features/resume/CanvasEditor";
 import PropertiesSidebar from "@/components/features/resume/PropertiesSidebar";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 
