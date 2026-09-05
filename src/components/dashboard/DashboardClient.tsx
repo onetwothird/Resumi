@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
-  Plus, Search, FileX2, FilePlus2, Mail, Mic, Bot, X, PlaySquare, Square,
+  Plus, Search, FileX2, FilePlus2, Mic, Bot, X, PlaySquare, Square,
   Video, VideoOff, RotateCcw, TrendingUp, ThumbsUp, Target, ChevronDown,
   Sparkles, Briefcase, FileText, ChevronRight,
 } from "lucide-react";
@@ -18,6 +18,7 @@ import JobBoard from "@/components/dashboard/JobBoard";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import ResumiLogo from "@/components/logo/ResumiLogo";
+import InboxDropdown from "@/components/dashboard/InboxDropdown";
 
 type SortOption = "updated" | "created" | "name";
 type TabOption = "resumes" | "jobs";
@@ -470,7 +471,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
   return (
     <>
-      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 shadow-xs">
+     <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 shadow-xs">
         <div className="flex items-center gap-4 lg:gap-8">
           <Link href="/dashboard" onClick={() => setActiveTab("resumes")} className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
             <ResumiLogo className="w-8 h-8" />
@@ -478,27 +479,17 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
           </Link>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <button
-              onClick={() => setActiveTab("resumes")}
-              className={`transition-colors ${activeTab === "resumes" ? "text-gray-900 font-semibold" : "hover:text-gray-900"}`}
-            >
+            <button onClick={() => setActiveTab("resumes")} className={`transition-colors ${activeTab === "resumes" ? "text-gray-900 font-semibold" : "hover:text-gray-900"}`}>
               Home
             </button>
-            <button
-              onClick={() => setActiveTab("jobs")}
-              className={`transition-colors ${activeTab === "jobs" ? "text-gray-900 font-semibold" : "hover:text-gray-900"}`}
-            >
+            <button onClick={() => setActiveTab("jobs")} className={`transition-colors ${activeTab === "jobs" ? "text-gray-900 font-semibold" : "hover:text-gray-900"}`}>
               Jobs
             </button>
             <Link href="/companies" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Companies <ChevronDown size={14}/></Link>
             <Link href="/resume/new" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Builder <ChevronDown size={14}/></Link>
-            <button
-              onClick={startAiInterview}
-              className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 transition-colors"
-            >
+            <button onClick={startAiInterview} className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 transition-colors">
               <Sparkles size={14} className="text-indigo-500" /> AI Coach
             </button>
-            
           </nav>
         </div>
 
@@ -506,9 +497,10 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
           <div className="hidden sm:block">
             <NotificationBell />
           </div>
-          <button onClick={() => pushToast("Inbox is currently empty.", "info")} className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
-            <Mail size={16} />
-          </button>
+          {/* REPLACED MAIL BUTTON WITH INBOX DROPDOWN */}
+          <div className="hidden sm:block">
+            <InboxDropdown />
+          </div>
           <div className="flex items-center gap-2 sm:ml-2">
             <UserButton />
           </div>
