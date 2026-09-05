@@ -12,7 +12,6 @@ export async function PATCH(
 
     const params = await Promise.resolve(context.params);
     const applicationId = params.id;
-
     const body = await req.json();
 
     const application = await prisma.application.findUnique({
@@ -21,7 +20,7 @@ export async function PATCH(
     });
 
     if (!application || application.job.userId !== userId) {
-      return NextResponse.json({ error: "Application not found or unauthorized" }, { status: 404 });
+      return NextResponse.json({ error: "Not Found or Unauthorized" }, { status: 404 });
     }
 
     const updatedApplication = await prisma.application.update({
@@ -32,30 +31,28 @@ export async function PATCH(
     });
 
     if (body.status && body.status !== application.status) {
-      const statusLabels: Record<string, string> = {
-        pending: "Pending",
-        reviewing: "Reviewing",
-        interviewing: "Interviewing",
-        hired: "Hired",
-        rejected: "Rejected",
+      const statusData: Record<string, { label: string, title: string }> = {
+        pending: { label: "Pending", title: "Application Update" },
+        reviewing: { label: "Under Review", title: "Profile Under Review 👀" },
+        interviewing: { label: "Selected for Interview", title: "Interview Invitation! 📅" },
+        hired: { label: "Hired", title: "Congratulations! 🎉" },
+        rejected: { label: "Not Selected", title: "Application Update" },
       };
       
-      const newStatusLabel = statusLabels[body.status] || body.status;
+      const newStatus = statusData[body.status] || { label: body.status, title: "Application Update" };
 
       await prisma.notification.create({
         data: {
           userId: application.userId, 
-          title: "Application Status Updated",
-          message: `Your application for ${application.job.title} at ${application.job.company} is now marked as ${newStatusLabel}.`,
+          title: newStatus.title,
+          message: `Your application for ${application.job.title} at ${application.job.company} has been updated to: ${newStatus.label}.`,
           link: "/dashboard",
         },
       });
     }
 
     return NextResponse.json(updatedApplication);
-  } catch (error: unknown) {
-    console.error("Update Application Error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal Database Error";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Database Error" }, { status: 500 });
   }
 }
