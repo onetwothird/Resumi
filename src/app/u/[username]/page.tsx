@@ -178,7 +178,6 @@ export default async function PublicProfilePage({ params }: PageProps) {
                   <span className="truncate">Social Profile</span>
                 </a>
               )}
-
               {!dbUser.website && !dbUser.github && !dbUser.social && (
                 <p className="text-sm text-gray-400 italic">No links provided.</p>
               )}
