@@ -6,6 +6,7 @@ import {
   Plus, Search, FileX2, FilePlus2, Mic, Bot, X, PlaySquare, Square,
   Video, VideoOff, RotateCcw, TrendingUp, ThumbsUp, Target, ChevronDown,
   Sparkles, Briefcase, FileText, ChevronRight,
+  User,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { ResumeListItem } from "@/types/dashboard";
@@ -502,7 +503,20 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
             <InboxDropdown />
           </div>
           <div className="flex items-center gap-2 sm:ml-2">
-            <UserButton />
+            <UserButton>
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="Edit Profile"
+                  labelIcon={<User size={15} />}
+                  href="/profile"
+                />
+                <UserButton.Link
+                  label="Employer Dashboard"
+                  labelIcon={<Briefcase size={15} />}
+                  href="/employer/dashboard"
+                />
+              </UserButton.MenuItems>
+            </UserButton>
           </div>
         </div>
       </header>
