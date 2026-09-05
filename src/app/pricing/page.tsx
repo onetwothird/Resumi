@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 import { Check, Sparkles, ChevronDown } from "lucide-react";
-import PublicHeader from "@/components/marketing/PublicHeader";
-import PublicFooter from "@/components/marketing/PublicFooter";
+import PublicHeader from "@/components/layout/PublicHeader";
+import PublicFooter from "@/components/layout/PublicFooter";
 
 interface PricingPlan {
   name: string;

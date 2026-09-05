@@ -10,8 +10,8 @@ import {
   AlertCircle,
   Building2,
 } from "lucide-react";
-import PublicHeader from "@/components/marketing/PublicHeader";
-import PublicFooter from "@/components/marketing/PublicFooter";
+import PublicHeader from "@/components/layout/PublicHeader";
+import PublicFooter from "@/components/layout/PublicFooter";
 
 interface ApiJob {
   id: string;

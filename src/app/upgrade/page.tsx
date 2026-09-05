@@ -1,4 +1,4 @@
-import UpgradeClient from "@/components/profile/UpgradeClient";
+import UpgradeClient from "@/components/features/profile/UpgradeClient";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 

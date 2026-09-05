@@ -1,7 +1,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import DashboardClient from "@/components/dashboard/DashboardClient";
+import DashboardClient from "@/components/features/dashboard/DashboardClient";
 import { ResumeListItem } from "@/types/dashboard";
 
 export default async function DashboardPage() {

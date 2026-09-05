@@ -1,6 +1,6 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import PostJobForm from "@/components/employer/PostJobForm";
+import PostJobForm from "@/components/features/employer/PostJobForm";
 
 export default async function PostJobPage() {
   const { userId } = await auth();

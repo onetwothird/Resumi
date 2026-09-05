@@ -10,8 +10,8 @@ import {
   ShieldCheck,
   ArrowRight,
 } from "lucide-react";
-import PublicHeader from "@/components/marketing/PublicHeader";
-import PublicFooter from "@/components/marketing/PublicFooter";
+import PublicHeader from "@/components/layout/PublicHeader";
+import PublicFooter from "@/components/layout/PublicFooter";
 
 const FEATURES = [
   {

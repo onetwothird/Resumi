@@ -1,4 +1,4 @@
-import InterviewsClient from "@/components/employer/InterviewsClient";
+import InterviewsClient from "@/components/features/employer/InterviewsClient";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 

@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { clerkClient } from "@clerk/nextjs/server";
 import { MapPin, Link as LinkIcon, Briefcase, Globe } from "lucide-react";
-import ResumiLogo from "@/components/logo/ResumiLogo";
+import ResumiLogo from "@/components/ui/ResumiLogo";
 
 // Custom GitHub Icon matching Lucide's style
 const GithubIcon = ({ size = 24, className = "" }) => (

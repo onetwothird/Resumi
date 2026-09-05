@@ -1,4 +1,4 @@
-import SavedClient from "@/components/profile/SavedClient";
+import SavedClient from "@/components/features/profile/SavedClient";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 

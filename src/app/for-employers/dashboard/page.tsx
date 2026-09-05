@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import EmployerDashboardClient from "@/components/employer/EmployerDashboardClient";
+import EmployerDashboardClient from "@/components/features/employer/EmployerDashboardClient";
 import { JobListItem } from "@/types/employer";
 
 export default async function EmployerDashboardPage() {

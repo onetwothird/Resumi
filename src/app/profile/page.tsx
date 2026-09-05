@@ -1,4 +1,4 @@
-import ProfileClient from "@/components/profile/ProfileClient";
+import ProfileClient from "@/components/features/profile/ProfileClient";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";

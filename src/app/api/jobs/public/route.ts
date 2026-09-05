@@ -1,38 +1,71 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; 
+import prisma from "@/lib/prisma";
+import { auth, clerkClient } from "@clerk/nextjs/server";
+
+export async function POST(req: Request) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+
+    const body = await req.json();
+
+    if (!body.title?.trim() || !body.company?.trim()) {
+      return NextResponse.json(
+        { error: "Title and company are required." },
+        { status: 400 }
+      );
+    }
+
+    const client = await clerkClient();
+    const clerkUser = await client.users.getUser(userId);
+
+    await prisma.user.upsert({
+      where: { id: userId },
+      update: {},
+      create: {
+        id: userId,
+        email: clerkUser.primaryEmailAddress?.emailAddress ?? "user@example.com",
+      },
+    });
+
+    const job = await prisma.job.create({
+      data: {
+        userId,
+        title: body.title,
+        company: body.company,
+        location: body.remote ? null : body.location || null,
+        remote: !!body.remote,
+        employmentType: body.employmentType || "Full-time",
+        salaryMin: body.salaryMin ? parseInt(body.salaryMin, 10) : null,
+        salaryMax: body.salaryMax ? parseInt(body.salaryMax, 10) : null,
+        description: body.description || null,
+        requirements: body.requirements || null,
+        skills: Array.isArray(body.skills) ? body.skills : [], // Json field
+        posterImageUrl: clerkUser.imageUrl || null,
+        status: body.status === "published" ? "published" : "draft",
+      },
+    });
+
+    return NextResponse.json(job);
+  } catch (error) {
+    console.error("Create Job Error:", error);
+    return new NextResponse("Database Error", { status: 500 });
+  }
+}
 
 export async function GET() {
   try {
-    const jobs = await prisma.job.findMany({
-      where: {
-        status: "published",
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+    const { userId } = await auth();
+    if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
-      select: {
-        id: true,
-        title: true,
-        company: true,
-        location: true,
-        remote: true,
-        employmentType: true,
-        salaryMin: true,
-        salaryMax: true,
-        description: true,
-        requirements: true,
-        skills: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-        posterImageUrl: true, 
-      }
+    const jobs = await prisma.job.findMany({
+      where: { userId },
+      orderBy: { updatedAt: "desc" },
     });
 
     return NextResponse.json(jobs);
   } catch (error) {
-    console.error(error);
-    return new Response("Internal Server Error", { status: 500 });
+    console.error("List Jobs Error:", error);
+    return new NextResponse("Database Error", { status: 500 });
   }
 }

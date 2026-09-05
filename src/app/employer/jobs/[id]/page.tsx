@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Briefcase, MapPin, Calendar, ArrowLeft, Wallet } from "lucide-react";
 import prisma from "@/lib/prisma";
-import ApplyButton from "@/components/jobs/ApplyButton";
+import ApplyButton from "@/components/features/jobs/ApplyButton";
 
 export default async function PublicJobPage({
   params,

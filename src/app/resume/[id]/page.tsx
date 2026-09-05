@@ -12,8 +12,8 @@ import { ResumeData, DEFAULT_THEME } from "@/types";
 
 import BuilderSidebar from "../../../components/resume/BuilderSidebar";
 import CanvasEditor from "../../../components/resume/CanvasEditor";
-import PropertiesSidebar from "@/components/resume/PropertiesSidebar";
-import ResumiLogo from "@/components/logo/ResumiLogo";
+import PropertiesSidebar from "@/components/features/resume/PropertiesSidebar";
+import ResumiLogo from "@/components/ui/ResumiLogo";
 
 const emptyResume = (): ResumeData => ({
   title: "",

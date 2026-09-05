@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, Calendar, FileText, Briefcase, GraduationCap, Award, Phone, MapPin } from "lucide-react";
 import prisma from "@/lib/prisma";
-import StatusSelector from "@/components/employer/StatusSelector";
-import SendMessageClient from "@/components/employer/SendMessageClient";
+import StatusSelector from "@/components/features/employer/StatusSelector";
+import SendMessageClient from "@/components/features/employer/SendMessageClient";
 
 type ExperienceItem = {
   role?: string;
