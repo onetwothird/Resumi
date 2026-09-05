@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Mail, Calendar, FileText, Briefcase, GraduationCap, Award, Phone, MapPin } from "lucide-react";
 import prisma from "@/lib/prisma";
 import StatusSelector from "@/components/employer/StatusSelector";
+import SendMessageClient from "@/components/employer/SendMessageClient";
 
 type ExperienceItem = {
   role?: string;
@@ -56,7 +57,6 @@ export default async function ApplicantProfilePage({
   const phone = attachedResume?.phone;
   const location = attachedResume?.address;
 
-  // --- Safe JSON Parsing ---
   // Ensure skills is always an array of strings
   let parsedSkills: string[] = [];
   if (Array.isArray(attachedResume?.skills)) {
@@ -65,7 +65,6 @@ export default async function ApplicantProfilePage({
     parsedSkills = (attachedResume?.skills as string).split(",").map(s => s.trim()).filter(Boolean);
   }
 
-  // Ensure experience and education are always arrays
   const experience = Array.isArray(attachedResume?.experience) ? (attachedResume.experience as ExperienceItem[]) : [];
   const education = Array.isArray(attachedResume?.education) ? (attachedResume.education as EducationItem[]) : [];
 
@@ -73,7 +72,6 @@ export default async function ApplicantProfilePage({
     <div className="min-h-screen bg-[#F4F6F8] p-4 sm:p-8 font-sans text-gray-900">
       <div className="max-w-5xl mx-auto">
         
-        {/* Navigation */}
         <Link 
           href={`/employer/jobs/${jobId}/applicants`}
           className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-indigo-600 mb-6 transition-colors"
@@ -81,7 +79,6 @@ export default async function ApplicantProfilePage({
           <ArrowLeft size={16} /> Back to Applicants
         </Link>
 
-        {/* Main Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           
           {/* Left Column: Profile Card */}
@@ -135,11 +132,15 @@ export default async function ApplicantProfilePage({
                     <Calendar size={14} className="text-gray-400 shrink-0" /> {new Date(application.createdAt).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' })}
                   </span>
                 </div>
+
+                <div className="pt-4 mt-2 border-t border-gray-100">
+                  <SendMessageClient receiverId={application.userId} />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Resume Data */}
+          {/* Right Column: Resume Details */}
           <div className="lg:col-span-2 space-y-6">
             {!attachedResume ? (
               <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12 text-center flex flex-col items-center">
@@ -149,7 +150,6 @@ export default async function ApplicantProfilePage({
               </div>
             ) : (
               <>
-                {/* Summary Section */}
                 {attachedResume.summary && (
                   <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
                     <h3 className="flex items-center gap-2 text-base font-bold text-gray-900 mb-4">
@@ -159,7 +159,6 @@ export default async function ApplicantProfilePage({
                   </div>
                 )}
 
-                {/* Experience Section */}
                 {experience.length > 0 && (
                   <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
                     <h3 className="flex items-center gap-2 text-base font-bold text-gray-900 mb-6">
@@ -182,7 +181,6 @@ export default async function ApplicantProfilePage({
                   </div>
                 )}
 
-                {/* Education Section */}
                 {education.length > 0 && (
                   <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
                     <h3 className="flex items-center gap-2 text-base font-bold text-gray-900 mb-6">
@@ -205,7 +203,6 @@ export default async function ApplicantProfilePage({
                   </div>
                 )}
 
-                {/* Skills Section */}
                 {parsedSkills.length > 0 && (
                   <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
                     <h3 className="text-base font-bold text-gray-900 mb-4">Skills</h3>
