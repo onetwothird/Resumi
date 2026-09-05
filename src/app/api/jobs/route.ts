@@ -1,3 +1,5 @@
+// C:\resumi\src\app\api\jobs\route.ts
+
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -15,8 +17,6 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
-    // Fetch the real email from Clerk to prevent @unique constraint database crashes
     const client = await clerkClient();
     const clerkUser = await client.users.getUser(userId);
     const email = clerkUser.primaryEmailAddress?.emailAddress || `${userId}@placeholder.com`;
@@ -48,11 +48,21 @@ export async function POST(req: Request) {
       },
     });
 
+    if (job.status === "published") {
+      await prisma.notification.create({
+        data: {
+          userId: userId,
+          title: "Job Posted Successfully 🚀",
+          message: `Your listing for "${job.title}" is now live and accepting applicants.`,
+          link: `/employer/jobs/${job.id}`,
+        }
+      });
+    }
+
     return NextResponse.json(job);
   } catch (error: unknown) {
     console.error("Create Job Error:", error);
     
-    // Return the actual database error to the frontend toast notification
     const errorMessage = error instanceof Error ? error.message : "Database Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
