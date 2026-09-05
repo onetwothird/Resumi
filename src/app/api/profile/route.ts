@@ -13,6 +13,7 @@ export async function PATCH(req: Request) {
     const clerkUser = await client.users.getUser(userId);
     const email = clerkUser.primaryEmailAddress?.emailAddress || `${userId}@placeholder.com`;
 
+
     try {
       await client.users.updateUser(userId, {
         firstName: body.fullName?.split(" ")[0] || "",
@@ -49,6 +50,7 @@ export async function PATCH(req: Request) {
       }
     });
 
+    
     return NextResponse.json(updatedUser);
   } catch (error: unknown) {
     console.error("Profile Update Error:", error);
