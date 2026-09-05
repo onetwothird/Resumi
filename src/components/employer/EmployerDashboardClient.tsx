@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { 
-  Mail, 
   Plus, 
   MapPin, 
   Clock, 
@@ -14,11 +13,12 @@ import {
   Eye, 
   Trash2,
   Users,
-  TrendingUp
+  TrendingUp,
+  Link
 } from "lucide-react";
-import ResumiLogo from "@/components/logo/ResumiLogo";
 import { JobListItem, EmployerAnalytics } from "@/types/employer";
 import NotificationBell from "@/components/dashboard/NotificationBell";
+import InboxDropdown from "@/components/dashboard/InboxDropdown";
 
 interface Props {
   initialJobs: JobListItem[];
@@ -66,23 +66,30 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F7F9FC]">
-      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-20">
-        <div className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
-          <ResumiLogo className="w-8 h-8" />
-          <span className="hidden sm:inline">Resumi</span>
-          <span className="hidden sm:inline text-xs font-semibold text-slate-400 border border-slate-200 rounded-full px-2 py-0.5 ml-1">
-            Employer
-          </span>
+      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 shadow-xs">
+        <div className="flex items-center gap-4 lg:gap-8">
+          <Link href="/for-employers/dashboard" className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
+            <div className="w-8 h-8 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black">E</div>
+            <span className="hidden sm:inline">Employer</span>
+          </Link>
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
+            <button className="text-gray-900 font-semibold">Dashboard</button>
+            <button className="hover:text-gray-900 transition-colors">Candidates</button>
+            <button className="hover:text-gray-900 transition-colors">Interviews</button>
+          </nav>
         </div>
+
         <div className="flex items-center gap-2 lg:gap-4">
           <div className="hidden sm:block">
             <NotificationBell />
           </div>
-          <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
-            <Mail size={16} />
-          </button>
-          <div className="h-6 w-px bg-gray-200"></div>
-          <UserButton />
+          {/* REPLACED MAIL BUTTON WITH INBOX DROPDOWN */}
+          <div className="hidden sm:block">
+            <InboxDropdown />
+          </div>
+          <div className="flex items-center gap-2 sm:ml-2">
+            <UserButton />
+          </div>
         </div>
       </header>
 
