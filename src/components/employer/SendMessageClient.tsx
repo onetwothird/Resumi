@@ -9,11 +9,7 @@ export default function SendMessageClient({ receiverId }: { receiverId: string }
   const [content, setContent] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [mounted] = useState(() => typeof document !== "undefined");
 
   useEffect(() => {
     if (isOpen) {
@@ -47,14 +43,14 @@ export default function SendMessageClient({ receiverId }: { receiverId: string }
         setStatus("idle");
         setContent("");
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setStatus("error");
-      setErrorMessage(err.message || "An unknown error occurred.");
+      setErrorMessage(err instanceof Error ? err.message : "An unknown error occurred.");
     }
   };
 
   const modalUI = isOpen ? (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] transition-all">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] transition-all">
       <div className="bg-white rounded-3xl shadow-xl ring-1 ring-black/5 w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
