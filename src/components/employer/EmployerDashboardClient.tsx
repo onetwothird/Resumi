@@ -277,7 +277,11 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
                     </span>
                     
                     <button 
-                      onClick={() => router.push(`/employer/jobs/${job.id}`)}
+                      onClick={() => router.push(
+                        job.applicantCount > 0 
+                          ? `/employer/jobs/${job.id}/applicants` 
+                          : `/employer/jobs/${job.id}`
+                      )}
                       className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 group"
                     >
                       {job.applicantCount > 0 ? "Review Applicants" : "Manage Job"} 
