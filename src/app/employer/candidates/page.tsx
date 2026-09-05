@@ -2,6 +2,7 @@ import CandidatesClient from "@/components/employer/CandidatesClient";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
+
 export const metadata = { title: "Candidates | Employer Portal" };
 
 export default async function CandidatesPage() {
