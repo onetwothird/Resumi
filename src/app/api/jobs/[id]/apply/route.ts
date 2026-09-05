@@ -4,13 +4,14 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { id: jobId } = await params;
+    const params = await Promise.resolve(context.params);
+    const jobId = params.id;
 
     const client = await clerkClient();
     const clerkUser = await client.users.getUser(userId);
@@ -19,53 +20,55 @@ export async function POST(
     await prisma.user.upsert({
       where: { id: userId },
       update: {},
-      create: { 
-        id: userId, 
-        email: email 
-      },
+      create: { id: userId, email: email },
     });
 
     const body = await req.json().catch(() => ({}));
-    const resumeId = body.resumeId || null;
-
-    // Create the application
+    
     const application = await prisma.application.create({
       data: {
         jobId,
         userId,
-        resumeId,
+        resumeId: body.resumeId || null,
         status: "pending",
       },
     });
 
     const job = await prisma.job.findUnique({ 
       where: { id: jobId }, 
-      select: { userId: true, title: true } 
+      select: { userId: true, title: true, company: true } 
     });
     
     if (job) {
       await prisma.notification.create({
         data: {
           userId: job.userId,
-          title: "New Application",
-          message: `Someone just applied for your ${job.title} position.`,
+          title: "New Application Received",
+          message: `A candidate just applied for your ${job.title} role.`,
           link: `/employer/jobs/${jobId}/applicants`,
+        }
+      });
+
+      await prisma.notification.create({
+        data: {
+          userId: userId,
+          title: "Application Submitted ✅",
+          message: `Your application for ${job.title} at ${job.company} was sent successfully. Good luck!`,
+          link: "/dashboard",
         }
       });
     }
 
     return NextResponse.json(application);
   } catch (error: unknown) {
-    console.error("Application Error:", error);
-    
-    if (error && typeof error === 'object' && 'code' in error && error.code === "P2002") {
-      return NextResponse.json(
-        { error: "You have already applied for this role." },
-        { status: 400 }
-      );
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json({ error: "You have already applied for this role." }, { status: 400 });
     }
-
-    const errorMessage = error instanceof Error ? error.message : "Database Error";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: "Database Error" }, { status: 500 });
   }
 }
