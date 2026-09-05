@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
-  Plus, Search, FileX2, FilePlus2, Bell, Mail, Mic, Bot, X, PlaySquare, Square,
+  Plus, Search, FileX2, FilePlus2, Mail, Mic, Bot, X, PlaySquare, Square,
   Video, VideoOff, RotateCcw, TrendingUp, ThumbsUp, Target, ChevronDown,
   Sparkles, Briefcase, FileText, ChevronRight,
 } from "lucide-react";
@@ -13,7 +13,7 @@ import { ResumeData } from "@/types";
 import { formatRelativeDate } from "@/lib/format";
 import ResumeCard from "@/components/dashboard/ResumeCard";
 import PdfUploader from "@/components/dashboard/PdfUploader";
-
+import NotificationBell from "@/components/dashboard/NotificationBell";
 import JobBoard from "@/components/dashboard/JobBoard";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
@@ -139,7 +139,6 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     } catch (err) {
       console.error("Error while closing AI Coach:", err);
     } finally {
-      // Always reset state and close, even if cleanup above threw.
       setIsInterviewActive(false);
       setIsAiModalOpen(false);
     }
@@ -373,10 +372,6 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     });
   }, [resumes, query, sortBy]);
 
-  // RESUMES_PER_PAGE slots per page. Page 1 gives up two slots to the
-  // "Create New Resume" and "Upload Existing" tiles, so every page —
-  // including the first — renders as exactly 2 full rows of 4 on large
-  // screens instead of spilling a lone card onto a 3rd row.
   const resumesOnFirstPage = RESUMES_PER_PAGE - 2;
   const totalPages = Math.max(
     1,
@@ -508,9 +503,9 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
         </div>
 
         <div className="flex items-center gap-2 lg:gap-4">
-          <button onClick={() => pushToast("You have 0 new notifications.", "info")} className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
-            <Bell size={16} />
-          </button>
+          <div className="hidden sm:block">
+            <NotificationBell />
+          </div>
           <button onClick={() => pushToast("Inbox is currently empty.", "info")} className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
             <Mail size={16} />
           </button>
