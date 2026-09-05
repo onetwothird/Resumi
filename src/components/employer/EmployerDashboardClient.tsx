@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { 
   Plus, 
@@ -14,7 +15,8 @@ import {
   Trash2,
   Users,
   TrendingUp,
-  Link
+  User,
+  FileText
 } from "lucide-react";
 import { JobListItem, EmployerAnalytics } from "@/types/employer";
 import NotificationBell from "@/components/dashboard/NotificationBell";
@@ -51,6 +53,7 @@ function skillsOf(job: JobListItem): string[] {
 
 export default function EmployerDashboardClient({ initialJobs, analytics }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useUser();
   
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -68,14 +71,30 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
     <div className="flex flex-col min-h-screen bg-[#F7F9FC]">
       <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 shadow-xs">
         <div className="flex items-center gap-4 lg:gap-8">
-          <Link href="/for-employers/dashboard" className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
-            <div className="w-8 h-8 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black">E</div>
-            <span className="hidden sm:inline">Employer</span>
+          <Link href="/employer/dashboard" className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon/icons.png" alt="Resumi Logo" className="w-8 h-8 object-contain drop-shadow-sm" />
+            <span className="hidden sm:inline">Resumi</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <button className="text-gray-900 font-semibold">Dashboard</button>
-            <button className="hover:text-gray-900 transition-colors">Candidates</button>
-            <button className="hover:text-gray-900 transition-colors">Interviews</button>
+            <Link 
+              href="/employer/dashboard" 
+              className={`transition-colors ${pathname === '/employer/dashboard' ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}
+            >
+              Dashboard
+            </Link>
+            <Link 
+              href="/employer/candidates" 
+              className={`transition-colors ${pathname?.includes('/candidates') || pathname?.includes('/applicants') ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}
+            >
+              Candidates
+            </Link>
+            <Link 
+              href="/employer/interviews" 
+              className={`transition-colors ${pathname?.includes('/interviews') ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}
+            >
+              Interviews
+            </Link>
           </nav>
         </div>
 
@@ -83,12 +102,24 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
           <div className="hidden sm:block">
             <NotificationBell />
           </div>
-          {/* REPLACED MAIL BUTTON WITH INBOX DROPDOWN */}
           <div className="hidden sm:block">
             <InboxDropdown />
           </div>
           <div className="flex items-center gap-2 sm:ml-2">
-            <UserButton />
+            <UserButton>
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="Edit Profile"
+                  labelIcon={<User size={15} />}
+                  href="/profile"
+                />
+                <UserButton.Link
+                  label="Candidate Dashboard"
+                  labelIcon={<FileText size={15} />}
+                  href="/dashboard"
+                />
+              </UserButton.MenuItems>
+            </UserButton>
           </div>
         </div>
       </header>
