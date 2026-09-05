@@ -9,15 +9,23 @@ datasource db {
 }
 
 model User {
-  id           String        @id // Maps to Clerk User ID
-  email        String        @unique
+  id           String         @id 
+  email        String         @unique
   name         String?
+  username     String?        @unique
+  role         String?
+  location     String?
+  bio          String?        @db.Text
+  website      String?
+  social       String?
+  github       String?
+  
   resumes      Resume[]
   jobs         Job[]
   applications Application[] 
-  receivedMessages Message[] @relation("ReceivedMessages")
   notifications Notification[]
-  createdAt    DateTime      @default(now())
+  receivedMessages Message[] @relation("ReceivedMessages")
+  createdAt    DateTime       @default(now())
 }
 
 model Resume {
