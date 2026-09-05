@@ -55,11 +55,11 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    const { userId } = await auth();
-    if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
     const jobs = await prisma.job.findMany({
-      where: { userId },
+      where: { 
+        status: "published" 
+      },
       orderBy: { updatedAt: "desc" },
     });
 
