@@ -15,6 +15,7 @@ model User {
   resumes      Resume[]
   jobs         Job[]
   applications Application[] 
+  notifications Notification[]
   createdAt    DateTime      @default(now())
 }
 
@@ -47,6 +48,19 @@ model Resume {
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  link      String?  
+  createdAt DateTime @default(now())
 
   @@index([userId])
 }
