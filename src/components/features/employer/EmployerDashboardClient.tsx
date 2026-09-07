@@ -126,7 +126,6 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 lg:px-6 py-6 sm:py-8">
         
-        {/* Header & Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Your Dashboard</h1>
@@ -142,7 +141,6 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
           </button>
         </div>
 
-        {/* Analytics Overview Cards */}
         {analytics && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col">
