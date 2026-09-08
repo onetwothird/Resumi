@@ -66,7 +66,6 @@ export default function ApplyButton({ jobId, resumes, isLoggedIn }: Props) {
       </div>
     );
   }
-
   return (
     <div className="space-y-4">
       {resumes.length > 0 ? (
