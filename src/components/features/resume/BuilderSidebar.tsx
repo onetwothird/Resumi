@@ -368,7 +368,6 @@ export default function BuilderSidebar({ data, onChange }: Props) {
                 </div>
               )}
             </div>
-
             <div className="border-b border-gray-100">
               <button onClick={() => toggleSection('education')} className="w-full flex items-center justify-between p-4 font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
                 Education
