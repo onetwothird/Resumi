@@ -287,7 +287,6 @@ export default function ResumeForm({ data, onChange }: Props) {
           </div>
         </div>
       )}
-
       {tab === "design" && (
         <div className="space-y-8">
           <div>
