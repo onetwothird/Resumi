@@ -20,6 +20,7 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
+import { useSearchParams } from "next/navigation";
 
 type SortOption = "updated" | "created" | "name";
 type TabOption = "resumes" | "jobs";
@@ -70,7 +71,13 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ initialResumes }: DashboardClientProps) {
-  const [activeTab, setActiveTab] = useState<TabOption>("resumes");
+
+  const [] = useState(false);
+  
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") === "jobs" ? "jobs" : "resumes";
+  const [activeTab, setActiveTab] = useState<TabOption>(initialTab);
+
   const [resumes, setResumes] = useState<ResumeListItem[]>(initialResumes);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("updated");
