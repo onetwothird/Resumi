@@ -104,6 +104,14 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   const speechSupported =
     typeof window !== "undefined" && (("SpeechRecognition" in window) || ("webkitSpeechRecognition" in window));
 
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+      if (recognitionRef.current) recognitionRef.current.stop();
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
+
   const pushToast = (message: string, variant: "success" | "error" | "info") => {
     const id = Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, message, variant } as unknown as ToastItem]);
@@ -337,14 +345,6 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
-      if (recognitionRef.current) recognitionRef.current.stop();
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-    };
-  }, []);
-
   const setBusy = (id: string, busy: boolean) => {
     setBusyIds((prev) => {
       const next = new Set(prev);
@@ -535,7 +535,11 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                     {hasResumes ? (
                       <>
                         {resumes.length} resume{resumes.length === 1 ? "" : "s"}
-                        {mostRecentEdit && <> · last edited {formatRelativeDate(mostRecentEdit.updatedAt)}</>}
+                        {mostRecentEdit && (
+                          <span suppressHydrationWarning>
+                            {" \u00B7 "}last edited {formatRelativeDate(mostRecentEdit.updatedAt)}
+                          </span>
+                        )}
                       </>
                     ) : "Manage, edit, and export your tailored resumes."}
                   </p>
