@@ -26,6 +26,7 @@ export default function ResumeCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [draftTitle, setDraftTitle] = useState(resume.title);
+  const [isMounted, setIsMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -33,6 +34,11 @@ export default function ResumeCard({
     resume.title && resume.title !== "My Resume"
       ? resume.title
       : resume.jobTitle || "Untitled resume";
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -142,7 +148,9 @@ export default function ResumeCard({
         <div className="flex items-center justify-between text-xs font-medium text-gray-400 border-t border-gray-100 pt-4">
           <div className="flex items-center gap-1.5">
             <Calendar size={13} />
-            <span>Edited {formatRelativeDate(resume.updatedAt)}</span>
+            <span suppressHydrationWarning>
+              {isMounted ? `Edited ${formatRelativeDate(resume.updatedAt)}` : "Loading..."}
+            </span>
           </div>
         </div>
       </Link>
