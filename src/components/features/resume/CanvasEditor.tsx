@@ -344,7 +344,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
   const isInitialMount = useRef(true);
 
   useEffect(() => {
-    // Only update local state if props change from outside (e.g. undo/redo), skip initial mount
     if (!isInitialMount.current && exTheme.imagePosX !== undefined && exTheme.imagePosY !== undefined) {
       setImgPos({ x: exTheme.imagePosX, y: exTheme.imagePosY });
     }
@@ -367,7 +366,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
     
     const handleMouseUp = () => {
       if (dragRef.current) {
-        // Find the most recent imgPos state to save to global data
         setImgPos(currentPos => {
            const currentTheme = data.theme ?? DEFAULT_THEME;
            onChange({ 
@@ -441,7 +439,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
     onChange({ ...data, education: newArr });
   };
 
-  // Safe passing of bound functions to components
   const editableCommon = (key: ResumeBlockKey) => ({ 
     onFocusBlock: handleFocusBlock(key), 
     onBlurBlock: handleBlurBlock 
@@ -470,7 +467,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
 
   const config = TEMPLATES_CONFIG[activeLayoutStr] || TEMPLATES_CONFIG["classic"];
   
-  // Recursively replace any CSS property containing var(--accent) with the actual primary color
   const applyAccent = (styleObj?: React.CSSProperties) => {
     if (!styleObj) return {};
     const processed: React.CSSProperties = { ...styleObj };
@@ -496,7 +492,6 @@ const CanvasEditor = forwardRef<HTMLDivElement, Props>(({ data, onChange, scale 
     </span>
   );
 
-  // Collect fonts to load dynamically
   const fontListToLoad = [theme.fontFamily];
   if (data.blockStyles) {
     Object.values(data.blockStyles).forEach(b => {
