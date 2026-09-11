@@ -26,9 +26,9 @@ interface UserProfileData {
 
 export default function ProfileClient({ initialData }: { initialData: UserProfileData }) {
   const { user } = useUser();
-  const { openUserProfile } = useClerk(); // Access Clerk's native account manager
+  const { openUserProfile } = useClerk(); 
   const router = useRouter();
-  const pathname = usePathname(); // Get current URL path to highlight active sidebar links
+  const pathname = usePathname(); 
   
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
@@ -105,7 +105,6 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
 
       <div className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
         
-        {/* Left Sidebar (Now dynamic and accurate) */}
         <aside className="md:col-span-3 space-y-8">
           <div className="flex items-center gap-3 px-2">
             {user?.imageUrl ? (
@@ -136,14 +135,12 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
               <UserIcon size={18} className={pathname === '/profile' ? 'text-indigo-600' : 'text-gray-400'} /> Edit profile
             </Link>
             
-            {/* Account Button triggers Clerk's Secure Profile Manager */}
             <button onClick={() => openUserProfile()} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-colors">
               <Settings size={18} className="text-gray-400" /> Account
             </button>
           </nav>
         </aside>
 
-        {/* Right Content Area */}
         <main className="md:col-span-9 space-y-6 pb-20">
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
@@ -159,7 +156,6 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
             </Link>
           </div>
 
-          {/* Form Card 1: Basic Info */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
             <div className="flex flex-col xl:flex-row gap-8">
               
@@ -239,7 +235,6 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
             </div>
           </div>
 
-          {/* Form Card 2: Links */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
             <h3 className="text-lg font-bold text-gray-900 mb-5">Links</h3>
             
