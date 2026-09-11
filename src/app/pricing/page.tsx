@@ -35,8 +35,8 @@ const PLANS: PricingPlan[] = [
   },
   {
     name: "Pro",
-    monthlyPrice: 15,
-    annualPrice: 12,
+    monthlyPrice: 199,
+    annualPrice: 159.20,
     description: "For active job seekers who want every edge.",
     features: [
       "Unlimited AI-tailored resumes",
@@ -51,8 +51,8 @@ const PLANS: PricingPlan[] = [
   },
   {
     name: "Premium",
-    monthlyPrice: 35,
-    annualPrice: 28,
+    monthlyPrice: 299,
+    annualPrice: 239.20,
     description: "Full support from search to signed offer.",
     features: [
       "Everything in Pro",
