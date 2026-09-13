@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
@@ -40,7 +42,7 @@ export async function POST(req: Request) {
         salaryMax: body.salaryMax ? parseInt(body.salaryMax, 10) : null,
         description: body.description || null,
         requirements: body.requirements || null,
-        skills: Array.isArray(body.skills) ? body.skills : [], // Json field
+        skills: Array.isArray(body.skills) ? body.skills : [],
         posterImageUrl: clerkUser.imageUrl || null,
         status: body.status === "published" ? "published" : "draft",
       },
@@ -55,7 +57,6 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-
     const jobs = await prisma.job.findMany({
       where: { 
         status: "published" 
