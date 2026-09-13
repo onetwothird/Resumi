@@ -14,7 +14,6 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 const isApiRoute = createRouteMatcher(["/api(.*)", "/trpc(.*)"]);
-const isOnboardingRoute = createRouteMatcher(["/onboarding"]);
 const isEmployerRoute = createRouteMatcher(["/employer(.*)"]);
 const isJobSeekerRoute = createRouteMatcher(["/dashboard(.*)", "/resume(.*)"]);
 
@@ -36,15 +35,13 @@ export default clerkMiddleware(
 
     const role = (sessionClaims?.metadata as { role?: Role } | undefined)?.role;
 
-    if (!role && !isOnboardingRoute(req)) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
-    }
-
-    if (role && isOnboardingRoute(req)) {
-      return NextResponse.redirect(
-        new URL(role === "employer" ? "/employer/dashboard" : "/dashboard", req.url)
-      );
-    }
+    // Onboarding gate is intentionally NOT enforced here.
+    // sessionClaims.role can lag behind Clerk's actual publicMetadata
+    // right after a role is chosen (JWT refresh delay), which caused
+    // an infinite redirect loop with the onboarding/dashboard pages
+    // that check the live value via clerkClient().users.getUser().
+    // Each page (/onboarding, /dashboard, /employer/dashboard) already
+    // does its own live role check and redirect — that's the source of truth.
 
     if (role === "employer" && isJobSeekerRoute(req)) {
       return NextResponse.redirect(new URL("/employer/dashboard", req.url));
