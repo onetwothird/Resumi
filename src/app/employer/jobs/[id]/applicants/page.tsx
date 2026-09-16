@@ -14,7 +14,6 @@ export default async function JobApplicantsPage({
 
   const { id: jobId } = await params;
 
-  // Fetch the job and its applications, including the user and resume data
   const job = await prisma.job.findUnique({
     where: { id: jobId, userId },
     include: {
