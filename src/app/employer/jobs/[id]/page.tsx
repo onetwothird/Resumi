@@ -12,7 +12,6 @@ export default async function PublicJobPage({
 }) {
   const { id } = await params;
   
-  // 1. Get the current user viewing the page
   const { userId } = await auth();
 
   const job = await prisma.job.findFirst({
@@ -26,10 +25,9 @@ export default async function PublicJobPage({
     redirect("/"); 
   }
 
-  // 2. Check if the current user is the employer who posted it
   const isOwner = userId === job.userId;
 
-  // 3. Fetch job seeker's resumes if they are logged in and not the owner
+
   let userResumes: { id: string; title: string }[] = [];
   if (userId && !isOwner) {
     userResumes = await prisma.resume.findMany({
