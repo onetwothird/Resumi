@@ -31,6 +31,7 @@ export default async function ProfilePage() {
       website: "",
       social: "",
       github: "",
+      settings: null,
       createdAt: new Date(),
     };
   }

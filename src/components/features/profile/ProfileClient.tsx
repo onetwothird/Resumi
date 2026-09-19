@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { 
   LayoutDashboard, Bookmark, Crown, User as UserIcon, 
-  Settings, Eye, Upload, Camera, Loader2, Check
+  Settings, Eye, Upload, Camera, Loader2, Check, Bell
 } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
@@ -134,10 +134,12 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
             <Link href="/profile" className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors ${pathname === '/profile' ? 'bg-indigo-50 text-indigo-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
               <UserIcon size={18} className={pathname === '/profile' ? 'text-indigo-600' : 'text-gray-400'} /> Edit profile
             </Link>
-            
-            <button onClick={() => openUserProfile()} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-colors">
-              <Settings size={18} className="text-gray-400" /> Account
-            </button>
+            <Link href="/notifications" className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors ${pathname === '/notifications' ? 'bg-indigo-50 text-indigo-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
+              <Bell size={18} className={pathname === '/notifications' ? 'text-indigo-600' : 'text-gray-400'} /> Notifications
+            </Link>
+            <Link href="/settings" className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors ${pathname === '/settings' ? 'bg-indigo-50 text-indigo-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
+              <Settings size={18} className={pathname === '/settings' ? 'text-indigo-600' : 'text-gray-400'} /> Settings
+            </Link>
           </nav>
         </aside>
 
