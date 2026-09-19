@@ -3,10 +3,12 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
-  Plus, Search, FileX2, FilePlus2, Mic, Bot, X, PlaySquare, Square,
+  Plus,
+  Search, FileX2, FilePlus2, Mic, Bot, X, PlaySquare, Square,
   Video, VideoOff, RotateCcw, TrendingUp, ThumbsUp, Target, ChevronDown,
   Sparkles, Briefcase, FileText, ChevronRight,
   User,
+  Settings,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { ResumeListItem } from "@/types/dashboard";
@@ -516,6 +518,11 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                   label="Edit Profile"
                   labelIcon={<User size={15} />}
                   href="/profile"
+                />
+                <UserButton.Link
+                  label="Settings"
+                  labelIcon={<Settings size={15} />}
+                  href="/settings"
                 />
                 <UserButton.Link
                   label="Employer Dashboard"
