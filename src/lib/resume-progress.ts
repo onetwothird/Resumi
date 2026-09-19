@@ -38,44 +38,63 @@ export interface ProgressInput {
 }
 
 export function calculateResumeProgress(data: ProgressInput): ResumeProgress {
-  const personal =
-    Boolean(data.firstName?.trim()) ||
-    Boolean(data.lastName?.trim()) ||
-    Boolean(data.jobTitle?.trim()) ||
-    Boolean(data.email?.trim()) ||
-    Boolean(data.phone?.trim());
+  try {
+    const personal =
+      Boolean(data.firstName?.trim()) ||
+      Boolean(data.lastName?.trim()) ||
+      Boolean(data.jobTitle?.trim()) ||
+      Boolean(data.email?.trim()) ||
+      Boolean(data.phone?.trim());
 
-  const summary = Boolean(data.summary?.trim());
+    const summary = Boolean(data.summary?.trim());
 
-  const experienceList = Array.isArray(data.experience) ? data.experience : [];
-  const experience =
-    experienceList.length > 0 &&
-    experienceList.some((item) => {
-      const exp = item as { company?: string; role?: string };
-      return Boolean(exp.company?.trim()) || Boolean(exp.role?.trim());
-    });
+    const experienceList = Array.isArray(data.experience) ? data.experience : [];
+    const experience =
+      experienceList.length > 0 &&
+      experienceList.some((item) => {
+        if (!item || typeof item !== "object") return false;
+        const exp = item as Record<string, unknown>;
+        return Boolean(typeof exp.company === "string" && exp.company.trim()) ||
+               Boolean(typeof exp.role === "string" && exp.role.trim());
+      });
 
-  const educationList = Array.isArray(data.education) ? data.education : [];
-  const education =
-    educationList.length > 0 &&
-    educationList.some((item) => {
-      const edu = item as { school?: string; degree?: string };
-      return Boolean(edu.school?.trim()) || Boolean(edu.degree?.trim());
-    });
+    const educationList = Array.isArray(data.education) ? data.education : [];
+    const education =
+      educationList.length > 0 &&
+      educationList.some((item) => {
+        if (!item || typeof item !== "object") return false;
+        const edu = item as Record<string, unknown>;
+        return Boolean(typeof edu.school === "string" && edu.school.trim()) ||
+               Boolean(typeof edu.degree === "string" && edu.degree.trim());
+      });
 
-  const skills = Boolean(data.skills?.trim());
-  const certifications = Boolean(data.certifications?.trim());
+    const skills = Boolean(typeof data.skills === "string" && data.skills.trim());
+    const certifications = Boolean(typeof data.certifications === "string" && data.certifications.trim());
 
-  const sections = { personal, summary, experience, education, skills, certifications };
+    const sections = { personal, summary, experience, education, skills, certifications };
 
-  // Weighted calculation
-  const percentage =
-    (personal ? 40 : 0) +
-    (summary ? 15 : 0) +
-    (experience ? 20 : 0) +
-    (education ? 10 : 0) +
-    (skills ? 10 : 0) +
-    (certifications ? 5 : 0);
+    // Weighted calculation
+    const percentage =
+      (personal ? 40 : 0) +
+      (summary ? 15 : 0) +
+      (experience ? 20 : 0) +
+      (education ? 10 : 0) +
+      (skills ? 10 : 0) +
+      (certifications ? 5 : 0);
 
-  return { percentage, sections };
+    return { percentage, sections };
+  } catch {
+    // Never let progress calculation crash a save — return 0% on error
+    return {
+      percentage: 0,
+      sections: {
+        personal: false,
+        summary: false,
+        experience: false,
+        education: false,
+        skills: false,
+        certifications: false,
+      },
+    };
+  }
 }

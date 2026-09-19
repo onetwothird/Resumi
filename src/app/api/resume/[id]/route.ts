@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     const { userId } = await auth();
-    if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
     
@@ -23,7 +23,7 @@ export async function GET(
       where: { id, userId },
     });
 
-    if (!resume) return new NextResponse("Not found", { status: 404 });
+    if (!resume) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     // Calculate progress on-the-fly for resumes saved before this feature
     let completionProgress = resume.completionProgress as ResumeProgress | null;
@@ -38,8 +38,9 @@ export async function GET(
 
     return NextResponse.json({ ...resume, completionProgress });
   } catch (error) {
-    console.error(error);
-    return new NextResponse("Database Error", { status: 500 });
+    console.error("[GET /api/resume]", error);
+    const message = error instanceof Error ? error.message : "Database Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -49,7 +50,7 @@ export async function POST(
 ) {
   try {
     const { userId } = await auth();
-    if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     await ensureUser(userId);
 
     const { id } = await params;
@@ -70,6 +71,8 @@ export async function POST(
       fullName ||
       "Untitled Resume";
 
+    const completionProgress = calculateResumeProgress(data);
+
     const dbPayload = {
       title: isCustomTitle ? data.title.trim() : derivedTitle,
       titleIsCustom: isCustomTitle,
@@ -86,7 +89,7 @@ export async function POST(
       certifications: data.certifications,
       theme: data.theme ?? null,
       blockStyles: data.blockStyles ?? null,
-      completionProgress: calculateResumeProgress(data) as unknown as Prisma.InputJsonValue,
+      completionProgress: completionProgress as unknown as Prisma.InputJsonValue,
     };
 
     const resume = id === "new"
@@ -104,8 +107,9 @@ export async function POST(
 
     return NextResponse.json(resume);
   } catch (error) {
-    console.error(error);
-    return new NextResponse("Database Error", { status: 500 });
+    console.error("[POST /api/resume]", error);
+    const message = error instanceof Error ? error.message : "Database Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -115,7 +119,7 @@ export async function PATCH(
 ) {
   try {
     const { userId } = await auth();
-    if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
     const body = await req.json();
@@ -123,7 +127,7 @@ export async function PATCH(
     const existing = await prisma.resume.findFirst({
       where: { id, userId },
     });
-    if (!existing) return new NextResponse("Not found", { status: 404 });
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const resume = await prisma.resume.update({
       where: { id },
@@ -132,8 +136,9 @@ export async function PATCH(
 
     return NextResponse.json(resume);
   } catch (error) {
-    console.error(error);
-    return new NextResponse("Database Error", { status: 500 });
+    console.error("[PATCH /api/resume]", error);
+    const message = error instanceof Error ? error.message : "Database Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -143,18 +148,19 @@ export async function DELETE(
 ) {
   try {
     const { userId } = await auth();
-    if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
 
     const { count } = await prisma.resume.deleteMany({
       where: { id, userId },
     });
-    if (count === 0) return new NextResponse("Not found", { status: 404 });
+    if (count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(error);
-    return new NextResponse("Database Error", { status: 500 });
+    console.error("[DELETE /api/resume]", error);
+    const message = error instanceof Error ? error.message : "Database Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
