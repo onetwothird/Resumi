@@ -136,3 +136,17 @@ model Message {
   @@index([senderId])
   @@index([receiverId])
 }
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  role      String?
+  company   String?
+  quote     String   @db.Text
+  rating    Int      @default(5)
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([approved])
+}
