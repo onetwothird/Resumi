@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Cookie } from "lucide-react";
 
@@ -30,9 +31,11 @@ export default function CookieConsent() {
     } catch {}
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
-      {mounted && choice === null && (
+      {choice === null && (
         <motion.div
           initial={{ y: 40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -41,7 +44,7 @@ export default function CookieConsent() {
           role="dialog"
           aria-label="Cookie consent"
           aria-live="polite"
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100%-2rem)] sm:w-100 z-100 rounded-2xl bg-white dark:bg-slate-900 shadow-2xl shadow-black/10 border border-slate-200 dark:border-slate-800 p-5 sm:p-6"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100%-2rem)] sm:w-100 z-9999 rounded-2xl bg-white dark:bg-slate-900 shadow-2xl shadow-black/10 border border-slate-200 dark:border-slate-800 p-5 sm:p-6"
         >
           <div className="flex items-start gap-4 mb-5">
             <div className="w-12 h-12 shrink-0 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -71,6 +74,7 @@ export default function CookieConsent() {
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
