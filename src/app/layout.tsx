@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Lora } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import LoadingProvider from "@/components/ui/LoadingProvider";
 
 const jakarta = Plus_Jakarta_Sans({ 
   subsets: ["latin"], 
@@ -39,7 +40,9 @@ export default function RootLayout({
     >
       <html lang="en">
         <body className={`${jakarta.variable} ${lora.variable} font-sans text-slate-900 antialiased`}>
-          {children}
+          <LoadingProvider>
+            {children}
+          </LoadingProvider>
         </body>
       </html>
     </ClerkProvider>
