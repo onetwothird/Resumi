@@ -5,6 +5,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useLoading } from "@/components/ui/LoadingProvider";
 
 interface Notification {
   id: string;
@@ -19,6 +20,7 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const { startLoading } = useLoading();
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,7 +53,10 @@ export default function NotificationBell() {
       body: JSON.stringify({ id }),
     });
     setIsOpen(false);
-    if (link) router.push(link);
+    if (link) {
+      startLoading();
+      router.push(link);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
