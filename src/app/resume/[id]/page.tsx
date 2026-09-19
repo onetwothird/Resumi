@@ -14,6 +14,7 @@ import BuilderSidebar from "@/components/features/resume/BuilderSidebar";
 import CanvasEditor from "@/components/features/resume/CanvasEditor";
 import PropertiesSidebar from "@/components/features/resume/PropertiesSidebar";
 import ResumiLogo from "@/components/ui/ResumiLogo";
+import { useLoading } from "@/components/ui/LoadingProvider";
 
 const emptyResume = (): ResumeData => ({
   title: "",
@@ -110,6 +111,7 @@ export default function EditorPage() {
   const params = useParams<{ id: string }>();
   const resumeId = params.id as string;
   const router = useRouter();
+  const { startLoading } = useLoading();
 
   const [data, setData] = useState<ResumeData>(emptyResume());
   const [isLoading, setIsLoading] = useState(resumeId !== "new");
@@ -332,17 +334,19 @@ export default function EditorPage() {
   // instead of navigating directly.
   const attemptNavigation = useCallback((navigate: () => void) => {
     if (!hasUnsavedChangesRef.current) {
+      startLoading();
       navigate();
       return;
     }
     pendingNavigationRef.current = navigate;
     setIsLeaveModalOpen(true);
-  }, []);
+  }, [startLoading]);
 
   const handleSaveAndLeave = async () => {
     const ok = await performSave();
     if (ok) {
       setIsLeaveModalOpen(false);
+      startLoading();
       pendingNavigationRef.current?.();
       pendingNavigationRef.current = null;
     }
@@ -354,6 +358,7 @@ export default function EditorPage() {
   const handleDiscardAndLeave = () => {
     setHasUnsavedChanges(false);
     setIsLeaveModalOpen(false);
+    startLoading();
     pendingNavigationRef.current?.();
     pendingNavigationRef.current = null;
   };
