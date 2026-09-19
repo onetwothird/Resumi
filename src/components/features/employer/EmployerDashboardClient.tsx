@@ -21,6 +21,7 @@ import {
 import { JobListItem, EmployerAnalytics } from "@/types/employer";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
+import { useLoading } from "@/components/ui/LoadingProvider";
 
 interface Props {
   initialJobs: JobListItem[];
@@ -55,6 +56,7 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useUser();
+  const { startLoading } = useLoading();
   
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -134,7 +136,7 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
             </p>
           </div>
           <button
-            onClick={() => router.push("/employer/post-job")}
+            onClick={() => { startLoading(); router.push("/employer/post-job"); }}
             className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl shadow-sm hover:bg-indigo-700 transition-colors w-full sm:w-auto"
           >
             <Plus size={16} /> Post a Job
@@ -177,7 +179,7 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
             <p className="text-sm font-semibold text-gray-700 mb-1">No jobs posted yet</p>
             <p className="text-sm text-gray-400 mb-5">Post your first role to start matching with candidates.</p>
             <button
-              onClick={() => router.push("/employer/post-job")}
+              onClick={() => { startLoading(); router.push("/employer/post-job"); }}
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors w-full sm:w-auto"
             >
               <Plus size={16} /> Post a Job
@@ -236,7 +238,7 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
                       {isMenuOpen && (
                         <div className="absolute top-8 right-0 w-36 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-30 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                           <button 
-                            onClick={(e) => { e.stopPropagation(); router.push(`/employer/jobs/${job.id}`); }}
+                            onClick={(e) => { e.stopPropagation(); startLoading(); router.push(`/employer/jobs/${job.id}`); }}
                             className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center gap-2 transition-colors"
                           >
                             <Edit3 size={14} /> Edit Job
@@ -313,11 +315,11 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
                     </span>
                     
                     <button 
-                      onClick={() => router.push(
+                      onClick={() => { startLoading(); router.push(
                         job.applicantCount > 0 
                           ? `/employer/jobs/${job.id}/applicants` 
                           : `/employer/jobs/${job.id}`
-                      )}
+                      ); }}
                       className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 group"
                     >
                       {job.applicantCount > 0 ? "Review Applicants" : "Manage Job"} 
