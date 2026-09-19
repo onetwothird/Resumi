@@ -117,7 +117,7 @@ const PLATFORM_SIDES: PlatformSide[] = [
     desc: "Once your resume is ready, browse real open roles from companies actively hiring, right inside Resumi.",
     bullets: ["Structured resume builder with ATS scoring", "Live job board, filterable by type, location, and skills", "Browse companies and see everything they're hiring for"],
     cta: "Browse open roles",
-    href: "/jobs",
+    href: "/sign-in?redirect_url=/jobs",
     accent: "bg-indigo-600",
   },
   {
@@ -222,7 +222,7 @@ export default function LandingClient() {
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link
-                  href="/jobs"
+                  href="/sign-in?redirect_url=/jobs"
                   className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-7 py-3.5 rounded-lg font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all w-full sm:w-auto justify-center"
                 >
                   <Briefcase className="w-4 h-4" />
@@ -317,6 +317,38 @@ export default function LandingClient() {
         </motion.main>
       </div>
 
+      {/* ── Stats ── */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={staggerContainer}
+        className="relative z-10 py-20 bg-background dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800"
+      >
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
+            {[
+              { value: "10K+", label: "Resumes Built", icon: Layout },
+              { value: "500+", label: "Companies Hiring", icon: Building2 },
+              { value: "94%", label: "ATS Pass Rate", icon: Target },
+              { value: "3 min", label: "Avg. Build Time", icon: Gauge },
+            ].map((stat) => (
+              <motion.div
+                key={stat.label}
+                variants={staggerItem}
+                className="text-center"
+              >
+                <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mx-auto mb-4">
+                  <stat.icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <p className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-1">{stat.value}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -393,6 +425,72 @@ export default function LandingClient() {
                   {side.cta}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ── Testimonials ── */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={staggerContainer}
+        className="relative z-10 py-24 bg-background dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800"
+      >
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div variants={fadeUp} className="text-center mb-16">
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 dark:text-white mb-3">Trusted by job seekers everywhere</h2>
+            <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Real people who used Resumi to land their next role.</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Sarah Chen",
+                role: "Software Engineer at Stripe",
+                quote: "I went from getting zero callbacks to landing three interviews in one week. The ATS scoring feature showed me exactly what I was doing wrong.",
+                initials: "SC",
+                color: "bg-emerald-600",
+              },
+              {
+                name: "Marcus Johnson",
+                role: "Product Manager at Notion",
+                quote: "The structured builder forced me to quantify my achievements. My resume went from vague bullet points to measurable impact statements.",
+                initials: "MJ",
+                color: "bg-indigo-600",
+              },
+              {
+                name: "Priya Patel",
+                role: "UX Designer at Figma",
+                quote: "I loved that I could browse jobs right after finishing my resume. Applied to five roles the same day and got two callbacks.",
+                initials: "PP",
+                color: "bg-purple-600",
+              },
+            ].map((t) => (
+              <motion.div
+                key={t.name}
+                variants={staggerItem}
+                className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/40 transition-colors duration-300 flex flex-col"
+              >
+                <div className="flex items-center gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="w-4 h-4 text-amber-400 fill-amber-400" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-6 flex-1">&ldquo;{t.quote}&rdquo;</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <div className={`w-10 h-10 rounded-full ${t.color} text-white flex items-center justify-center text-xs font-bold`}>
+                    {t.initials}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{t.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{t.role}</p>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -484,7 +582,7 @@ export default function LandingClient() {
                     Start Building
                     <ArrowRight className="w-4 h-4" />
                   </Link>
-                  <Link href="/jobs" className="flex items-center justify-center gap-2 bg-transparent text-white px-8 py-3.5 rounded-lg font-semibold text-sm border border-slate-600 hover:bg-slate-800 transition-colors w-full sm:w-auto">
+                  <Link href="/sign-in?redirect_url=/jobs" className="flex items-center justify-center gap-2 bg-transparent text-white px-8 py-3.5 rounded-lg font-semibold text-sm border border-slate-600 hover:bg-slate-800 transition-colors w-full sm:w-auto">
                     Browse Open Roles
                   </Link>
                 </div>
