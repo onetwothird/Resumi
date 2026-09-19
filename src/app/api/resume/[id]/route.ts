@@ -75,14 +75,18 @@ export async function POST(
       blockStyles: data.blockStyles ?? null,
     };
 
-    const resume = await prisma.resume.upsert({
-      where: { id: id === "new" ? "temp-id-prevent-match" : id },
-      update: dbPayload,
-      create: {
-        ...dbPayload,
-        userId,
-      },
-    });
+    const resume = id === "new"
+      ? await prisma.resume.create({ data: { ...dbPayload, userId } })
+      : await (async () => {
+          const existing = await prisma.resume.findFirst({ where: { id, userId } });
+          if (existing) {
+            return prisma.resume.update({ where: { id }, data: dbPayload });
+          }
+          // Unknown id for this user — treat as a fresh resume so a stale
+          // client id (e.g. from a deleted resume) can't clobber someone
+          // else's data, and hangs up a clean record instead.
+          return prisma.resume.create({ data: { ...dbPayload, userId } });
+        })();
 
     return NextResponse.json(resume);
   } catch (error) {
