@@ -555,6 +555,68 @@ export default function LandingClient() {
         </div>
       </motion.section>
 
+      {/* ── FAQ ── */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={staggerContainer}
+        id="faq"
+        className="relative z-10 py-24 bg-background dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800"
+      >
+        <div className="max-w-3xl mx-auto px-6">
+          <motion.div variants={fadeUp} className="text-center mb-16">
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 dark:text-white mb-3">Frequently asked questions</h2>
+            <p className="text-sm md:text-base text-slate-500 dark:text-slate-400">Everything you need to know about Resumi.</p>
+          </motion.div>
+
+          <div className="space-y-4">
+            {[
+              {
+                q: "Is Resumi really free?",
+                a: "Yes. Building a resume, browsing jobs, and applying to roles are all free. There are no hidden fees or paywalls.",
+              },
+              {
+                q: "What makes Resumi different from other resume builders?",
+                a: "Resumi combines a structured resume builder with a live job board. You build your resume, get an ATS compatibility score, then browse and apply to real open roles — all in one place.",
+              },
+              {
+                q: "What is ATS and why does it matter?",
+                a: "Applicant Tracking Systems (ATS) are software tools that employers use to filter resumes before a human sees them. If your resume isn't ATS-friendly, it can be automatically rejected. Resumi scores your resume for ATS compatibility so you know it'll pass.",
+              },
+              {
+                q: "Can I export my resume as a PDF?",
+                a: "Yes. Once your resume is ready, you can download a clean, properly formatted PDF with one click.",
+              },
+              {
+                q: "Do I need an account to browse jobs?",
+                a: "You can view the companies page without an account, but browsing and applying to jobs requires a free sign-up.",
+              },
+              {
+                q: "Can employers see my resume?",
+                a: "Not unless you apply to their job. Your resume is private until you choose to apply.",
+              },
+            ].map((item) => (
+              <motion.details
+                key={item.q}
+                variants={staggerItem}
+                className="group bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 rounded-2xl overflow-hidden"
+              >
+                <summary className="flex items-center justify-between gap-4 p-6 cursor-pointer text-base font-semibold text-slate-900 dark:text-white select-none hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors list-none">
+                  {item.q}
+                  <span className="text-slate-400 group-open:rotate-180 transition-transform duration-200 shrink-0">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </span>
+                </summary>
+                <div className="px-6 pb-6 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {item.a}
+                </div>
+              </motion.details>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
       <motion.section
         initial="hidden"
         whileInView="visible"
