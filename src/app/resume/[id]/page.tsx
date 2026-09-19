@@ -238,17 +238,6 @@ export default function EditorPage() {
     [pushToast, router]
   );
 
-  // Autosave: wait 1.5 seconds after the user stops typing to save automatically
-  useEffect(() => {
-    if (!hasUnsavedChanges) return;
-
-    const timer = setTimeout(() => {
-      performSave({ redirectAfter: false });
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [data, hasUnsavedChanges, performSave]);
-
   useEffect(() => {
     if (resumeId === "new") return;
     let cancelled = false;
