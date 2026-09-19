@@ -478,63 +478,44 @@ export default function LandingClient() {
             <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Real people who used Resumi to land their next role.</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(testimonials.length > 0 ? testimonials : [
-              {
-                id: "1",
-                name: "Sarah Chen",
-                role: "Software Engineer",
-                company: "Stripe",
-                quote: "I went from getting zero callbacks to landing three interviews in one week. The ATS scoring feature showed me exactly what I was doing wrong.",
-                rating: 5,
-              },
-              {
-                id: "2",
-                name: "Marcus Johnson",
-                role: "Product Manager",
-                company: "Notion",
-                quote: "The structured builder forced me to quantify my achievements. My resume went from vague bullet points to measurable impact statements.",
-                rating: 5,
-              },
-              {
-                id: "3",
-                name: "Priya Patel",
-                role: "UX Designer",
-                company: "Figma",
-                quote: "I loved that I could browse jobs right after finishing my resume. Applied to five roles the same day and got two callbacks.",
-                rating: 5,
-              },
-            ]).slice(0, 3).map((t) => {
-              const initials = t.name.split(" ").map((n) => n.charAt(0)).join("").toUpperCase().slice(0, 2);
-              const colors = ["bg-emerald-600", "bg-indigo-600", "bg-purple-600", "bg-rose-600", "bg-amber-600"];
-              const color = colors[t.name.charCodeAt(0) % colors.length];
-              return (
-              <motion.div
-                key={t.id}
-                variants={staggerItem}
-                className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/40 transition-colors duration-300 flex flex-col"
-              >
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className={`w-4 h-4 ${i < t.rating ? "text-amber-400 fill-amber-400" : "text-slate-200 dark:text-slate-700"}`} viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-6 flex-1">&ldquo;{t.quote}&rdquo;</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <div className={`w-10 h-10 rounded-full ${color} text-white flex items-center justify-center text-xs font-bold`}>
-                    {initials}
+          {testimonials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonials.slice(0, 3).map((t) => {
+                const initials = t.name.split(" ").map((n) => n.charAt(0)).join("").toUpperCase().slice(0, 2);
+                const colors = ["bg-emerald-600", "bg-indigo-600", "bg-purple-600", "bg-rose-600", "bg-amber-600"];
+                const color = colors[t.name.charCodeAt(0) % colors.length];
+                return (
+                <motion.div
+                  key={t.id}
+                  variants={staggerItem}
+                  className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/40 transition-colors duration-300 flex flex-col"
+                >
+                  <div className="flex items-center gap-1 mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className={`w-4 h-4 ${i < t.rating ? "text-amber-400 fill-amber-400" : "text-slate-200 dark:text-slate-700"}`} viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{t.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{[t.role, t.company].filter(Boolean).join(" at ")}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-6 flex-1">&ldquo;{t.quote}&rdquo;</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div className={`w-10 h-10 rounded-full ${color} text-white flex items-center justify-center text-xs font-bold`}>
+                      {initials}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{t.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{[t.role, t.company].filter(Boolean).join(" at ")}</p>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-              );
-            })}
-          </div>
+                </motion.div>
+                );
+              })}
+            </div>
+          ) : (
+            <motion.div variants={fadeUp} className="text-center py-12">
+              <p className="text-slate-400 dark:text-slate-500 text-sm">No testimonials yet. Be the first to share your experience using the form below!</p>
+            </motion.div>
+          )}
         </div>
       </motion.section>
 
