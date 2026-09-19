@@ -313,7 +313,10 @@ export default function EditorPage() {
   });
 
   const handleSave = () => {
-    performSave({ redirectAfter: true });
+    // Save in place — keep the user in the builder and show the
+    // "Saved at" indicator. Leaving the page is handled separately by
+    // the unsaved-changes guard ("Save & leave") and the logo/nav links.
+    performSave({ redirectAfter: false });
   };
 
   // Native browser warning for hard exits (tab close, refresh, typing a
