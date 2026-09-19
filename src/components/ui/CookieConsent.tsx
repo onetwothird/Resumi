@@ -18,19 +18,16 @@ export default function CookieConsent() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored === "accepted" || stored === "essential") {
-        setChoice(stored);
+        setChoice(stored as ConsentChoice);
       }
-    } catch {
-    }
+    } catch {}
   }, []);
 
   const dismiss = (value: Exclude<ConsentChoice, null>) => {
     setChoice(value);
     try {
       localStorage.setItem(STORAGE_KEY, value);
-    } catch {
-      // Ignore
-    }
+    } catch {}
   };
 
   return (
@@ -49,7 +46,7 @@ export default function CookieConsent() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.15, ease: "easeOut" }} 
+            transition={{ duration: 0.15, ease: "easeOut" }}
             role="dialog"
             aria-label="Cookie consent"
             aria-live="polite"
