@@ -47,3 +47,14 @@ body {
     clip-path: circle(var(--theme-toggle-r, 150%) at var(--theme-toggle-x, 50%) var(--theme-toggle-y, 50%));
   }
 }
+
+/* Light sweep that travels across navigation progress bars. */
+@keyframes preloader-sweep {
+  0% {
+    transform: translateX(-150%);
+  }
+  60%,
+  100% {
+    transform: translateX(320%);
+  }
+}
