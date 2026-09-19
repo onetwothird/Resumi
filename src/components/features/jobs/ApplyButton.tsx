@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, Loader2, Send } from "lucide-react";
+import { useLoading } from "@/components/ui/LoadingProvider";
 
 interface ResumeOption {
   id: string;
@@ -17,6 +18,7 @@ interface Props {
 
 export default function ApplyButton({ jobId, resumes, isLoggedIn }: Props) {
   const router = useRouter();
+  const { startLoading } = useLoading();
   const [selectedResume, setSelectedResume] = useState(resumes[0]?.id || "");
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
@@ -24,6 +26,7 @@ export default function ApplyButton({ jobId, resumes, isLoggedIn }: Props) {
 
   const handleApply = async () => {
     if (!isLoggedIn) {
+      startLoading();
       router.push("/sign-in");
       return;
     }
