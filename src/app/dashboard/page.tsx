@@ -30,6 +30,7 @@ export default async function DashboardPage() {
     summary: r.summary,
     updatedAt: r.updatedAt.toISOString(),
     createdAt: r.createdAt.toISOString(),
+    completionProgress: (r.completionProgress as ResumeListItem["completionProgress"]) ?? null,
   }));
 
   return (

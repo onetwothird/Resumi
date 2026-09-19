@@ -145,12 +145,44 @@ export default function ResumeCard({
           </p>
         </div>
 
-        <div className="flex items-center justify-between text-xs font-medium text-gray-400 border-t border-gray-100 pt-4">
-          <div className="flex items-center gap-1.5">
-            <Calendar size={13} />
-            <span suppressHydrationWarning>
-              {isMounted ? `Edited ${formatRelativeDate(resume.updatedAt)}` : "Loading..."}
-            </span>
+        <div className="mt-3">
+          {/* Progress bar */}
+          {resume.completionProgress && (
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-semibold text-gray-500">Completion</span>
+                <span className={`text-[11px] font-bold ${
+                  resume.completionProgress.percentage === 100
+                    ? "text-emerald-600"
+                    : resume.completionProgress.percentage >= 50
+                    ? "text-amber-600"
+                    : "text-gray-500"
+                }`}>
+                  {resume.completionProgress.percentage}%
+                </span>
+              </div>
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ease-out ${
+                    resume.completionProgress.percentage === 100
+                      ? "bg-emerald-500"
+                      : resume.completionProgress.percentage >= 50
+                      ? "bg-amber-400"
+                      : "bg-indigo-400"
+                  }`}
+                  style={{ width: `${resume.completionProgress.percentage}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between text-xs font-medium text-gray-400 border-t border-gray-100 pt-3">
+            <div className="flex items-center gap-1.5">
+              <Calendar size={13} />
+              <span suppressHydrationWarning>
+                {isMounted ? `Edited ${formatRelativeDate(resume.updatedAt)}` : "Loading..."}
+              </span>
+            </div>
           </div>
         </div>
       </Link>

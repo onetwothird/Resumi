@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { ensureUser } from "@/lib/ensure-user";
+import { calculateResumeProgress, ResumeProgress, ProgressInput } from "@/lib/resume-progress";
+import { Prisma } from "@prisma/client";
 
 export async function GET(
   req: Request,
@@ -23,7 +25,18 @@ export async function GET(
 
     if (!resume) return new NextResponse("Not found", { status: 404 });
 
-    return NextResponse.json(resume);
+    // Calculate progress on-the-fly for resumes saved before this feature
+    let completionProgress = resume.completionProgress as ResumeProgress | null;
+    if (!completionProgress) {
+      completionProgress = calculateResumeProgress(resume as unknown as ProgressInput);
+      // Persist it so future loads are fast
+      await prisma.resume.update({
+        where: { id },
+        data: { completionProgress: completionProgress as unknown as Prisma.InputJsonValue },
+      });
+    }
+
+    return NextResponse.json({ ...resume, completionProgress });
   } catch (error) {
     console.error(error);
     return new NextResponse("Database Error", { status: 500 });
@@ -73,6 +86,7 @@ export async function POST(
       certifications: data.certifications,
       theme: data.theme ?? null,
       blockStyles: data.blockStyles ?? null,
+      completionProgress: calculateResumeProgress(data) as unknown as Prisma.InputJsonValue,
     };
 
     const resume = id === "new"

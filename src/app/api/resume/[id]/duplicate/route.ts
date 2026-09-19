@@ -41,6 +41,7 @@ export async function POST(
         skills: rest.skills ? (rest.skills as Prisma.InputJsonValue) : undefined,
         theme: rest.theme ? (rest.theme as Prisma.InputJsonValue) : undefined,
         blockStyles: rest.blockStyles ? (rest.blockStyles as Prisma.InputJsonValue) : undefined,
+        completionProgress: rest.completionProgress ? (rest.completionProgress as Prisma.InputJsonValue) : undefined,
       },
     });
 

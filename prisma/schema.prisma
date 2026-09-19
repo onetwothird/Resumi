@@ -51,6 +51,8 @@ model Resume {
   theme          Json?
   blockStyles    Json?
 
+  completionProgress Json?
+
   atsScore       Int?
   targetJob      String?  @db.Text
 

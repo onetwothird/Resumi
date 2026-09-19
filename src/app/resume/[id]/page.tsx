@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
 import { UserButton } from "@clerk/nextjs";
 import {
-  Undo, Redo, Share, ChevronDown, Save,
+  Undo, Redo, Share, ChevronDown, Save, 
   PenTool, Eye, Settings
 } from "lucide-react";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
@@ -322,10 +322,8 @@ export default function EditorPage() {
   });
 
   const handleSave = () => {
-    // Save in place — keep the user in the builder and show the
-    // "Saved at" indicator. Leaving the page is handled separately by
-    // the unsaved-changes guard ("Save & leave") and the logo/nav links.
-    performSave({ redirectAfter: false });
+    // Save and redirect to dashboard so the user sees their progress.
+    performSave({ redirectAfter: true });
   };
 
   // Native browser warning for hard exits (tab close, refresh, typing a
