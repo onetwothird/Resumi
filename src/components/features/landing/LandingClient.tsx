@@ -245,7 +245,7 @@ export default function LandingClient() {
                     <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium mt-2 sm:mt-1.5">Full Stack Developer</p>
                   </div>
                   <Image
-                    src="/icon/image.webp"
+                    src="/icon/hero-pic.jpg"
                     alt=""
                     width={44}
                     height={44}
