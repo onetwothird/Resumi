@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
 import { UserButton } from "@clerk/nextjs";
 import {
-  Undo, Redo, Share, Bell, Mail, ChevronDown, Save,
+  Undo, Redo, Share, ChevronDown, Save,
   PenTool, Eye, Settings
 } from "lucide-react";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
@@ -15,6 +15,8 @@ import CanvasEditor from "@/components/features/resume/CanvasEditor";
 import PropertiesSidebar from "@/components/features/resume/PropertiesSidebar";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import { useLoading } from "@/components/ui/LoadingProvider";
+import NotificationBell from "@/components/features/dashboard/NotificationBell";
+import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
 
 const emptyResume = (): ResumeData => ({
   title: "",
@@ -416,8 +418,12 @@ export default function EditorPage() {
           </nav>
         </div>
         <div className="flex items-center gap-2 lg:gap-4">
-          <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors"><Bell size={16} /></button>
-          <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors"><Mail size={16} /></button>
+          <div className="hidden sm:block">
+            <NotificationBell />
+          </div>
+          <div className="hidden sm:block">
+            <InboxDropdown />
+          </div>
           <div className="flex items-center gap-2 sm:ml-2">
             <UserButton />
           </div>

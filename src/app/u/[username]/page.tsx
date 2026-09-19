@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { MapPin, Link as LinkIcon, Briefcase, Globe } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
+import SendMessageClient from "@/components/features/employer/SendMessageClient";
 
 // Custom GitHub Icon matching Lucide's style
 const GithubIcon = ({ size = 24, className = "" }) => (
@@ -45,6 +46,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
   const resolvedParams = await params;
   const usernameOrId = resolvedParams.username;
 
+  const { userId } = await auth();
   const client = await clerkClient();
   let imageUrl = null;
   
@@ -72,6 +74,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
         website: null,
         social: null,
         github: null,
+        settings: null,
         createdAt: new Date(),
       };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -81,6 +84,10 @@ export default async function PublicProfilePage({ params }: PageProps) {
   } else {
     const clerkUser = await client.users.getUser(dbUser.id).catch(() => null);
     imageUrl = clerkUser?.imageUrl;
+  }
+
+  if (!dbUser) {
+    notFound();
   }
 
   return (
@@ -140,6 +147,14 @@ export default async function PublicProfilePage({ params }: PageProps) {
               </div>
             </div>
           </div>
+
+          {userId && userId !== dbUser.id && (
+            <div className="relative mt-8 flex justify-center sm:justify-start">
+              <div className="w-full sm:w-auto sm:min-w-56">
+                <SendMessageClient receiverId={dbUser.id} />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

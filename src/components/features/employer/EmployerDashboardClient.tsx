@@ -16,7 +16,8 @@ import {
   Users,
   TrendingUp,
   User,
-  FileText
+  FileText,
+  Settings
 } from "lucide-react";
 import { JobListItem, EmployerAnalytics } from "@/types/employer";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
@@ -119,6 +120,11 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
                   label="Candidate Dashboard"
                   labelIcon={<FileText size={15} />}
                   href="/dashboard"
+                />
+                <UserButton.Link
+                  label="Settings"
+                  labelIcon={<Settings size={15} />}
+                  href="/settings"
                 />
               </UserButton.MenuItems>
             </UserButton>

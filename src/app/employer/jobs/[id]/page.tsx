@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Briefcase, MapPin, Calendar, ArrowLeft, Wallet } from "lucide-react";
 import prisma from "@/lib/prisma";
 import ApplyButton from "@/components/features/jobs/ApplyButton";
+import SendMessageClient from "@/components/features/employer/SendMessageClient";
 
 export default async function PublicJobPage({
   params,
@@ -192,9 +193,17 @@ export default async function PublicJobPage({
                   <div className="text-xs font-semibold text-gray-500">{postDate}</div>
                 </div>
               </div>
-              <button className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition-colors text-sm">
+              {!isOwner && (
+                <div className="mb-4">
+                  <SendMessageClient receiverId={job.userId} />
+                </div>
+              )}
+              <Link
+                href={isOwner ? "/profile" : `/u/${job.userId}`}
+                className="w-full flex items-center justify-center py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition-colors text-sm"
+              >
                 View profile
-              </button>
+              </Link>
             </div>
 
             <Link 
