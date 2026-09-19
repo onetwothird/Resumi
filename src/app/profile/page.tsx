@@ -2,6 +2,7 @@ import ProfileClient from "@/components/features/profile/ProfileClient";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
+import { ensureUser } from "@/lib/ensure-user";
 
 export const metadata = {
   title: "Edit Profile | Resumi",
@@ -15,25 +16,11 @@ export default async function ProfilePage() {
     redirect("/sign-in");
   }
 
-  let dbUser = await prisma.user.findUnique({ where: { id: userId } });
+  // Guarantee the user exists in our DB (creates from Clerk data if needed)
+  const dbUser = await ensureUser(userId);
 
   if (!dbUser) {
-    const client = await clerkClient();
-    const clerkUser = await client.users.getUser(userId);
-    dbUser = {
-      id: userId,
-      email: clerkUser.primaryEmailAddress?.emailAddress || "",
-      name: clerkUser.fullName || "",
-      username: clerkUser.username || "",
-      role: "",
-      location: "",
-      bio: "",
-      website: "",
-      social: "",
-      github: "",
-      settings: null,
-      createdAt: new Date(),
-    };
+    redirect("/sign-in");
   }
 
   return <ProfileClient initialData={dbUser} />;

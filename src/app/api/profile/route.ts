@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { ensureUser } from "@/lib/ensure-user";
 
 export async function PATCH(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    // Guarantee the user exists in our DB before upserting
+    await ensureUser(userId);
 
     const body = await req.json();
 
@@ -13,7 +17,7 @@ export async function PATCH(req: Request) {
     const clerkUser = await client.users.getUser(userId);
     const email = clerkUser.primaryEmailAddress?.emailAddress || `${userId}@placeholder.com`;
 
-
+    // Sync name & username to Clerk
     try {
       await client.users.updateUser(userId, {
         firstName: body.fullName?.split(" ")[0] || "",
@@ -47,10 +51,9 @@ export async function PATCH(req: Request) {
         website: body.website,
         social: body.social,
         github: body.github,
-      }
+      },
     });
 
-    
     return NextResponse.json(updatedUser);
   } catch (error: unknown) {
     console.error("Profile Update Error:", error);
