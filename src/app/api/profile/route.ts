@@ -13,26 +13,30 @@ export async function PATCH(req: Request) {
     const clerkUser = await client.users.getUser(userId);
     const email = clerkUser.primaryEmailAddress?.emailAddress || `${userId}@placeholder.com`;
 
+    // Normalize empty strings to null to avoid unique constraint violations
+    // (Prisma treats "" as a real value, so two users with username="" would clash)
+    const cleanUsername = body.username?.trim() || null;
+
     // Sync name & username to Clerk
     try {
       await client.users.updateUser(userId, {
         firstName: body.fullName?.split(" ")[0] || "",
         lastName: body.fullName?.split(" ").slice(1).join(" ") || "",
-        username: body.username?.trim() || undefined,
+        username: cleanUsername || undefined,
       });
     } catch (clerkError) {
       console.warn("Clerk sync issue (e.g. username taken):", clerkError);
     }
 
     const profileData = {
-      name: body.fullName,
-      username: body.username,
-      role: body.role,
-      location: body.location,
-      bio: body.bio,
-      website: body.website,
-      social: body.social,
-      github: body.github,
+      name: body.fullName || null,
+      username: cleanUsername,
+      role: body.role || null,
+      location: body.location || null,
+      bio: body.bio || null,
+      website: body.website || null,
+      social: body.social || null,
+      github: body.github || null,
     };
 
     // First try to find by Clerk id
@@ -71,7 +75,7 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json(updatedUser);
   } catch (error: unknown) {
-    console.error("Profile Update Error:", error);
+    console.error("[PATCH /api/profile]", error);
     const message = error instanceof Error ? error.message : "Database Error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
