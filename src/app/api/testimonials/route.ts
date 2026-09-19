@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         company: company?.trim() || null,
         quote: quote.trim(),
         rating: Math.max(1, Math.min(5, Number(rating) || 5)),
-        approved: false,
+        approved: true,
       },
     });
 
