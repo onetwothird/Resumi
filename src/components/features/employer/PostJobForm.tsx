@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import ResumiLogo from "@/components/ui/ResumiLogo";
+import { useLoading } from "@/components/ui/LoadingProvider";
 
 type EmploymentType = "Full-time" | "Part-time" | "Contract" | "Internship";
 
@@ -54,6 +55,7 @@ const emptyJob = (): JobFormState => ({
 export default function PostJobForm() {
   const router = useRouter();
   const { user } = useUser();
+  const { startLoading } = useLoading();
   const [job, setJob] = useState<JobFormState>(emptyJob());
   const [skillInput, setSkillInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -120,6 +122,7 @@ export default function PostJobForm() {
       const saved = await res.json();
       pushToast(status === "draft" ? "Draft saved" : "Job published!", "success");
       if (status === "published" && saved?.id) {
+        startLoading();
         router.push("/employer/dashboard");
       }
     } catch (err) {
@@ -205,7 +208,7 @@ export default function PostJobForm() {
       <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-20">
         <div
           className="flex items-center gap-2 font-bold text-indigo-600 text-xl cursor-pointer"
-          onClick={() => router.push("/employer/dashboard")}
+          onClick={() => { startLoading(); router.push("/employer/dashboard"); }}
         >
           <ResumiLogo className="w-8 h-8" />
           <span className="hidden sm:inline">Resumi</span>
