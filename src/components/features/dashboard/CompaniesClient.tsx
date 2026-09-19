@@ -320,7 +320,7 @@ export default function CompaniesClient() {
 
                   <Link
                     href={`/dashboard?tab=jobs&company=${encodeURIComponent(c.name)}`}
-                    className="w-full flex items-center justify-center gap-2 bg-white hover:bg-indigo-600 text-indigo-600 hover:text-white font-bold py-2.5 rounded-xl border-2 border-indigo-600 transition-all duration-200 text-sm"
+                    className="w-full flex items-center justify-center gap-2 bg-white hover:bg-indigo-600 text-indigo-600 hover:text-white font-extrabold py-2.5 rounded-xl border-[0.5px] border-indigo-600 transition-all duration-200 text-sm"
                   >
                     <Briefcase size={15} /> View Jobs
                   </Link>
