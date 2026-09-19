@@ -121,8 +121,6 @@ export default function EditorPage() {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  // Manual save only — no autosave. This flag is the single source of
-  // truth for "does the user have edits that haven't been persisted yet".
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const hasUnsavedChangesRef = useRef(false);
   useEffect(() => {
@@ -158,20 +156,20 @@ export default function EditorPage() {
   const isSavingRef = useRef(false);
   const [past, setPast] = useState<ResumeData[]>([]);
   const [future, setFuture] = useState<ResumeData[]>([]);
+  
   // Every place that used to hand off a plain `setData` to a child now goes
   // through this instead, so editing anything automatically marks the
   // resume dirty. The initial fetch below calls `setData` directly (not
   // this), so loading a resume from the server never itself counts as an
   // "unsaved change".
   const updateData = useCallback((next: ResumeData) => {
-  setPast((p) => [...p, dataRef.current].slice(-50)); // Keep last 50 states
-  setFuture([]); // Clear redo history when a new edit is made
-  setData(next);
-  setHasUnsavedChanges(true);
-}, []);
+    setPast((p) => [...p, dataRef.current].slice(-50)); // Keep last 50 states
+    setFuture([]); // Clear redo history when a new edit is made
+    setData(next);
+    setHasUnsavedChanges(true);
+  }, []);
 
-
-    const handleUndo = useCallback(() => {
+  const handleUndo = useCallback(() => {
     if (past.length === 0) return;
     const previous = past[past.length - 1];
     setPast((p) => p.slice(0, -1));
@@ -180,7 +178,7 @@ export default function EditorPage() {
     setHasUnsavedChanges(true);
   }, [past]);
 
-    const handleRedo = useCallback(() => {
+  const handleRedo = useCallback(() => {
     if (future.length === 0) return;
     const next = future[0];
     setFuture((f) => f.slice(1));
@@ -239,6 +237,17 @@ export default function EditorPage() {
     },
     [pushToast, router]
   );
+
+  // Autosave: wait 1.5 seconds after the user stops typing to save automatically
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    const timer = setTimeout(() => {
+      performSave({ redirectAfter: false });
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [data, hasUnsavedChanges, performSave]);
 
   useEffect(() => {
     if (resumeId === "new") return;
@@ -473,10 +482,11 @@ export default function EditorPage() {
         <div className="flex gap-2 order-3 md:order-3 w-full md:w-auto justify-end">
           <button
             onClick={handleSave}
-            disabled={isSaving || isLoading}
+            disabled={isSaving || isLoading || !hasUnsavedChanges}
             className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 lg:px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            <Save className="w-4 h-4 text-gray-500" /> Save
+            <Save className={`w-4 h-4 ${!hasUnsavedChanges && !isSaving ? 'text-emerald-500' : 'text-gray-500'}`} /> 
+            {isSaving ? "Saving..." : hasUnsavedChanges ? "Save" : "Saved"}
           </button>
           <button
             onClick={() => handlePrint()}
