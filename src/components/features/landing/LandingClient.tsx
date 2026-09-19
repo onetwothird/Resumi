@@ -21,6 +21,7 @@ import {
 import PublicHeader from "@/components/layout/PublicHeader";
 import PublicFooter from "@/components/layout/PublicFooter";
 import AuroraBackground from "@/components/features/landing/AuroraBackground";
+import CookieConsent from "@/components/ui/CookieConsent";
 
 const FEATURES = [
   {
@@ -493,6 +494,8 @@ export default function LandingClient() {
       </motion.section>
 
       <PublicFooter />
+
+      <CookieConsent />
     </div>
   );
 }
