@@ -17,6 +17,7 @@ model User {
   website      String?
   social       String?
   github       String?
+  settings     Json?
   
   resumes      Resume[]
   jobs         Job[]
@@ -130,5 +131,6 @@ model Message {
 
   receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
 
+  @@index([senderId])
   @@index([receiverId])
 }
