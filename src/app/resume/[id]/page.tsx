@@ -222,7 +222,8 @@ export default function EditorPage() {
 
         if (opts?.redirectAfter) {
           pushToast("Resume saved", "success");
-          router.push("/dashboard");
+          // Brief delay so the user sees the toast before navigating away
+          setTimeout(() => router.push("/dashboard"), 800);
         }
       } catch (err) {
         savedOk = false;
