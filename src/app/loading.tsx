@@ -12,7 +12,7 @@ export default function Loading() {
   const reduceMotion = useReducedMotion();
   const [progress, setProgress] = useState(0);
 
-  // Simulate realistic loading progress
+  // Simulate realistic, guaranteed loading progress to 100%
   useEffect(() => {
     const timer = setInterval(() => {
       setProgress((prevProgress) => {
@@ -20,11 +20,11 @@ export default function Loading() {
           clearInterval(timer);
           return 100;
         }
-        // Random increment between 2 and 15 to make it feel organic
-        const increment = Math.floor(Math.random() * 14) + 2;
+        // Faster, more decisive increments to ensure it reaches 100% quickly
+        const increment = Math.floor(Math.random() * 20) + 10;
         return Math.min(prevProgress + increment, 100);
       });
-    }, 150); // Updates every 150ms
+    }, 100); // Faster tick rate
 
     return () => clearInterval(timer);
   }, []);
@@ -66,15 +66,16 @@ export default function Loading() {
         >
           {reduceMotion ? (
             <div
-              className="absolute inset-y-0 left-0 h-full rounded-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-150 ease-out"
+              className="absolute inset-y-0 left-0 h-full rounded-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-100 ease-out"
               style={{ width: `${displayProgress}%` }}
             />
           ) : (
             <motion.span
-              className="absolute inset-y-0 left-0 rounded-full bg-indigo-600 dark:bg-indigo-500"
+              className="absolute inset-y-0 left-0 h-full rounded-full bg-indigo-600 dark:bg-indigo-500"
               initial={{ width: "0%" }}
               animate={{ width: `${displayProgress}%` }}
-              transition={{ ease: "easeOut", duration: 0.2 }}
+              // Sync the animation duration with the interval tick rate (0.1s)
+              transition={{ ease: "linear", duration: 0.1 }}
             />
           )}
         </div>
@@ -83,7 +84,7 @@ export default function Loading() {
         <motion.span 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.3 }}
+          transition={{ delay: 0.1, duration: 0.2 }}
           className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400"
         >
           {displayProgress}%
