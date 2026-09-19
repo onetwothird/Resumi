@@ -2,6 +2,24 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 
+const SENDER_NAME_FALLBACK = "Someone on Resumi";
+
+async function resolveSenderName(userId: string): Promise<string> {
+  try {
+    const client = await clerkClient();
+    const clerkUser = await client.users.getUser(userId);
+    if (clerkUser.fullName?.trim()) return clerkUser.fullName;
+  } catch {
+    // Fall through to the local DB.
+  }
+
+  const dbUser = await prisma.user.findUnique({ where: { id: userId } });
+  if (dbUser?.name?.trim()) return dbUser.name;
+  if (dbUser?.username) return `@${dbUser.username}`;
+
+  return SENDER_NAME_FALLBACK;
+}
+
 export async function GET() {
   try {
     const { userId } = await auth();
@@ -26,28 +44,49 @@ export async function POST(req: Request) {
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { receiverId, content } = await req.json();
+    const trimmed = typeof content === "string" ? content.trim() : "";
+    if (!receiverId || typeof receiverId !== "string") {
+      return NextResponse.json({ error: "Missing receiver." }, { status: 400 });
+    }
+    if (!trimmed) {
+      return NextResponse.json({ error: "Message cannot be empty." }, { status: 400 });
+    }
+    if (receiverId === userId) {
+      return NextResponse.json({ error: "You can't message yourself." }, { status: 400 });
+    }
 
     const client = await clerkClient();
-    const sender = await client.users.getUser(userId);
-    const senderName = sender.fullName || "An Employer";
+    const clerkUser = await client.users.getUser(userId);
+    const email = clerkUser.primaryEmailAddress?.emailAddress || `${userId}@placeholder.com`;
+
+    await prisma.user.upsert({
+      where: { id: userId },
+      update: {},
+      create: { id: userId, email },
+    });
+
+    const senderName = await resolveSenderName(userId);
 
     const message = await prisma.message.create({
       data: {
         senderId: userId,
         receiverId,
         senderName,
-        content,
+        content: trimmed,
       },
     });
 
-    await prisma.notification.create({
-      data: {
-        userId: receiverId,
-        title: `New Message from ${senderName}`,
-        message: content.length > 60 ? content.substring(0, 60) + "..." : content,
-        link: null,
-      }
-    });
+    const receiverExists = await prisma.user.findUnique({ where: { id: receiverId } });
+    if (receiverExists) {
+      await prisma.notification.create({
+        data: {
+          userId: receiverId,
+          title: `New Message from ${senderName}`,
+          message: trimmed.length > 60 ? trimmed.substring(0, 60) + "..." : trimmed,
+          link: "/messages",
+        },
+      });
+    }
 
     return NextResponse.json(message);
   } catch (error: unknown) {
@@ -62,7 +101,7 @@ export async function PATCH(req: Request) {
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
     const { id } = await req.json();
 
-    await prisma.message.update({
+    await prisma.message.updateMany({
       where: { id, receiverId: userId },
       data: { isRead: true },
     });
