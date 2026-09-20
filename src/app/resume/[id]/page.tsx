@@ -2,10 +2,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import {
   Undo, Redo, Share, ChevronDown, Save, 
-  PenTool, Eye, Settings
+  PenTool, Eye, Settings, FileText, Briefcase, User as UserIcon
 } from "lucide-react";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import { ResumeData, DEFAULT_THEME } from "@/types";
@@ -114,6 +114,9 @@ export default function EditorPage() {
   const resumeId = params.id as string;
   const router = useRouter();
   const { startLoading } = useLoading();
+  const { user } = useUser();
+  const role = user?.publicMetadata?.role as "employer" | "jobseeker" | undefined;
+  const isEmployer = role === "employer";
 
   const [data, setData] = useState<ResumeData>(emptyResume());
   const [isLoading, setIsLoading] = useState(resumeId !== "new");
@@ -425,14 +428,32 @@ export default function EditorPage() {
             <InboxDropdown />
           </div>
           <div className="flex items-center gap-2 sm:ml-2">
-            <UserButton />
+            <UserButton>
+              <UserButton.MenuItems>
+                <UserButton.Link label="Edit Profile" labelIcon={<UserIcon size={15} />} href="/profile" />
+                <UserButton.Link label="Settings" labelIcon={<Settings size={15} />} href="/settings" />
+                {isEmployer ? (
+                  <UserButton.Link label="Candidate Dashboard" labelIcon={<FileText size={15} />} href="/dashboard" />
+                ) : (
+                  <UserButton.Link label="Employer Dashboard" labelIcon={<Briefcase size={15} />} href="/employer/dashboard" />
+                )}
+              </UserButton.MenuItems>
+            </UserButton>
           </div>
         </div>
       </header>
 
-      <div className="min-h-14 py-2 bg-white border-b border-gray-200 flex flex-wrap items-center justify-between px-4 shrink-0 z-10 shadow-sm gap-3">
-        <div className="flex items-center gap-4 text-gray-500 order-2 md:order-1 w-full md:w-auto justify-between md:justify-start">
-          <div className="flex gap-1 border-r border-gray-200 pr-4">
+      <div className="min-h-14 py-2 bg-white border-b border-gray-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 shrink-0 z-10 shadow-sm gap-2 sm:gap-3">
+        {/* Row 1 on mobile: title + undo/redo. Row 2: status + buttons */}
+        <div className="flex items-center justify-between w-full sm:w-auto order-1">
+          <input
+            value={titleValue}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            placeholder="Untitled Resume"
+            aria-label="Resume title"
+            className="font-semibold text-gray-800 text-left sm:text-center bg-transparent border border-transparent hover:border-gray-200 focus:border-indigo-400 focus:bg-white rounded-md px-2 py-1 outline-none truncate min-w-0 flex-1 sm:flex-none sm:w-48 lg:w-56"
+          />
+          <div className="flex items-center gap-1 text-gray-500 sm:hidden shrink-0 ml-2">
             <button 
               onClick={handleUndo} 
               disabled={past.length === 0}
@@ -448,42 +469,63 @@ export default function EditorPage() {
               <Redo size={16} />
             </button>
           </div>
-          <span className="text-xs flex items-center gap-1 italic">
-             {isSaving
-               ? "Saving..."
-               : hasUnsavedChanges
-               ? "Unsaved changes"
-               : lastSaved
-               ? `Saved at ${lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
-               : "Unsaved changes"}
-          </span>
         </div>
 
-        <input
-          value={titleValue}
-          onChange={(e) => handleTitleChange(e.target.value)}
-          placeholder="Untitled Resume"
-          aria-label="Resume title"
-          className="font-semibold text-gray-800 text-center bg-transparent border border-transparent hover:border-gray-200 focus:border-indigo-400 focus:bg-white rounded-md px-2 py-1 outline-none truncate order-1 md:order-2 w-full md:w-64 md:absolute md:left-1/2 md:-translate-x-1/2"
-        />
-
-        <div className="flex gap-2 order-3 md:order-3 w-full md:w-auto justify-end">
-          <button
-            onClick={handleSave}
-            disabled={isSaving || isLoading || !hasUnsavedChanges}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 lg:px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-          >
-            <Save className={`w-4 h-4 ${!hasUnsavedChanges && !isSaving ? 'text-emerald-500' : 'text-gray-500'}`} /> 
-            {isSaving ? "Saving..." : hasUnsavedChanges ? "Save" : "Saved"}
-          </button>
-          <button
-            onClick={() => handlePrint()}
-            disabled={isLoading}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 lg:px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 transition-colors disabled:opacity-50"
-          >
-            <Share className="w-4 h-4" /> Export
-          </button>
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end order-2">
+          <div className="flex items-center gap-1 text-gray-500 hidden sm:flex">
+            <button 
+              onClick={handleUndo} 
+              disabled={past.length === 0}
+              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-30"
+            >
+              <Undo size={16} />
+            </button>
+            <button 
+              onClick={handleRedo} 
+              disabled={future.length === 0}
+              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-30"
+            >
+              <Redo size={16} />
+            </button>
+            <span className="text-xs flex items-center gap-1 italic ml-2">
+              {isSaving
+                ? "Saving..."
+                : hasUnsavedChanges
+                ? "Unsaved changes"
+                : lastSaved
+                ? `Saved at ${lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
+                : "Unsaved changes"}
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleSave}
+              disabled={isSaving || isLoading || !hasUnsavedChanges}
+              className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              <Save className={`w-4 h-4 ${!hasUnsavedChanges && !isSaving ? 'text-emerald-500' : 'text-gray-500'}`} /> 
+              <span className="hidden xs:inline">{isSaving ? "Saving..." : hasUnsavedChanges ? "Save" : "Saved"}</span>
+              <span className="xs:hidden">{isSaving ? "Saving..." : hasUnsavedChanges ? "Save" : "Saved"}</span>
+            </button>
+            <button
+              onClick={() => handlePrint()}
+              disabled={isLoading}
+              className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            >
+              <Share className="w-4 h-4" /> Export
+            </button>
+          </div>
         </div>
+
+        <span className="text-xs text-gray-500 italic sm:hidden order-3 w-full text-center">
+          {isSaving
+            ? "Saving..."
+            : hasUnsavedChanges
+            ? "Unsaved changes"
+            : lastSaved
+            ? `Saved at ${lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
+            : ""}
+        </span>
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
