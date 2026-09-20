@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Menu, X } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 
 const NAV_LINKS: { href: string; label: string }[] = [
@@ -28,6 +26,7 @@ export default function PublicHeader({ active }: Props) {
           Resumi
         </Link>
 
+        {/* Desktop Menu (Still Professional) */}
         <div className="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-500 dark:text-slate-400">
           {NAV_LINKS.map((link) => {
             const isActive = active === link.href;
@@ -60,99 +59,51 @@ export default function PublicHeader({ active }: Props) {
           </Link>
         </div>
 
-        {/* Animated hamburger — fixed-size button, icons absolutely centered */}
+        {/* UNPROFESSIONAL MOBILE HAMBURGER BUTTON */}
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          className="lg:hidden ml-auto -mr-2 flex items-center justify-center w-10 h-10 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+          className="lg:hidden ml-auto flex items-center justify-center text-3xl bg-yellow-300 border-4 border-red-500 p-1 rounded-none shadow-[4px_4px_0px_#000] hover:bg-yellow-400"
         >
-          <span className="relative w-5 h-5" aria-hidden="true">
-            <Menu
-              className={`absolute inset-0 w-5 h-5 transition-all duration-200 ease-out ${
-                open ? "opacity-0 scale-75" : "opacity-100 scale-100"
-              }`}
-            />
-            <X
-              className={`absolute inset-0 w-5 h-5 transition-all duration-200 ease-out ${
-                open ? "opacity-100 scale-100" : "opacity-0 scale-75"
-              }`}
-            />
-          </span>
+          {open ? "❌" : "🍔"}
         </button>
       </div>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:hidden overflow-hidden border-t border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl"
-          >
-            <div className="px-4 py-5">
-              <nav className="flex flex-col gap-1">
-                {NAV_LINKS.map((link, i) => {
-                  const isActive = active === link.href;
-                  return (
-                    <motion.div
-                      key={link.href}
-                      initial={{ opacity: 0, x: -12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ delay: 0.05 * i, duration: 0.25, ease: "easeOut" }}
-                    >
-                      <Link
-                        href={link.href}
-                        onClick={() => setOpen(false)}
-                        className={`group flex items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-200 ${
-                          isActive
-                            ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
-                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white"
-                        }`}
-                      >
-                        {link.label}
-                        <ChevronRight
-                          className={`w-4 h-4 transition-all duration-200 ${
-                            isActive
-                              ? "opacity-100 translate-x-0 text-indigo-500 dark:text-indigo-400"
-                              : "opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
-                          }`}
-                        />
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </nav>
-
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ delay: 0.2, duration: 0.25, ease: "easeOut" }}
-                className="flex items-center gap-3 pt-5 mt-4 border-t border-slate-200/80 dark:border-slate-800"
+      {/* UNPROFESSIONAL MOBILE DROPDOWN */}
+      {open && (
+        <div className="lg:hidden bg-fuchsia-400 border-t-8 border-dashed border-lime-500 p-6 shadow-2xl">
+          <nav className="flex flex-col gap-4 text-center">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className="block bg-cyan-300 border-4 border-blue-700 text-blue-900 font-black text-xl py-3 uppercase tracking-widest hover:bg-cyan-200 hover:text-red-600 transition-none"
+                style={{ fontFamily: '"Comic Sans MS", "Comic Sans", cursive' }}
               >
-                <Link
-                  href="/sign-in"
-                  onClick={() => setOpen(false)}
-                  className="flex-1 text-center text-sm font-semibold text-slate-700 dark:text-slate-200 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors duration-200"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/sign-up"
-                  onClick={() => setOpen(false)}
-                  className="flex-1 text-center text-sm font-semibold bg-indigo-600 text-white py-2.5 rounded-lg shadow-sm shadow-indigo-500/30 hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-500/30 transition-all duration-200"
-                >
-                  Get Started
-                </Link>
-              </motion.div>
+                👉 {link.label} 👈
+              </Link>
+            ))}
+
+            <div className="flex flex-col gap-4 mt-6 pt-6 border-t-4 border-dotted border-red-500">
+              <Link
+                href="/sign-in"
+                onClick={() => setOpen(false)}
+                className="bg-gray-200 text-black border-2 border-black font-bold py-3 text-lg"
+              >
+                SIGN IN PLZ
+              </Link>
+              <Link
+                href="/sign-up"
+                onClick={() => setOpen(false)}
+                className="bg-linear-to-r from-red-500 via-yellow-500 to-green-500 text-white font-extrabold py-4 text-2xl border-4 border-black"
+              >
+                🎉 GET STARTED 🎉
+              </Link>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </nav>
+        </div>
+      )}
     </nav>
   );
 }
