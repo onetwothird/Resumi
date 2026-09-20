@@ -3,13 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 
 const NAV_LINKS: { href: string; label: string }[] = [
   { href: "/#features", label: "Features" },
   { href: "/companies", label: "Companies" },
-   { href: "/pricing", label: "Pricing" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/for-employers", label: "For Employers" },
 ];
 
@@ -60,14 +60,31 @@ export default function PublicHeader({ active }: Props) {
           </Link>
         </div>
 
+        {/* Animated hamburger — morphs into a close "X" */}
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
-          className="lg:hidden ml-auto -mr-2 p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+          className="lg:hidden ml-auto -mr-2 flex items-center justify-center w-10 h-10 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
         >
-          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          <span className="relative block w-5" aria-hidden="true">
+            <span
+              className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 ease-out ${
+                open ? "rotate-45 translate-y-2" : "translate-y-0"
+              }`}
+            />
+            <span
+              className={`block h-0.5 w-full bg-current rounded-full mt-1.5 transition-all duration-200 ease-out ${
+                open ? "opacity-0 scale-x-0" : "opacity-100 scale-x-100"
+              }`}
+            />
+            <span
+              className={`block h-0.5 w-full bg-current rounded-full mt-1.5 transition-all duration-300 ease-out ${
+                open ? "-rotate-45 -translate-y-2" : "translate-y-0"
+              }`}
+            />
+          </span>
         </button>
       </div>
 
@@ -77,38 +94,66 @@ export default function PublicHeader({ active }: Props) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             className="lg:hidden overflow-hidden border-t border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl"
           >
-            <div className="px-6 py-5 flex flex-col gap-4">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className={`text-sm font-medium transition-colors ${
-                    active === link.href ? "text-indigo-600 dark:text-indigo-400" : "text-slate-600 dark:text-slate-300"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="flex items-center gap-3 pt-4 mt-1 border-t border-slate-200/80 dark:border-slate-800">
+            <div className="px-4 py-5">
+              <nav className="flex flex-col gap-1">
+                {NAV_LINKS.map((link, i) => {
+                  const isActive = active === link.href;
+                  return (
+                    <motion.div
+                      key={link.href}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ delay: 0.05 * i, duration: 0.25, ease: "easeOut" }}
+                    >
+                      <Link
+                        href={link.href}
+                        onClick={() => setOpen(false)}
+                        className={`group flex items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+                          isActive
+                            ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white"
+                        }`}
+                      >
+                        {link.label}
+                        <ChevronRight
+                          className={`w-4 h-4 transition-all duration-200 ${
+                            isActive
+                              ? "opacity-100 translate-x-0 text-indigo-500 dark:text-indigo-400"
+                              : "opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
+                          }`}
+                        />
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </nav>
+
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.2, duration: 0.25, ease: "easeOut" }}
+                className="flex items-center gap-3 pt-5 mt-4 border-t border-slate-200/80 dark:border-slate-800"
+              >
                 <Link
                   href="/sign-in"
                   onClick={() => setOpen(false)}
-                  className="flex-1 text-center text-sm font-medium text-slate-600 dark:text-slate-300 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700"
+                  className="flex-1 text-center text-sm font-semibold text-slate-700 dark:text-slate-200 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors duration-200"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/sign-up"
                   onClick={() => setOpen(false)}
-                  className="flex-1 text-center text-sm font-semibold bg-indigo-600 text-white py-2.5 rounded-lg"
+                  className="flex-1 text-center text-sm font-semibold bg-indigo-600 text-white py-2.5 rounded-lg shadow-sm shadow-indigo-500/30 hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-500/30 transition-all duration-200"
                 >
                   Get Started
                 </Link>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         )}
