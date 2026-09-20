@@ -513,7 +513,7 @@ export default function LandingClient() {
             </div>
           ) : (
             <motion.div variants={fadeUp} className="text-center py-12">
-              <p className="text-slate-400 dark:text-slate-500 text-sm">No testimonials yet. Be the first to share your experience using the form below!</p>
+              <p className="text-slate-400 dark:text-slate-500 text-sm">No testimonials yet. Be the first to share your experience in the footer below!</p>
             </motion.div>
           )}
         </div>
