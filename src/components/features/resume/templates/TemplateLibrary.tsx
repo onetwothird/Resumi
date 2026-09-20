@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -327,7 +326,7 @@ export default function TemplateLibrary({ data, onChange }: Props) {
 
       {/* Filters */}
       <div className="flex flex-col gap-2">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as Category | "all")}
@@ -396,7 +395,7 @@ export default function TemplateLibrary({ data, onChange }: Props) {
       {filtered.length === 0 ? (
         <div className="text-center py-10 text-sm text-gray-400">No templates match your filters.</div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {filtered.map((tpl) => {
             const active = tpl.id === currentId;
             return (
