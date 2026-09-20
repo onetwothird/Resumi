@@ -210,7 +210,7 @@ function FloatingToolbar({ style, value, onPatch }: ToolbarProps) {
     <div 
       style={style} 
       onMouseDown={stopMouseDown} 
-      className="absolute z-50 bg-white border border-gray-200 shadow-xl rounded-xl p-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 w-max max-w-[90vw] sm:max-w-150"
+      className="absolute z-50 bg-white border border-gray-200 shadow-xl rounded-xl p-1.5 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1.5 w-max max-w-[calc(100vw-2rem)] sm:max-w-[90vw]"
     >
       <div className="flex items-center gap-1">
         <select value={value.fontFamily ?? ""} onMouseDown={allowFocus} onChange={(e) => onPatch({ fontFamily: e.target.value || undefined })} className="text-xs border border-gray-200 rounded-md pl-1.5 pr-1 py-1 outline-none w-24 bg-white text-gray-700 truncate">
