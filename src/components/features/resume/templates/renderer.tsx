@@ -39,7 +39,6 @@ import {
   HeadingVariant,
   ExpVariant,
   EduVariant,
-  SkillsVariant,
   ContactVariant,
   SectionKey,
   DocSpacing,
@@ -568,17 +567,17 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
     const expMetaColor = isDark ? "#94a3b8" : undefined;
     const dividerColor = def.dividerColor ?? (isDark ? "#334155" : "#d1d5db");
 
-    /* Sections rendered inside a coloured sidebar flip to light-on-dark copy. */
-    let sidebarMode = false;
-    const getBody = () => (sidebarMode ? "#f8fafc" : bodyColor);
-    const getExpBody = () => (sidebarMode ? "#e2e8f0" : expBodyColor);
-    const getExpTitle = () => (sidebarMode ? "#ffffff" : expTitleColor);
-    const getExpMeta = () => (sidebarMode ? "#cbd5e1" : expMetaColor);
-    const getSecondary = () => (sidebarMode ? "#cbd5e1" : expMetaColor ?? "#6b7280");
-    const getDivider = () => (sidebarMode ? "rgba(255,255,255,0.3)" : dividerColor);
-    const getChipBg = () => (sidebarMode ? "rgba(255,255,255,0.18)" : primaryColor);
-    const getChipStyle = () =>
-      sidebarMode ? { backgroundColor: "rgba(255,255,255,0.95)", color: "#111827" } : { backgroundColor: primaryColor, color: "#ffffff" };
+    /* Sections rendered inside a coloured sidebar flip to light-on-dark copy.
+       `mode` is threaded explicitly (never reassigned) so ESLint's
+       react-hooks/immutability rule stays satisfied. */
+    const bodyColorFor = (mode: boolean) => (mode ? "#f8fafc" : bodyColor);
+    const expBodyFor = (mode: boolean) => (mode ? "#e2e8f0" : expBodyColor);
+    const expTitleFor = (mode: boolean) => (mode ? "#ffffff" : expTitleColor);
+    const expMetaFor = (mode: boolean) => (mode ? "#cbd5e1" : expMetaColor);
+    const secondaryFor = (mode: boolean) => (mode ? "#cbd5e1" : expMetaColor ?? "#6b7280");
+    const dividerFor = (mode: boolean) => (mode ? "rgba(255,255,255,0.3)" : dividerColor);
+    const chipStyleFor = (mode: boolean) =>
+      mode ? { backgroundColor: "rgba(255,255,255,0.95)", color: "#111827" } : { backgroundColor: primaryColor, color: "#ffffff" };
     const nameCase = def.nameCase === "uppercase" ? "uppercase" : "";
     const hcfg = HEADER_CONFIG[def.header] ?? HEADER_CONFIG.centered;
     const ccfg = CONTACT_CONFIG[def.contact] ?? CONTACT_CONFIG.inline;
@@ -757,14 +756,14 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
 
     /* ── Section building blocks ── */
 
-    const renderHeading = (section: SectionKey, index: number) => {
+    const renderHeading = (section: SectionKey, index: number, inSidebar = false) => {
       const cfg = HEADING_CONFIG[def.heading] ?? HEADING_CONFIG.bordered;
       const Icon = SECTION_ICONS[section];
       const style = applyAccent(cfg.style, primaryColor);
       const label = section === "certifications" ? "Certifications" : section[0].toUpperCase() + section.slice(1);
       const headingStyle: CSSProperties = {
         ...style,
-        ...(sidebarMode ? { color: "#ffffff" } : isDark && !style.color ? { color: "#f3f4f6" } : {}),
+        ...(inSidebar ? { color: "#ffffff" } : isDark && !style.color ? { color: "#f3f4f6" } : {}),
         ...blockCss("sectionHeading"),
       };
       const cls = `${sizes.heading} ${cfg.className}`;
@@ -775,10 +774,10 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
           <div className={`flex items-center gap-3 ${centered ? "justify-center" : ""}`}>
             <h2 className={`${cls} whitespace-nowrap`} style={headingStyle}>
               {cfg.prefix && <span className="opacity-60 mr-2">{cfg.prefix}</span>}
-              {Icon && <Icon className="w-3.5 h-3.5 inline mr-1.5 opacity-70" style={{ color: sidebarMode ? "#ffffff" : primaryColor }} />}
+              {Icon && <Icon className="w-3.5 h-3.5 inline mr-1.5 opacity-70" style={{ color: inSidebar ? "#ffffff" : primaryColor }} />}
               {label}
             </h2>
-            <span className="flex-1" style={{ borderBottom: `1px solid ${getDivider()}` }} />
+            <span className="flex-1" style={{ borderBottom: `1px solid ${dividerFor(inSidebar)}` }} />
           </div>
         );
       }
@@ -795,7 +794,7 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
       if (def.heading === "icon") {
         return (
           <h2 className={`${cls} flex items-center gap-2`} style={headingStyle}>
-            <Icon className="w-4 h-4" style={{ color: sidebarMode ? "#ffffff" : primaryColor }} />
+            <Icon className="w-4 h-4" style={{ color: inSidebar ? "#ffffff" : primaryColor }} />
             {label}
           </h2>
         );
@@ -818,11 +817,11 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
       );
     };
 
-    const renderSummary = () => {
+    const renderSummary = (inSidebar = false) => {
       if (!data.summary) return null;
       return (
         <section>
-          {renderHeading("summary", 0)}
+          {renderHeading("summary", 0, inSidebar)}
           {editMode ? (
             <Editable
               multiline
@@ -831,23 +830,23 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
               onCommit={(v) => update("summary", v)}
               {...editableCommon("summaryBody")}
               className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap min-h-6 w-full`}
-              style={{ color: getBody(), ...blockCss("summaryBody") }}
+              style={{ color: bodyColorFor(inSidebar), ...blockCss("summaryBody") }}
             />
           ) : (
-            <RenderBlock html={data.summary} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap`} style={{ color: getBody(), ...blockCss("summaryBody") }} />
+            <RenderBlock html={data.summary} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap`} style={{ color: bodyColorFor(inSidebar), ...blockCss("summaryBody") }} />
           )}
         </section>
       );
     };
 
-    const renderExperience = () => {
+    const renderExperience = (inSidebar = false) => {
       const list = data.experience ?? [];
       if (list.length === 0) return null;
       const cfg = EXP_CONFIG[def.exp] ?? EXP_CONFIG.standard;
 
       const renderItem = (exp: ExperienceItem, i: number) => {
         const meta = (
-          <span className={`${sizes.meta} ${cfg.metaClass ?? "text-gray-500"} shrink-0 whitespace-nowrap`} style={{ ...(getExpMeta() ? { color: getExpMeta() } : {}), ...blockCss("itemMeta") }}>
+          <span className={`${sizes.meta} ${cfg.metaClass ?? "text-gray-500"} shrink-0 whitespace-nowrap`} style={{ ...(expMetaFor(inSidebar) ? { color: expMetaFor(inSidebar) } : {}), ...blockCss("itemMeta") }}>
             {editMode ? (
               <Editable value={exp.date || ""} placeholder="Dates" onCommit={(v) => updateExp(i, "date", v)} {...editableCommon("itemMeta")} />
             ) : (
@@ -856,7 +855,7 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
           </span>
         );
         const title = (
-          <h3 className={`${sizes.body} ${cfg.titleClass} wrap-break-word`} style={{ ...(getExpTitle() ? { color: getExpTitle() } : {}), ...blockCss("itemTitle") }}>
+          <h3 className={`${sizes.body} ${cfg.titleClass} wrap-break-word`} style={{ ...(expTitleFor(inSidebar) ? { color: expTitleFor(inSidebar) } : {}), ...blockCss("itemTitle") }}>
             {cfg.titleOrder === "companyRole" ? (
               <>
                 {editMode ? (
@@ -886,9 +885,9 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
                   <>
                     {" · "}
                     {editMode ? (
-                      <Editable value={exp.company || ""} placeholder="Company" onCommit={(v) => updateExp(i, "company", v)} {...editableCommon("itemTitle")} className="font-normal" style={{ color: getSecondary() }} />
+                      <Editable value={exp.company || ""} placeholder="Company" onCommit={(v) => updateExp(i, "company", v)} {...editableCommon("itemTitle")} className="font-normal" style={{ color: secondaryFor(inSidebar) }} />
                     ) : (
-                      <RenderBlock html={exp.company} className="font-normal" style={{ color: getSecondary() }} />
+                      <RenderBlock html={exp.company} className="font-normal" style={{ color: secondaryFor(inSidebar) }} />
                     )}
                   </>
                 )}
@@ -906,10 +905,10 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
                 onCommit={(v) => updateExp(i, "description", v)}
                 {...editableCommon("itemBody")}
                 className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap mt-1 min-h-4 w-full`}
-                style={{ color: getExpBody(), ...blockCss("itemBody") }}
+                style={{ color: expBodyFor(inSidebar), ...blockCss("itemBody") }}
               />
             ) : (
-              <RenderBlock html={exp.description} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap mt-1`} style={{ color: getExpBody(), ...blockCss("itemBody") }} />
+              <RenderBlock html={exp.description} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap mt-1`} style={{ color: expBodyFor(inSidebar), ...blockCss("itemBody") }} />
             )}
           </>
         );
@@ -919,7 +918,7 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
             <div key={exp.id} className="flex gap-3">
               <div className="flex flex-col items-center shrink-0 pt-1">
                 <span className="w-2.5 h-2.5 rounded-full border-2 shrink-0" style={{ borderColor: primaryColor, backgroundColor: "#fff" }} />
-                <span className="w-px flex-1 my-1" style={{ backgroundColor: getDivider() }} />
+                <span className="w-px flex-1 my-1" style={{ backgroundColor: dividerFor(inSidebar) }} />
               </div>
               <div className="flex-1 min-w-0 pb-1">
                 <div className="flex justify-between items-baseline gap-3">
@@ -944,7 +943,7 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
         }
         if (cfg.itemClass) {
           return (
-            <div key={exp.id} className={cfg.itemClass} style={{ borderColor: getDivider() }}>
+            <div key={exp.id} className={cfg.itemClass} style={{ borderColor: dividerFor(inSidebar) }}>
               <div className="flex justify-between items-baseline gap-3">
                 {title}
                 {meta}
@@ -965,7 +964,7 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
 
       return (
         <section>
-          {renderHeading("experience", 1)}
+          {renderHeading("experience", 1, inSidebar)}
           <div className="flex flex-col" style={{ gap: itemGap * 1.15 }}>
             {list.map(renderItem)}
           </div>
@@ -973,14 +972,14 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
       );
     };
 
-    const renderEducation = () => {
+    const renderEducation = (inSidebar = false) => {
       const list = data.education ?? [];
       if (list.length === 0) return null;
       const cfg = EDU_CONFIG[def.edu] ?? EDU_CONFIG.standard;
 
       return (
         <section>
-          {renderHeading("education", 2)}
+          {renderHeading("education", 2, inSidebar)}
           <div className="flex flex-col" style={{ gap: itemGap }}>
             {list.map((edu, i) => {
               const school = editMode ? (
@@ -1003,22 +1002,22 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
                 cfg.order === "degree" ? (
                   <>
                     <span className="font-bold">{degree}</span>
-                    <span className="italic" style={{ color: getSecondary() }}> · {school}</span>
+                    <span className="italic" style={{ color: secondaryFor(inSidebar) }}> · {school}</span>
                   </>
                 ) : (
                   <>
                     <span className="font-bold">{school}</span>
-                    <span className="italic" style={{ color: getSecondary() }}> · {degree}</span>
+                    <span className="italic" style={{ color: secondaryFor(inSidebar) }}> · {degree}</span>
                   </>
                 );
 
               const inner = (
                 <>
                   <div className="flex justify-between items-baseline gap-3">
-                    <h3 className={`${sizes.body} font-bold text-gray-900 wrap-break-word`} style={{ ...(getExpTitle() ? { color: getExpTitle() } : {}), ...blockCss("itemTitle") }}>
+                    <h3 className={`${sizes.body} font-bold text-gray-900 wrap-break-word`} style={{ ...(expTitleFor(inSidebar) ? { color: expTitleFor(inSidebar) } : {}), ...blockCss("itemTitle") }}>
                       {titleLine}
                     </h3>
-                    <span className={`${sizes.meta} text-gray-500 shrink-0 whitespace-nowrap`} style={{ ...(getExpMeta() ? { color: getExpMeta() } : {}), ...blockCss("itemMeta") }}>
+                    <span className={`${sizes.meta} text-gray-500 shrink-0 whitespace-nowrap`} style={{ ...(expMetaFor(inSidebar) ? { color: expMetaFor(inSidebar) } : {}), ...blockCss("itemMeta") }}>
                       {date}
                     </span>
                   </div>
@@ -1026,7 +1025,7 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
               );
 
               return cfg.itemClass ? (
-                <div key={edu.id} className={cfg.itemClass} style={{ borderColor: getDivider() }}>
+                <div key={edu.id} className={cfg.itemClass} style={{ borderColor: dividerFor(inSidebar) }}>
                   {inner}
                 </div>
               ) : (
@@ -1044,11 +1043,11 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
       return value.split(/,\s*/).map((l) => l.trim()).filter(Boolean);
     };
 
-    const renderSkills = () => {
+    const renderSkills = (inSidebar = false) => {
       if (!data.skills) return null;
       const variant = def.skills;
 
-      const heading = renderHeading("skills", 3);
+      const heading = renderHeading("skills", 3, inSidebar);
 
       if (variant === "chips") {
         const lines = splitSkillLines(data.skills);
@@ -1072,12 +1071,12 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
                       }}
                       {...editableCommon("itemBody")}
                       className="px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap max-w-full overflow-hidden"
-                      style={{ ...getChipStyle(), lineHeight: 1.4 }}
+                      style={{ ...chipStyleFor(inSidebar), lineHeight: 1.4 }}
                     />
                   );
                 }
                 return (
-                  <span key={`${i}-${line.slice(0, 4)}`} className="px-2.5 py-1 rounded-md text-xs font-medium wrap-break-word" style={getChipStyle()}>
+                  <span key={`${i}-${line.slice(0, 4)}`} className="px-2.5 py-1 rounded-md text-xs font-medium wrap-break-word" style={chipStyleFor(inSidebar)}>
                     {line}
                   </span>
                 );
@@ -1096,9 +1095,9 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
             {heading}
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
               {editMode ? (
-                <Editable multiline value={data.skills} placeholder="Skills..." onCommit={(v) => update("skills", v)} {...editableCommon("itemBody")} className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap min-h-6 w-full`} style={{ color: getBody(), ...blockCss("itemBody") }} />
+                <Editable multiline value={data.skills} placeholder="Skills..." onCommit={(v) => update("skills", v)} {...editableCommon("itemBody")} className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap min-h-6 w-full`} style={{ color: bodyColorFor(inSidebar), ...blockCss("itemBody") }} />
               ) : (
-                <RenderBlock html={data.skills} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap col-span-2`} style={{ color: getBody(), ...blockCss("itemBody") }} />
+                <RenderBlock html={data.skills} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap col-span-2`} style={{ color: bodyColorFor(inSidebar), ...blockCss("itemBody") }} />
               )}
             </div>
           </section>
@@ -1111,9 +1110,9 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
           <section>
             {heading}
             {editMode ? (
-              <Editable multiline value={data.skills} placeholder="Skills..." onCommit={(v) => update("skills", v)} {...editableCommon("itemBody")} className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap min-h-6 w-full ${isMono ? "font-mono" : ""}`} style={{ color: getBody(), ...blockCss("itemBody") }} />
+              <Editable multiline value={data.skills} placeholder="Skills..." onCommit={(v) => update("skills", v)} {...editableCommon("itemBody")} className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap min-h-6 w-full ${isMono ? "font-mono" : ""}`} style={{ color: bodyColorFor(inSidebar), ...blockCss("itemBody") }} />
             ) : (
-              <RenderBlock html={data.skills} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap ${isMono ? "font-mono" : ""}`} style={{ color: getBody(), ...blockCss("itemBody") }} />
+              <RenderBlock html={data.skills} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap ${isMono ? "font-mono" : ""}`} style={{ color: bodyColorFor(inSidebar), ...blockCss("itemBody") }} />
             )}
           </section>
         );
@@ -1124,29 +1123,29 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
         <section>
           {heading}
           {editMode ? (
-            <Editable multiline value={data.skills} placeholder="Skills..." onCommit={(v) => update("skills", v)} {...editableCommon("itemBody")} className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap min-h-6 w-full`} style={{ color: getBody(), ...blockCss("itemBody") }} />
+            <Editable multiline value={data.skills} placeholder="Skills..." onCommit={(v) => update("skills", v)} {...editableCommon("itemBody")} className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap min-h-6 w-full`} style={{ color: bodyColorFor(inSidebar), ...blockCss("itemBody") }} />
           ) : (
-            <RenderBlock html={data.skills} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap`} style={{ color: getBody(), ...blockCss("itemBody") }} />
+            <RenderBlock html={data.skills} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap`} style={{ color: bodyColorFor(inSidebar), ...blockCss("itemBody") }} />
           )}
         </section>
       );
     };
 
-    const renderCertifications = () => {
+    const renderCertifications = (inSidebar = false) => {
       if (!data.certifications) return null;
       return (
         <section>
-          {renderHeading("certifications", 4)}
+          {renderHeading("certifications", 4, inSidebar)}
           {editMode ? (
-            <Editable multiline value={data.certifications} placeholder="Certifications..." onCommit={(v) => update("certifications", v)} {...editableCommon("itemBody")} className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap min-h-6 w-full`} style={{ color: getBody(), ...blockCss("itemBody") }} />
+            <Editable multiline value={data.certifications} placeholder="Certifications..." onCommit={(v) => update("certifications", v)} {...editableCommon("itemBody")} className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap min-h-6 w-full`} style={{ color: bodyColorFor(inSidebar), ...blockCss("itemBody") }} />
           ) : (
-            <RenderBlock html={data.certifications} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap`} style={{ color: getBody(), ...blockCss("itemBody") }} />
+            <RenderBlock html={data.certifications} multiline className={`block ${sizes.body} leading-relaxed whitespace-pre-wrap`} style={{ color: bodyColorFor(inSidebar), ...blockCss("itemBody") }} />
           )}
         </section>
       );
     };
 
-    const sectionRenderers: Record<SectionKey, () => ReactNode | null> = {
+    const sectionRenderers: Record<SectionKey, (inSidebar?: boolean) => ReactNode | null> = {
       summary: renderSummary,
       experience: renderExperience,
       education: renderEducation,
@@ -1155,15 +1154,12 @@ export const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
     };
 
     const renderSections = (keys: SectionKey[], gap: number, tone: "normal" | "sidebar" = "normal") => {
-      const prev = sidebarMode;
-      sidebarMode = tone === "sidebar";
-      const el = (
+      const inSidebar = tone === "sidebar";
+      return (
         <div className="flex flex-col" style={{ gap }}>
-          {keys.map((key) => sectionRenderers[key]?.() ?? null)}
+          {keys.map((key) => sectionRenderers[key]?.(inSidebar) ?? null)}
         </div>
       );
-      sidebarMode = prev;
-      return el;
     };
 
     /* ── Assemble the page ── */
