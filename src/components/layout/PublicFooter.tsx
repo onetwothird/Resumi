@@ -170,8 +170,8 @@ export default function PublicFooter() {
 
       {/* ── Testimonial Modal ── */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg p-6 sm:p-8 relative animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg p-6 sm:p-8 relative overflow-hidden">
             {/* Close button */}
             <button
               onClick={closeModal}
@@ -196,14 +196,14 @@ export default function PublicFooter() {
               </div>
             ) : (
               <>
-                <div className="text-center mb-6">
+                <div className="text-center mb-5">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Share Your Experience</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Got hired using Resumi? Tell us about it.
                   </p>
                 </div>
 
-                <form onSubmit={handleTestimonial} className="space-y-4">
+                <form onSubmit={handleTestimonial} className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <input
                       type="text"
@@ -211,21 +211,21 @@ export default function PublicFooter() {
                       value={tName}
                       onChange={(e) => setTName(e.target.value)}
                       placeholder="Your name"
-                      className="rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <input
                       type="text"
                       value={tRole}
                       onChange={(e) => setTRole(e.target.value)}
-                      placeholder="Role (e.g. Software Engineer)"
-                      className="rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Role"
+                      className="rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <input
                       type="text"
                       value={tCompany}
                       onChange={(e) => setTCompany(e.target.value)}
-                      placeholder="Company (e.g. Google)"
-                      className="rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Company"
+                      className="rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -234,11 +234,11 @@ export default function PublicFooter() {
                     value={tQuote}
                     onChange={(e) => setTQuote(e.target.value)}
                     placeholder="How did Resumi help you? (e.g. 'I went from zero callbacks to three interviews in one week.')"
-                    rows={3}
-                    className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                    rows={2}
+                    className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                   />
 
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -255,14 +255,14 @@ export default function PublicFooter() {
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="flex items-center gap-3">
                       {tError && (
-                        <p className="text-xs text-red-500 flex-1 sm:flex-initial">{tError}</p>
+                        <p className="text-xs text-red-500">{tError}</p>
                       )}
                       <button
                         type="submit"
                         disabled={tSubmitting}
-                        className="flex items-center justify-center gap-2 text-sm font-semibold bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                        className="flex items-center justify-center gap-2 text-sm font-semibold bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Send size={14} />
                         {tSubmitting ? "Submitting…" : "Submit"}
