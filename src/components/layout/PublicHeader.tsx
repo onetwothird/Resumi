@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Menu, X } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 
 const NAV_LINKS: { href: string; label: string }[] = [
@@ -60,7 +60,7 @@ export default function PublicHeader({ active }: Props) {
           </Link>
         </div>
 
-        {/* Animated hamburger — morphs into a close "X" */}
+        {/* Animated hamburger — fixed-size button, icons absolutely centered */}
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -68,20 +68,15 @@ export default function PublicHeader({ active }: Props) {
           aria-expanded={open}
           className="lg:hidden ml-auto -mr-2 flex items-center justify-center w-10 h-10 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
         >
-          <span className="relative block w-5" aria-hidden="true">
-            <span
-              className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 ease-out ${
-                open ? "rotate-45 translate-y-2" : "translate-y-0"
+          <span className="relative w-5 h-5" aria-hidden="true">
+            <Menu
+              className={`absolute inset-0 w-5 h-5 transition-all duration-200 ease-out ${
+                open ? "opacity-0 scale-75" : "opacity-100 scale-100"
               }`}
             />
-            <span
-              className={`block h-0.5 w-full bg-current rounded-full mt-1.5 transition-all duration-200 ease-out ${
-                open ? "opacity-0 scale-x-0" : "opacity-100 scale-x-100"
-              }`}
-            />
-            <span
-              className={`block h-0.5 w-full bg-current rounded-full mt-1.5 transition-all duration-300 ease-out ${
-                open ? "-rotate-45 -translate-y-2" : "translate-y-0"
+            <X
+              className={`absolute inset-0 w-5 h-5 transition-all duration-200 ease-out ${
+                open ? "opacity-100 scale-100" : "opacity-0 scale-75"
               }`}
             />
           </span>
