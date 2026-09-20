@@ -1,81 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { ResumeData, ExperienceItem, EducationItem, ResumeLayout } from "@/types";
-import { ChevronDown, ChevronUp, Plus, Trash2, GripVertical, LayoutTemplate, FileText } from "lucide-react";
+import { ResumeData, ExperienceItem, EducationItem } from "@/types";
+import { ChevronDown, ChevronUp, Plus, Trash2, GripVertical, FileText } from "lucide-react";
+import TemplateLibrary from "./templates/TemplateLibrary";
 
 interface Props {
   data: ResumeData;
   onChange: (data: ResumeData) => void;
 }
-
-const LAYOUTS: { value: ResumeLayout; label: string; description: string }[] = [
-
-  { value: "classic", label: "Classic", description: "Centered & traditional" },
-  { value: "modern", label: "Modern", description: "Bold header block" },
-  { value: "minimal", label: "Minimal", description: "Clean & spacious" },
-  { value: "professional", label: "Professional", description: "Split header" },
-  { value: "executive", label: "Executive", description: "Formal & authoritative" },
-  { value: "bold", label: "Bold", description: "High contrast, heavy" },
-  { value: "academic", label: "Academic", description: "Dense & structured" },
-  { value: "tech", label: "Tech", description: "Developer focused" },
-  { value: "creative", label: "Creative", description: "Vibrant accents" },
-  { value: "elegant", label: "Elegant", description: "Delicate typography" },
-  
-  { value: "corporate", label: "Corporate", description: "Standard business standard" },
-  { value: "banking", label: "Banking", description: "Conservative & trustworthy" },
-  { value: "legal", label: "Legal", description: "Strict & traditional" },
-  { value: "consultant", label: "Consultant", description: "Client-facing focus" },
-  { value: "enterprise", label: "Enterprise", description: "Large-scale corporate" },
-  { value: "management", label: "Management", description: "Leadership focused" },
-  { value: "finance", label: "Finance", description: "Data-driven structure" },
-  { value: "director", label: "Director", description: "Boardroom ready" },
-  { value: "official", label: "Official", description: "Government standard" },
-  { value: "traditional", label: "Traditional", description: "Time-tested layout" },
-
-  { value: "studio", label: "Studio", description: "Agency style" },
-  { value: "portfolio", label: "Portfolio", description: "Designer focused" },
-  { value: "vibrant", label: "Vibrant", description: "High energy" },
-  { value: "pastel", label: "Pastel", description: "Soft & approachable" },
-  { value: "geometric", label: "Geometric", description: "Sharp & angled" },
-  { value: "organic", label: "Organic", description: "Flowing & natural" },
-  { value: "artistic", label: "Artistic", description: "Unconventional" },
-  { value: "editorial", label: "Editorial", description: "Magazine style" },
-  { value: "neon", label: "Neon", description: "Bright & cyber" },
-  { value: "contemporary", label: "Contemporary", description: "Modern art feel" },
-
-  { value: "startup", label: "Startup", description: "Agile & fresh" },
-  { value: "hacker", label: "Hacker", description: "Terminal aesthetic" },
-  { value: "cyber", label: "Cyber", description: "Futuristic" },
-  { value: "saas", label: "SaaS", description: "Cloud software style" },
-  { value: "devops", label: "DevOps", description: "Infrastructure focused" },
-  { value: "fintech", label: "Fintech", description: "Modern finance" },
-  { value: "crypto", label: "Crypto", description: "Web3 aesthetic" },
-  { value: "cleancode", label: "Clean Code", description: "Ultra-minimal tech" },
-  { value: "matrix", label: "Matrix", description: "Data heavy" },
-  { value: "agile", label: "Agile", description: "Sprint focused" },
-
-  { value: "crisp", label: "Crisp", description: "Ultra sharp edges" },
-  { value: "breezy", label: "Breezy", description: "High whitespace" },
-  { value: "sharp", label: "Sharp", description: "Distinct lines" },
-  { value: "flat", label: "Flat", description: "No shadows" },
-  { value: "material", label: "Material", description: "Google-inspired" },
-  { value: "glass", label: "Glass", description: "Translucent feel" },
-  { value: "monochrome", label: "Monochrome", description: "Black & white focus" },
-  { value: "duotone", label: "Duo-tone", description: "Two-color emphasis" },
-  { value: "spaced", label: "Spaced", description: "Airy & light" },
-  { value: "compact", label: "Compact", description: "Information dense" },
-
-  { value: "engineering", label: "Engineering", description: "Schematic style" },
-  { value: "researcher", label: "Researcher", description: "Data & lab focus" },
-  { value: "educator", label: "Educator", description: "Accessible & clear" },
-  { value: "hospitality", label: "Hospitality", description: "Warm & inviting" },
-  { value: "retail", label: "Retail", description: "Customer-facing" },
-  { value: "sales", label: "Sales", description: "Results & metrics" },
-  { value: "marketing", label: "Marketing", description: "Brand focused" },
-  { value: "pr", label: "PR", description: "Communication first" },
-  { value: "media", label: "Media", description: "Content-driven" },
-  { value: "medical", label: "Medical", description: "Clinical & precise" }
-];
 
 const MOCK_DATA: Partial<ResumeData> = {
   firstName: "Angelito",
@@ -199,11 +131,6 @@ export default function BuilderSidebar({ data, onChange }: Props) {
 
   const updateEducationItem = (id: string, field: keyof EducationItem, value: string) => {
     update("education", (data.education || []).map(e => e.id === id ? { ...e, [field]: value } : e));
-  };
-
-  const updateThemeLayout = (layout: ResumeLayout) => {
-    const currentTheme = data.theme || { layout: 'classic', primaryColor: '#000000', fontFamily: 'inter', fontSize: 'md' };
-    onChange({ ...data, theme: { ...currentTheme, layout } });
   };
 
   const rewriteWithAI = async () => {
@@ -438,28 +365,8 @@ export default function BuilderSidebar({ data, onChange }: Props) {
             })}
           </>
         ) : (
-          <div className="p-5 space-y-6 animate-in fade-in duration-200">
-            <div>
-              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-4">
-                <LayoutTemplate size={16} className="text-gray-400" /> Layout Gallery
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {LAYOUTS.map((l) => (
-                  <button
-                    key={l.value}
-                    onClick={() => updateThemeLayout(l.value)}
-                    className={`p-4 text-center rounded-xl border-2 transition-all flex flex-col items-center justify-center ${
-                      data.theme?.layout === l.value
-                        ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm"
-                        : "border-gray-200 text-gray-700 hover:border-indigo-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className="text-sm font-bold block">{l.label}</span>
-                    <span className="text-[10px] text-gray-500 font-medium mt-1 leading-tight">{l.description}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div className="p-4 animate-in fade-in duration-200">
+            <TemplateLibrary data={data} onChange={onChange} />
           </div>
         )}
       </div>
