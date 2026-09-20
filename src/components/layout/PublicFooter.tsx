@@ -74,7 +74,8 @@ export default function PublicFooter() {
 
   return (
     <footer className="relative z-10 bg-slate-900 dark:bg-slate-950 border-t border-white/10">
-      <div className="max-w-7xl mx-auto px-6 py-14">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        {/* ── Top row: Logo, links & newsletter ── */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10 pb-8">
           <div>
             <Link href="/" className="inline-flex items-center gap-2 font-bold text-lg text-white tracking-tight">
@@ -115,20 +116,30 @@ export default function PublicFooter() {
           </div>
         </div>
 
-        {/* ── Share Your Experience ── */}
+        {/* ── Share Your Experience section ── */}
         <div className="pt-8 border-t border-white/10 mb-8">
-          <div className="max-w-xl mx-auto">
-            <h3 className="text-lg font-bold text-white text-center mb-1">Share Your Experience</h3>
-            <p className="text-sm text-slate-400 text-center mb-6">Got hired using Resumi? Tell us about it — your story could inspire others.</p>
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-6">
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-1">Share Your Experience</h3>
+              <p className="text-sm text-slate-400">
+                Got hired using Resumi? Tell us about it — your story could inspire others.
+              </p>
+            </div>
 
             {tSubmitted ? (
-              <div className="bg-slate-800 rounded-2xl p-8 text-center border border-slate-700">
+              <div className="bg-slate-800 rounded-2xl p-6 sm:p-8 text-center border border-slate-700">
                 <CheckCircle className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
                 <p className="text-sm font-semibold text-white mb-1">Thank you!</p>
-                <p className="text-sm text-slate-400">Your testimonial has been submitted and will appear after review.</p>
+                <p className="text-sm text-slate-400">
+                  Your testimonial has been submitted and will appear after review.
+                </p>
               </div>
             ) : (
-              <form onSubmit={handleTestimonial} className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+              <form
+                onSubmit={handleTestimonial}
+                className="bg-slate-800 rounded-2xl p-5 sm:p-6 border border-slate-700"
+              >
+                {/* Name / Role / Company */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                   <input
                     type="text"
@@ -154,6 +165,7 @@ export default function PublicFooter() {
                   />
                 </div>
 
+                {/* Quote */}
                 <textarea
                   required
                   value={tQuote}
@@ -163,7 +175,8 @@ export default function PublicFooter() {
                   className="w-full rounded-lg border border-slate-600 bg-slate-700 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none mb-3"
                 />
 
-                <div className="flex items-center justify-between gap-3">
+                {/* Stars + Submit */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -180,12 +193,12 @@ export default function PublicFooter() {
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {tError && <p className="text-xs text-red-400">{tError}</p>}
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {tError && <p className="text-xs text-red-400 flex-1 sm:flex-initial">{tError}</p>}
                     <button
                       type="submit"
                       disabled={tSubmitting}
-                      className="flex items-center gap-2 text-sm font-semibold bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center justify-center gap-2 text-sm font-semibold bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
                     >
                       <Send size={14} />
                       {tSubmitting ? "Submitting…" : "Submit"}
@@ -197,6 +210,7 @@ export default function PublicFooter() {
           </div>
         </div>
 
+        {/* ── Bottom bar ── */}
         <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-slate-400">
             © {new Date().getFullYear()} Resumi. All rights reserved.
