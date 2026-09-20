@@ -10,7 +10,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4+-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[Features](#features) • [Quick Start](#quick-start) • [Project Structure](#project-structure) • [Contributing](#contributing)
+[Features](#features) • [Quick Start](#quick-start) • [Project Structure](#project-structure) • [Template System](#template-system) • [Contributing](#contributing)
 
 </div>
 
@@ -28,7 +28,8 @@ Whether you're a job seeker perfecting your resume or an employer building your 
 *   **Interactive Canvas Editor** - Click and type directly on your resume with instant formatting updates
 *   **AI-Powered Writing** - Get suggestions to enhance your professional summary and experience descriptions
 *   **ATS Scoring System** - Real-time compatibility analysis with 1000+ ATS systems
-*   **Smart Templates** - Choose from professional layouts with customizable themes
+*   **Smart Templates** - Choose from 193+ professional layouts with customizable themes across 24 industry categories
+*   **Template Library** - Search, filter, sort, and live-preview templates with sample or your own data
 *   **One-Click Apply** - Apply to jobs directly through the platform
 *   **Saved Jobs** - Bookmark and organize job listings for later
 
@@ -49,6 +50,7 @@ Whether you're a job seeker perfecting your resume or an employer building your 
 *   **Animation:** [Framer Motion](https://www.framer.com/motion/) - Production-ready animations
 *   **PDF Generation:** [PDF.js](https://mozilla.github.io/pdf.js/) - PDF parsing and rendering
 *   **Auth:** [Clerk](https://clerk.com/) - Modern authentication and user management
+*   **Print/Export:** [react-to-print](https://github.com/gregnb/react-to-print) - Client-side PDF generation
 
 ### Backend
 *   **Runtime:** Node.js with Next.js API Routes
@@ -62,7 +64,7 @@ Whether you're a job seeker perfecting your resume or an employer building your 
 *   **Database Hosting:** Neon (serverless PostgreSQL)
 *   **Deployment:** Vercel
 
-## �️ Database Setup (Neon)
+## 🗄️ Database Setup (Neon)
 
 > **Important for cloners:** Resumi uses **Neon** for PostgreSQL hosting. You don't need to install PostgreSQL locally!
 
@@ -82,7 +84,7 @@ Whether you're a job seeker perfecting your resume or an employer building your 
 
 📖 **Full guide:** See [SETUP.md](SETUP.md) for detailed Neon configuration instructions
 
-## �📁 Project Structure
+## 📁 Project Structure
 
 The project follows a **feature-based architecture** for scalability and maintainability:
 
@@ -104,6 +106,18 @@ src/
 │   │   ├── dashboard/
 │   │   ├── employer/
 │   │   ├── resume/
+│   │   │   ├── CanvasEditor.tsx          # Interactive editor (thin wrapper)
+│   │   │   ├── ResumePreview.tsx         # Static preview (thin wrapper)
+│   │   │   ├── BuilderSidebar.tsx        # Left sidebar with template library
+│   │   │   ├── PropertiesSidebar.tsx     # Right sidebar with settings
+│   │   │   ├── BuilderClient.tsx         # Alternative builder entry
+│   │   │   └── templates/                # Template system (NEW)
+│   │   │       ├── types.ts              # TemplateDef, ResumeTemplate, variants
+│   │   │       ├── fonts.tsx             # Extended fonts + Google Fonts loader
+│   │   │       ├── renderer.tsx          # Unified ResumeRenderer (edit + preview)
+│   │   │       ├── registry.ts           # 193-template registry with metadata
+│   │   │       ├── sample-data.ts        # Realistic preview data
+│   │   │       └── TemplateLibrary.tsx   # Search/filter/preview modal UI
 │   │   └── ...
 │   ├── layout/                   # Shared layout components
 │   └── ui/                       # Reusable UI components
@@ -120,6 +134,89 @@ prisma/
 ```
 
 📖 See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for a detailed breakdown of the architecture and guidelines for adding new features.
+
+## 🎨 Template System
+
+The resume builder includes a comprehensive template system built around a **single shared renderer** (`ResumeRenderer`) that powers both the interactive editor and static previews.
+
+### Architecture
+
+```
+TemplateDef (declarative config)
+       │
+       ▼
+ResumeRenderer ──► Edit Mode (CanvasEditor) ──► contentEditable + floating toolbar
+       │
+       └──► Preview Mode (ResumePreview, PreviewModal) ──► static HTML
+```
+
+### Features
+- **193 templates** across **24 industry categories** (Business, Tech, Creative, Healthcare, Finance, Legal, etc.)
+- **60+ legacy layout IDs** preserved for backward compatibility
+- **24 header variants**, **15 heading variants**, **7 experience variants**, **4 education variants**, **5 skills variants**
+- **Split/single column** layouts with configurable sidebar (left/right, 33% default width)
+- **Dark-container aware** (neon, hacker, cyber, crypto, matrix templates)
+- **Sidebar-tone aware** (light-on-accent text for colored sidebars)
+- **Per-template fonts & accents** — applying a template updates `theme.layout`, `fontFamily`, `primaryColor` only
+- **ATS-friendly metadata** — each template tagged `atsFriendly: true/false` and `style: Classic|Modern|Creative|...`
+
+### Template Registry Structure
+```typescript
+interface ResumeTemplate {
+  id: string;                    // unique id (e.g., "finance-analyst")
+  name: string;                  // display name
+  category: Category;            // one of 24 categories
+  industry: string;              // industry name
+  useCase: string;               // specific role/use case
+  description: string;           // marketing description
+  careerLevel: CareerLevel[];    // Entry/Mid/Senior/Executive
+  professions: string[];         // target job titles
+  atsFriendly: boolean;          // ATS-safe?
+  style: TemplateStyle;          // Classic | Modern | Creative | Minimal | Executive | Academic
+  layoutLabel: string;           // "One Column" | "Split Left" | "Split Right"
+  def: TemplateDef;              // declarative render config
+}
+```
+
+### Template Library UI
+- **Search** by name, industry, role, description
+- **Filter** by category, career level, style, ATS/Creative toggle
+- **Sort** by featured, name A–Z, ATS-first
+- **Schematic thumbnails** (fast, no render)
+- **Live preview modal** — actual `ResumeRenderer` with sample/my-data toggle, responsive scaling
+- **Apply template** — updates theme only, content preserved
+
+### Adding a New Template
+```typescript
+// In registry.ts — one t() call per template
+t({
+  id: "my-new-template",
+  name: "My Template",
+  category: "Information Technology & Software",
+  industry: "Software Engineering",
+  useCase: "Backend Developer",
+  description: "Clean, technical layout with skills sidebar.",
+  careerLevel: ["Mid Level", "Senior"],
+  professions: ["Backend Engineer", "API Developer"],
+  atsFriendly: true,
+  style: "Modern",
+  layoutLabel: "Split Left",
+  def: splitL({
+    header: "sideColored",
+    heading: "accentBar",
+    exp: "timeline",
+    edu: "standard",
+    skills: "chips",
+    contact: "iconed",
+    mainSections: ["summary", "experience", "education"],
+    sidebarSections: ["skills", "certifications"],
+    spacing: "normal",
+    accent: "#0f766e",
+    font: "inter",
+    sidebarWidth: 30,
+  }),
+});
+```
 
 ## 🚀 Quick Start
 
@@ -205,6 +302,12 @@ The application uses Prisma ORM with PostgreSQL:
 - **Application** - Job applications
 - **Message** - Direct messaging between users
 - **Notification** - In-app notifications
+
+### Responsive Design
+- **Canvas** — auto-scales to container width (`transform: scale(container/794px)`) via `ResizeObserver`
+- **Template Library** — `grid-cols-1 sm:grid-cols-2` responsive grids
+- **Mobile** — bottom tab bar (Build/Preview/Settings), slide-over sidebars
+- **Preview Modal** — scales live renderer to fit viewport
 
 ## 🔄 Development Workflow
 
@@ -302,13 +405,6 @@ For support, questions, or feedback:
 - Open an [Issue](https://github.com/yourusername/resumi/issues)
 - Check existing [Documentation](PROJECT_STRUCTURE.md)
 - Review [Discussions](https://github.com/yourusername/resumi/discussions)
-
-## 📁 Project Structure
-
-*   `/src/app`: Next.js App Router pages and API routes.
-*   `/src/components/resume`: Core builder components including the `CanvasEditor`, `BuilderSidebar`, and `PropertiesSidebar`.
-*   `/src/types`: Shared TypeScript interfaces for strict typing across the application.
-*   `/src/lib`: Utility functions, formatting tools, and the Prisma client instance.
 
 ## ☁️ Deployment
 
