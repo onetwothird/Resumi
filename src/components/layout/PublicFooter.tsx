@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Send, CheckCircle, Star } from "lucide-react";
+import { Send, CheckCircle, Star, MessageSquareQuote } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 
 const FOOTER_LINKS: { href: string; label: string }[] = [
@@ -74,9 +74,10 @@ export default function PublicFooter() {
 
   return (
     <footer className="relative z-10 bg-slate-900 dark:bg-slate-950 border-t border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        {/* ── Top row: Logo, links & newsletter ── */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10 pb-8">
+      {/* ── Section 1: Logo, Links & Newsletter ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10">
+          {/* Logo & nav links */}
           <div>
             <Link href="/" className="inline-flex items-center gap-2 font-bold text-lg text-white tracking-tight">
               <ResumiLogo className="w-7 h-7" />
@@ -91,6 +92,7 @@ export default function PublicFooter() {
             </div>
           </div>
 
+          {/* Newsletter */}
           <div className="flex flex-col items-start lg:items-end">
             <p className="text-sm font-semibold text-white mb-3">Job alerts, weekly</p>
             {subscribed ? (
@@ -115,21 +117,27 @@ export default function PublicFooter() {
             )}
           </div>
         </div>
+      </div>
 
-        {/* ── Share Your Experience section ── */}
-        <div className="pt-8 border-t border-white/10 mb-8">
+      {/* ── Section 2: Share Your Experience (separate section) ── */}
+      <div className="border-t border-white/10 bg-slate-800/50 dark:bg-slate-900/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-6">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-1">Share Your Experience</h3>
-              <p className="text-sm text-slate-400">
+            {/* Section header */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-500/15 mb-4">
+                <MessageSquareQuote className="w-6 h-6 text-indigo-400" />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Share Your Experience</h3>
+              <p className="text-sm sm:text-base text-slate-400 max-w-md mx-auto">
                 Got hired using Resumi? Tell us about it — your story could inspire others.
               </p>
             </div>
 
             {tSubmitted ? (
-              <div className="bg-slate-800 rounded-2xl p-6 sm:p-8 text-center border border-slate-700">
-                <CheckCircle className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
-                <p className="text-sm font-semibold text-white mb-1">Thank you!</p>
+              <div className="bg-slate-800 rounded-2xl p-8 sm:p-10 text-center border border-slate-700">
+                <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
+                <p className="text-lg font-semibold text-white mb-2">Thank you!</p>
                 <p className="text-sm text-slate-400">
                   Your testimonial has been submitted and will appear after review.
                 </p>
@@ -137,10 +145,10 @@ export default function PublicFooter() {
             ) : (
               <form
                 onSubmit={handleTestimonial}
-                className="bg-slate-800 rounded-2xl p-5 sm:p-6 border border-slate-700"
+                className="bg-slate-800 rounded-2xl p-5 sm:p-8 border border-slate-700"
               >
-                {/* Name / Role / Company */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                {/* Name / Role / Company — stack on xs, grid on sm+ */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                   <input
                     type="text"
                     required
@@ -165,17 +173,17 @@ export default function PublicFooter() {
                   />
                 </div>
 
-                {/* Quote */}
+                {/* Quote textarea */}
                 <textarea
                   required
                   value={tQuote}
                   onChange={(e) => setTQuote(e.target.value)}
                   placeholder="How did Resumi help you? (e.g. 'I went from zero callbacks to three interviews in one week.')"
                   rows={3}
-                  className="w-full rounded-lg border border-slate-600 bg-slate-700 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none mb-3"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-700 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none mb-4"
                 />
 
-                {/* Stars + Submit */}
+                {/* Rating stars + error/submit row */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -193,12 +201,16 @@ export default function PublicFooter() {
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    {tError && <p className="text-xs text-red-400 flex-1 sm:flex-initial">{tError}</p>}
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    {tError && (
+                      <p className="text-xs text-red-400 flex-1 sm:flex-initial text-center sm:text-right">
+                        {tError}
+                      </p>
+                    )}
                     <button
                       type="submit"
                       disabled={tSubmitting}
-                      className="flex items-center justify-center gap-2 text-sm font-semibold bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                      className="flex items-center justify-center gap-2 text-sm font-semibold bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
                     >
                       <Send size={14} />
                       {tSubmitting ? "Submitting…" : "Submit"}
@@ -209,19 +221,23 @@ export default function PublicFooter() {
             )}
           </div>
         </div>
+      </div>
 
-        {/* ── Bottom bar ── */}
-        <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-slate-400">
-            © {new Date().getFullYear()} Resumi. All rights reserved.
-          </p>
-          <div className="flex items-center gap-5 text-sm">
-            <Link href="/sign-in" className="font-medium text-slate-300 hover:text-white transition-colors">
-              Sign In
-            </Link>
-            <Link href="/sign-up" className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
-              Get Started
-            </Link>
+      {/* ── Section 3: Bottom bar (copyright + auth links) ── */}
+      <div className="border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-slate-400">
+              © {new Date().getFullYear()} Resumi. All rights reserved.
+            </p>
+            <div className="flex items-center gap-5 text-sm">
+              <Link href="/sign-in" className="font-medium text-slate-300 hover:text-white transition-colors">
+                Sign In
+              </Link>
+              <Link href="/sign-up" className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
+                Get Started
+              </Link>
+            </div>
           </div>
         </div>
       </div>
