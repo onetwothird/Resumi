@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Send, CheckCircle, Star, MessageSquareQuote, X } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
@@ -168,8 +169,8 @@ export default function PublicFooter() {
         </div>
       </footer>
 
-      {/* ── Testimonial Modal ── */}
-      {modalOpen && (
+      {/* ── Testimonial Modal (portal to body for true viewport centering) ── */}
+      {modalOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg p-6 sm:p-8 relative overflow-hidden">
             {/* Close button */}
@@ -273,7 +274,8 @@ export default function PublicFooter() {
               </>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
