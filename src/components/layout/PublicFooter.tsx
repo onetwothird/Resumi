@@ -17,6 +17,7 @@ const FOOTER_LINKS: { href: string; label: string }[] = [
 export default function PublicFooter() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -30,6 +31,11 @@ export default function PublicFooter() {
   const [tSubmitting, setTSubmitting] = useState(false);
   const [tSubmitted, setTSubmitted] = useState(false);
   const [tError, setTError] = useState<string | null>(null);
+
+  // Mark as mounted after client hydration
+  if (typeof window !== "undefined" && !mounted) {
+    setMounted(true);
+  }
 
   function handleSubscribe(e: FormEvent) {
     e.preventDefault();
@@ -173,7 +179,7 @@ export default function PublicFooter() {
       </footer>
 
       {/* ── Testimonial Modal (portal to body) ── */}
-      {createPortal(
+      {mounted && createPortal(
         <AnimatePresence>
           {modalOpen && (
             <motion.div
