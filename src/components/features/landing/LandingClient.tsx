@@ -247,20 +247,24 @@ export default function LandingClient() {
               </motion.p>
 
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-                <Link
-                  href="/sign-up"
-                  className="flex items-center gap-2 bg-indigo-600 text-white px-7 py-3.5 rounded-lg font-semibold text-sm hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md w-full sm:w-auto justify-center group"
-                >
-                  Start Building
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link
-                  href="/sign-in?redirect_url=/jobs"
-                  className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-7 py-3.5 rounded-lg font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all w-full sm:w-auto justify-center"
-                >
-                  <Briefcase className="w-4 h-4" />
-                  Browse Open Roles
-                </Link>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                  <Link
+                    href="/sign-up"
+                    className="flex items-center gap-2 bg-indigo-600 text-white px-7 py-3.5 rounded-lg font-semibold text-sm hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md hover:shadow-indigo-500/25 w-full sm:w-auto justify-center group"
+                  >
+                    Start Building
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                  <Link
+                    href="/sign-in?redirect_url=/jobs"
+                    className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-7 py-3.5 rounded-lg font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all w-full sm:w-auto justify-center"
+                  >
+                    <Briefcase className="w-4 h-4" />
+                    Browse Open Roles
+                  </Link>
+                </motion.div>
               </motion.div>
 
               <motion.p variants={fadeUp} className="text-xs text-slate-400 dark:text-slate-500">
@@ -401,7 +405,8 @@ export default function LandingClient() {
               <motion.div
                 key={feature.title}
                 variants={staggerItem}
-                className="group p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:shadow-sm transition-colors duration-300"
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className="group p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
               >
                 <div className="w-11 h-11 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-5">
                   <feature.icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -433,7 +438,8 @@ export default function LandingClient() {
               <motion.div
                 key={side.title}
                 variants={staggerItem}
-                className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/40 transition-colors duration-300 flex flex-col"
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 flex flex-col"
               >
                 <div className={`w-12 h-12 rounded-xl ${side.accent} flex items-center justify-center mb-5 shrink-0`}>
                   <side.icon className="w-6 h-6 text-white" />
@@ -451,13 +457,15 @@ export default function LandingClient() {
                   ))}
                 </ul>
 
-                <Link
-                  href={side.href}
-                  className="inline-flex items-center justify-center gap-2 bg-slate-900 dark:bg-indigo-600 text-white text-sm font-semibold py-3 rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-500 transition-colors"
-                >
-                  {side.cta}
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Link
+                    href={side.href}
+                    className="inline-flex items-center justify-center gap-2 bg-slate-900 dark:bg-indigo-600 text-white text-sm font-semibold py-3 rounded-lg hover:bg-slate-800 dark:hover:bg-indigo-500 transition-all duration-200 w-full hover:shadow-lg"
+                  >
+                    {side.cta}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </motion.div>
               </motion.div>
             ))}
           </div>
@@ -488,7 +496,8 @@ export default function LandingClient() {
                 <motion.div
                   key={t.id}
                   variants={staggerItem}
-                  className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/40 transition-colors duration-300 flex flex-col"
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 flex flex-col"
                 >
                   <div className="flex items-center gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
@@ -622,7 +631,7 @@ export default function LandingClient() {
               <motion.details
                 key={item.q}
                 variants={staggerItem}
-                className="group bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 rounded-2xl overflow-hidden"
+                className="group bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300"
               >
                 <summary className="flex items-center justify-between gap-4 p-6 cursor-pointer text-base font-semibold text-slate-900 dark:text-white select-none hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors list-none">
                   {item.q}
@@ -662,13 +671,17 @@ export default function LandingClient() {
                   Create your resume and start applying to real, open roles today. No paywall between you and your next job.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <Link href="/sign-up" className="flex items-center justify-center gap-2 bg-white text-slate-900 px-8 py-3.5 rounded-lg font-semibold text-sm hover:bg-slate-100 transition-colors w-full sm:w-auto">
-                    Start Building
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                  <Link href="/sign-in?redirect_url=/jobs" className="flex items-center justify-center gap-2 bg-transparent text-white px-8 py-3.5 rounded-lg font-semibold text-sm border border-slate-600 hover:bg-slate-800 transition-colors w-full sm:w-auto">
-                    Browse Open Roles
-                  </Link>
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                    <Link href="/sign-up" className="flex items-center justify-center gap-2 bg-white text-slate-900 px-8 py-3.5 rounded-lg font-semibold text-sm hover:bg-slate-100 transition-all duration-200 w-full sm:w-auto hover:shadow-lg">
+                      Start Building
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                    <Link href="/sign-in?redirect_url=/jobs" className="flex items-center justify-center gap-2 bg-transparent text-white px-8 py-3.5 rounded-lg font-semibold text-sm border border-slate-600 hover:bg-slate-800 transition-all duration-200 w-full sm:w-auto">
+                      Browse Open Roles
+                    </Link>
+                  </motion.div>
                 </div>
               </div>
             </motion.div>
