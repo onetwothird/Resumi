@@ -17,11 +17,14 @@ import {
   TrendingUp,
   User,
   FileText,
-  Settings
+  Settings,
+  Home,
+  Video,
 } from "lucide-react";
 import { JobListItem, EmployerAnalytics } from "@/types/employer";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
+import MobileNav from "@/components/layout/MobileNav";
 import { useLoading } from "@/components/ui/LoadingProvider";
 
 interface Props {
@@ -102,12 +105,8 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
         </div>
 
         <div className="flex items-center gap-2 lg:gap-4">
-          <div className="hidden sm:block">
-            <NotificationBell />
-          </div>
-          <div className="hidden sm:block">
-            <InboxDropdown />
-          </div>
+          <NotificationBell />
+          <InboxDropdown />
           <div className="flex items-center gap-2 sm:ml-2">
             <UserButton>
               <UserButton.MenuItems>
@@ -130,6 +129,14 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
             </UserButton>
           </div>
         </div>
+        <MobileNav
+          items={[
+            { label: "Dashboard", href: "/employer/dashboard", icon: Home, active: pathname === "/employer/dashboard" },
+            { label: "Candidates", href: "/employer/candidates", icon: Users, active: pathname?.includes("/candidates") || pathname?.includes("/applicants") },
+            { label: "Interviews", href: "/employer/interviews", icon: Video, active: pathname?.includes("/interviews") },
+          ]}
+          label="Open navigation"
+        />
       </header>
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 lg:px-6 py-6 sm:py-8">

@@ -93,7 +93,7 @@ export default function InboxDropdown() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-85 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100">
+        <div className="fixed inset-x-4 top-16 z-50 rounded-2xl border border-gray-100 bg-white shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 md:absolute md:inset-x-auto md:top-auto md:right-0 md:mt-2 md:w-85">
           <div className="px-4 py-3 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
             <span className="font-bold text-sm text-gray-900">Direct Messages</span>
             {unreadCount > 0 && (
