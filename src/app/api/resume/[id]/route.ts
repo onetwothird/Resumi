@@ -129,6 +129,13 @@ export async function POST(
 
     return NextResponse.json(resume);
   } catch (error) {
+    // TEMP DEBUG: return actual error in response for diagnosis
+    if (process.env.NODE_ENV !== "production") {
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.error("[POST /api/resume/[id]]", error);
+      return NextResponse.json({ error: msg, stack }, { status: 500 });
+    }
     return internalError("POST /api/resume/[id]", error);
   }
 }
