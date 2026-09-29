@@ -6,11 +6,13 @@ import { useRouter, usePathname } from "next/navigation";
 import { UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { 
   LayoutDashboard, Bookmark, Crown, User as UserIcon, 
-  Settings, Eye, Upload, Camera, Loader2, Check, Bell
+  Settings, Eye, Upload, Camera, Loader2, Check, Bell,
+  Briefcase, Building2,
 } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
+import MobileNav from "@/components/layout/MobileNav";
 
 interface UserProfileData {
   name: string | null;
@@ -22,6 +24,7 @@ interface UserProfileData {
   social: string | null;
   github: string | null;
   email: string | null;
+  showEmail?: boolean;
 }
 
 export default function ProfileClient({ initialData }: { initialData: UserProfileData }) {
@@ -43,10 +46,16 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
     social: initialData.social || "",
     github: initialData.github || "",
     email: initialData.email || "",
+    showEmail: initialData.showEmail ?? false,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setSaveStatus("idle");
+  };
+
+  const handleShowEmailToggle = () => {
+    setFormData({ ...formData, showEmail: !formData.showEmail });
     setSaveStatus("idle");
   };
 
@@ -90,8 +99,8 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
           </nav>
         </div>
         <div className="flex items-center gap-2 lg:gap-4">
-          <div className="hidden sm:block"><NotificationBell /></div>
-          <div className="hidden sm:block"><InboxDropdown /></div>
+          <NotificationBell />
+          <InboxDropdown />
           <div className="flex items-center gap-2 sm:ml-2">
             <UserButton>
               <UserButton.MenuItems>
@@ -101,6 +110,14 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
             </UserButton>
           </div>
         </div>
+        <MobileNav
+          items={[
+            { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+            { label: "Jobs", href: "/jobs", icon: Briefcase },
+            { label: "Companies", href: "/companies", icon: Building2 },
+          ]}
+          label="Open navigation"
+        />
       </header>
 
       <div className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -267,6 +284,37 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
                     className="w-full p-3 pl-24 bg-gray-50/50 border border-gray-200 rounded-xl text-sm outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-gray-800"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-start gap-3 rounded-xl bg-gray-50 border border-gray-200 p-4">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={formData.showEmail}
+                onClick={handleShowEmailToggle}
+                className={`relative shrink-0 w-11 h-6 rounded-full transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500/40 ${
+                  formData.showEmail ? "bg-indigo-600" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    formData.showEmail ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+              <div className="min-w-0">
+                <span
+                  className="text-sm font-bold text-gray-900 cursor-pointer"
+                  onClick={handleShowEmailToggle}
+                >
+                  Show my email on my public profile
+                </span>
+                <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">
+                  Off by default. Anyone can visit your public profile, and these pages are indexed, so
+                  turning this on makes your address visible to scrapers. Employers can still reach you
+                  through the Message button either way.
+                </p>
               </div>
             </div>
           </div>

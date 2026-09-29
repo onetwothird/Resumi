@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser, UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, Bookmark, Crown, User as UserIcon, Settings, Check, Bell } from "lucide-react";
+import { LayoutDashboard, Bookmark, Crown, User as UserIcon, Settings, Check, Bell, Briefcase, Building2 } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
+import MobileNav from "@/components/layout/MobileNav";
 
 export default function UpgradeClient() {
   const { user } = useUser();
@@ -27,8 +28,8 @@ export default function UpgradeClient() {
           </nav>
         </div>
         <div className="flex items-center gap-2 lg:gap-4">
-          <div className="hidden sm:block"><NotificationBell /></div>
-          <div className="hidden sm:block"><InboxDropdown /></div>
+          <NotificationBell />
+          <InboxDropdown />
           <div className="flex items-center gap-2 sm:ml-2">
             <UserButton>
               <UserButton.MenuItems>
@@ -38,6 +39,14 @@ export default function UpgradeClient() {
             </UserButton>
           </div>
         </div>
+        <MobileNav
+          items={[
+            { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+            { label: "Jobs", href: "/jobs", icon: Briefcase },
+            { label: "Companies", href: "/companies", icon: Building2 },
+          ]}
+          label="Open navigation"
+        />
       </header>
 
       <div className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-8">

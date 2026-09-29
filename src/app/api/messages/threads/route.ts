@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { MessageThread } from "@/types/messages";
+import { internalError } from "@/lib/api-response";
 
 export const dynamic = "force-dynamic";
 
@@ -109,7 +110,6 @@ export async function GET() {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    console.error("GET Threads Error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Database Error" }, { status: 500 });
+    return internalError("GET /api/messages/threads", error);
   }
 }

@@ -2,6 +2,9 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { auth } from "@clerk/nextjs/server";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { internalError, validationError } from "@/lib/api-response";
+import { aiInterviewFeedbackSchema } from "@/lib/validation";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -47,13 +50,26 @@ export async function POST(req: Request) {
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
-    const data = await req.json();
-    const targetJobTitle: string = (data.targetJobTitle || "the role").trim();
-    const qa: QaPair[] = Array.isArray(data.qa) ? data.qa : [];
+    // Billable Gemini call, and the transcript can be large - bound it per
+    // user before doing any work.
+    const limited = await enforceRateLimit(
+      req,
+      "ai:interview-feedback",
+      userId,
+      RATE_LIMITS.ai.limit,
+      RATE_LIMITS.ai.windowMs
+    );
+    if (limited) return limited;
 
-    if (qa.length === 0) {
-      return NextResponse.json({ error: "No answers to review." }, { status: 400 });
+    const parsedBody = aiInterviewFeedbackSchema.safeParse(
+      await req.json().catch(() => null)
+    );
+    if (!parsedBody.success) {
+      return validationError(parsedBody.error);
     }
+
+    const targetJobTitle: string = (parsedBody.data.targetJobTitle || "the role").trim();
+    const qa: QaPair[] = parsedBody.data.qa;
 
     const transcript = qa
       .map(
@@ -89,7 +105,6 @@ Return ONLY a raw JSON object with this exact structure (no markdown fences or b
     const result = parseFeedbackResult(raw);
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Interview Feedback Error:", error);
-    return NextResponse.json({ error: "AI Error" }, { status: 500 });
+    return internalError("POST /api/ai/interview-feedback", error);
   }
 }

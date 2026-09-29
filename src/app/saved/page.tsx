@@ -10,8 +10,5 @@ export default async function SavedPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
   return <SavedClient />;
-  
 }

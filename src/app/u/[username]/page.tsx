@@ -75,6 +75,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
         social: null,
         github: null,
         settings: null,
+        // Synthesized record that has never opted in.
+        showEmail: false,
         createdAt: new Date(),
       };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -172,7 +174,12 @@ export default async function PublicProfilePage({ params }: PageProps) {
                       <MapPin size={13} /> {dbUser.location}
                     </span>
                   )}
-                  {dbUser.email && (
+                  {/* Opt-in only. /u/<username> is world-readable and
+                      enumerable, so rendering the address unconditionally
+                      made these pages an email-harvesting endpoint. The
+                      Message button next to this is the default contact
+                      channel. */}
+                  {dbUser.email && dbUser.showEmail && (
                     <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 px-3 py-1 rounded-lg text-xs font-semibold border border-gray-200">
                       <Mail size={13} /> {dbUser.email}
                     </span>

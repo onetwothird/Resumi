@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { User, FileText, Calendar } from "lucide-react";
+import { User, FileText, Calendar, Home, Users, Video } from "lucide-react";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
+import MobileNav from "@/components/layout/MobileNav";
 
 export default function InterviewsClient() {
   const pathname = usePathname();
@@ -26,8 +27,8 @@ export default function InterviewsClient() {
           </nav>
         </div>
         <div className="flex items-center gap-2 lg:gap-4">
-          <div className="hidden sm:block"><NotificationBell /></div>
-          <div className="hidden sm:block"><InboxDropdown /></div>
+          <NotificationBell />
+          <InboxDropdown />
           <div className="flex items-center gap-2 sm:ml-2">
             <UserButton>
               <UserButton.MenuItems>
@@ -37,6 +38,14 @@ export default function InterviewsClient() {
             </UserButton>
           </div>
         </div>
+        <MobileNav
+          items={[
+            { label: "Dashboard", href: "/employer/dashboard", icon: Home, active: pathname === "/employer/dashboard" },
+            { label: "Candidates", href: "/employer/candidates", icon: Users, active: pathname?.includes("/candidates") },
+            { label: "Interviews", href: "/employer/interviews", icon: Video, active: pathname?.includes("/interviews") },
+          ]}
+          label="Open navigation"
+        />
       </header>
 
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-8 space-y-8">

@@ -8,11 +8,13 @@ import {
   Search, MapPin, Briefcase, Wallet, ExternalLink, Bookmark,
   Clock, SlidersHorizontal, Loader2, AlertCircle, Inbox, X,
   ChevronDown, Sparkles,
+  Home, Building2, PenTool,
 } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
 import PublicHeader from "@/components/layout/PublicHeader";
+import MobileNav from "@/components/layout/MobileNav";
 import PublicFooter from "@/components/layout/PublicFooter";
 
 type EmploymentType = "Full-time" | "Part-time" | "Contract" | "Internship";
@@ -376,8 +378,8 @@ export default function JobsClient({ isLoggedIn }: Props) {
           </nav>
         </div>
         <div className="flex items-center gap-2 lg:gap-4">
-          <div className="hidden sm:block"><NotificationBell /></div>
-          <div className="hidden sm:block"><InboxDropdown /></div>
+          <NotificationBell />
+          <InboxDropdown />
           <div className="flex items-center gap-2 sm:ml-2">
             <UserButton>
               <UserButton.MenuItems>
@@ -386,6 +388,16 @@ export default function JobsClient({ isLoggedIn }: Props) {
               </UserButton.MenuItems>
             </UserButton>
           </div>
+          <MobileNav
+            items={[
+              { label: "Home", href: "/dashboard", icon: Home },
+              { label: "Jobs", href: "/jobs", icon: Briefcase, active: true },
+              { label: "Companies", href: "/companies", icon: Building2 },
+              { label: "Builder", href: "/resume/new", icon: PenTool, primary: true },
+              { label: "AI Coach", href: "/dashboard", onClick: () => {}, icon: Sparkles, primary: true },
+            ]}
+            label="Open navigation"
+          />
         </div>
       </header>
       <main className="max-w-7xl mx-auto w-full p-6 md:p-10 flex-1">{content}</main>

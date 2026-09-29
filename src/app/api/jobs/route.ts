@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { internalError } from "@/lib/api-response";
 
 export async function POST(req: Request) {
   try {
@@ -61,10 +62,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(job);
   } catch (error: unknown) {
-    console.error("Create Job Error:", error);
-    
-    const errorMessage = error instanceof Error ? error.message : "Database Error";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return internalError("POST /api/jobs", error);
   }
 }
 

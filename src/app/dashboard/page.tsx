@@ -1,19 +1,19 @@
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import DashboardClient from "@/components/features/dashboard/DashboardClient";
 import { ResumeListItem } from "@/types/dashboard";
 
 export default async function DashboardPage() {
-  const { userId } = await auth();
+  const { userId, sessionClaims } = await auth();
 
   if (!userId) {
     redirect("/sign-in");
   }
-  
-  const client = await clerkClient();
-  const clerkUser = await client.users.getUser(userId);
-  const role = clerkUser.publicMetadata?.role as "employer" | "jobseeker" | undefined;
+
+  // Read the role from the already-verified session token instead of calling
+  // the Clerk Backend API on every render. src/proxy.ts reads the same claim.
+  const role = (sessionClaims?.metadata as { role?: string } | undefined)?.role;
 
   if (role === "employer") redirect("/employer/dashboard");
   if (role !== "jobseeker") redirect("/onboarding");
@@ -21,6 +21,18 @@ export default async function DashboardPage() {
   const resumes = await prisma.resume.findMany({
     where: { userId },
     orderBy: { updatedAt: "desc" },
+    // Only the fields DashboardClient actually reads. Without this the
+    // experience/education/theme/blockStyles JSON blobs were fetched on
+    // every dashboard load and immediately discarded by the map below.
+    select: {
+      id: true,
+      title: true,
+      jobTitle: true,
+      summary: true,
+      updatedAt: true,
+      createdAt: true,
+      completionProgress: true,
+    },
   });
 
   const initialResumes: ResumeListItem[] = resumes.map((r) => ({

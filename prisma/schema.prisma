@@ -18,7 +18,13 @@ model User {
   social       String?
   github       String?
   settings     Json?
-  
+
+  /// Whether to render this user's email on their public /u/[username] page.
+  /// Defaults to false: /u/<username> is world-readable and enumerable, so
+  /// showing the address unconditionally turns the profile pages into an
+  /// email-harvesting endpoint.
+  showEmail    Boolean      @default(false)
+
   resumes      Resume[]
   jobs         Job[]
   applications Application[] 
@@ -149,4 +155,21 @@ model Testimonial {
   createdAt DateTime @default(now())
 
   @@index([approved])
+}
+
+/// Fixed-window rate limit counters, one row per (key, window).
+///
+/// Primary key is the composite (key, windowStart): the upsert in
+/// src/lib/rate-limit.ts increments atomically on conflict, so two concurrent
+/// requests for the same key cannot both read-then-write a stale count.
+///
+/// Rows are not deleted by application logic. Sweep them with a periodic job:
+///   DELETE FROM "RateLimit" WHERE "windowStart" < now() - interval '2 days';
+model RateLimit {
+  key         String   @db.Text
+  windowStart BigInt
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  @@index([windowStart])
 }
