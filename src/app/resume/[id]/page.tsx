@@ -5,7 +5,8 @@ import { useReactToPrint } from "react-to-print";
 import { UserButton, useUser } from "@clerk/nextjs";
 import {
   Undo, Redo, Share, ChevronDown, Save, 
-  PenTool, Eye, Settings, FileText, Briefcase, User as UserIcon
+  PenTool, Eye, Settings, FileText, Briefcase, User as UserIcon,
+  Home, Sparkles,
 } from "lucide-react";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import { ResumeData, ResumeTheme, ExperienceItem, EducationItem, DEFAULT_THEME } from "@/types";
@@ -17,6 +18,7 @@ import ResumiLogo from "@/components/ui/ResumiLogo";
 import { useLoading } from "@/components/ui/LoadingProvider";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
+import MobileNav from "@/components/layout/MobileNav";
 
 const emptyResume = (): ResumeData => ({
   title: "",
@@ -481,12 +483,8 @@ export default function EditorPage() {
           </nav>
         </div>
         <div className="flex items-center gap-2 lg:gap-4">
-          <div className="hidden sm:block">
-            <NotificationBell />
-          </div>
-          <div className="hidden sm:block">
-            <InboxDropdown />
-          </div>
+          <NotificationBell />
+          <InboxDropdown />
           <div className="flex items-center gap-2 sm:ml-2">
             <UserButton>
               <UserButton.MenuItems>
@@ -501,6 +499,13 @@ export default function EditorPage() {
             </UserButton>
           </div>
         </div>
+        <MobileNav
+          items={[
+            { label: "Home", onClick: () => attemptNavigation(() => router.push('/dashboard')), icon: Home },
+            { label: "AI Tools", onClick: () => attemptNavigation(() => router.push('/ai-tools')), icon: Sparkles },
+          ]}
+          label="Open navigation"
+        />
       </header>
 
       <div className="min-h-14 py-2 bg-white border-b border-gray-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 shrink-0 z-10 shadow-sm gap-2 sm:gap-3">
@@ -532,7 +537,7 @@ export default function EditorPage() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end order-2">
-          <div className="flex items-center gap-1 text-gray-500 hidden sm:flex">
+          <div className="flex items-center gap-1 text-gray-500 sm:flex">
             <button 
               onClick={handleUndo} 
               disabled={past.length === 0}
