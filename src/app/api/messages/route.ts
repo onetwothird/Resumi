@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { internalError } from "@/lib/api-response";
 
 const SENDER_NAME_FALLBACK = "Someone on Resumi";
 
@@ -33,8 +34,7 @@ export async function GET() {
 
     return NextResponse.json(messages);
   } catch (error: unknown) {
-    console.error("GET Messages Error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Database Error" }, { status: 500 });
+    return internalError("GET /api/messages", error);
   }
 }
 
@@ -90,8 +90,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(message);
   } catch (error: unknown) {
-    console.error("POST Message Error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to save message to database." }, { status: 500 });
+    return internalError("POST /api/messages", error);
   }
 }
 
@@ -108,7 +107,6 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    console.error("PATCH Message Error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Database Error" }, { status: 500 });
+    return internalError("PATCH /api/messages", error);
   }
 }

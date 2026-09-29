@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { internalError } from "@/lib/api-response";
 
 export async function PATCH(req: Request) {
   try {
@@ -75,8 +76,6 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json(updatedUser);
   } catch (error: unknown) {
-    console.error("[PATCH /api/profile]", error);
-    const message = error instanceof Error ? error.message : "Database Error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalError("PATCH /api/profile", error);
   }
 }

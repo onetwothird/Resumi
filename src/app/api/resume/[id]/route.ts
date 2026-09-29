@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { ensureUser } from "@/lib/ensure-user";
+import { internalError } from "@/lib/api-response";
 import { calculateResumeProgress, ResumeProgress, ProgressInput } from "@/lib/resume-progress";
 import { Prisma } from "@prisma/client";
 
@@ -38,9 +39,7 @@ export async function GET(
 
     return NextResponse.json({ ...resume, completionProgress });
   } catch (error) {
-    console.error("[GET /api/resume]", error);
-    const message = error instanceof Error ? error.message : "Database Error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalError("GET /api/resume/[id]", error);
   }
 }
 
@@ -107,9 +106,7 @@ export async function POST(
 
     return NextResponse.json(resume);
   } catch (error) {
-    console.error("[POST /api/resume]", error);
-    const message = error instanceof Error ? error.message : "Database Error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalError("POST /api/resume/[id]", error);
   }
 }
 
@@ -136,9 +133,7 @@ export async function PATCH(
 
     return NextResponse.json(resume);
   } catch (error) {
-    console.error("[PATCH /api/resume]", error);
-    const message = error instanceof Error ? error.message : "Database Error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalError("PATCH /api/resume/[id]", error);
   }
 }
 
@@ -159,8 +154,6 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[DELETE /api/resume]", error);
-    const message = error instanceof Error ? error.message : "Database Error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalError("DELETE /api/resume/[id]", error);
   }
 }
