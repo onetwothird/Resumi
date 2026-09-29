@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { DEFAULT_NOTIFICATION_SETTINGS, type NotificationSettings } from "@/lib/notification-settings";
+import { internalError } from "@/lib/api-response";
 
 export async function GET() {
   try {
@@ -26,8 +27,7 @@ export async function GET() {
 
     return NextResponse.json({ email, settings });
   } catch (error: unknown) {
-    console.error("GET Settings Error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Database Error" }, { status: 500 });
+    return internalError("GET /api/settings", error);
   }
 }
 
@@ -70,7 +70,6 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({ settings: updated.settings });
   } catch (error: unknown) {
-    console.error("PATCH Settings Error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Database Error" }, { status: 500 });
+    return internalError("PATCH /api/settings", error);
   }
 }

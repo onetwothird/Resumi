@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { auth } from "@clerk/nextjs/server";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { internalError, validationError } from "@/lib/api-response";
+import { aiAnalyzeSchema } from "@/lib/validation";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -36,14 +39,21 @@ export async function POST(req: Request) {
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
-    const data = await req.json();
+    // Billable Gemini call - bound it per user before doing any work.
+    const limited = await enforceRateLimit(
+      req,
+      "ai:analyze",
+      userId,
+      RATE_LIMITS.ai.limit,
+      RATE_LIMITS.ai.windowMs
+    );
+    if (limited) return limited;
 
-    if (!data.summary || !data.summary.trim()) {
-      return NextResponse.json(
-        { error: "Add a professional summary before scanning." },
-        { status: 400 }
-      );
+    const parsed = aiAnalyzeSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) {
+      return validationError(parsed.error);
     }
+    const data = parsed.data;
 
     const prompt = `Act as an Applicant Tracking System (ATS) expert. Analyze the following resume details for the role of ${data.jobTitle || "a professional"}.
 
@@ -71,7 +81,6 @@ Return ONLY a raw JSON object with this exact structure (no markdown fences or b
     const result = parseAtsResult(raw);
     return NextResponse.json(result);
   } catch (error) {
-    console.error("ATS Error:", error);
-    return NextResponse.json({ error: "AI Error" }, { status: 500 });
+    return internalError("POST /api/ai/analyze", error);
   }
 }

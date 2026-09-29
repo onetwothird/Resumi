@@ -2,6 +2,9 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { auth } from "@clerk/nextjs/server";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { internalError, validationError } from "@/lib/api-response";
+import { aiInterviewQuestionsSchema } from "@/lib/validation";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -46,7 +49,23 @@ export async function POST(req: Request) {
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
-    const data = await req.json();
+    // Billable Gemini call - bound it per user before doing any work.
+    const limited = await enforceRateLimit(
+      req,
+      "ai:interview-questions",
+      userId,
+      RATE_LIMITS.ai.limit,
+      RATE_LIMITS.ai.windowMs
+    );
+    if (limited) return limited;
+
+    const parsedBody = aiInterviewQuestionsSchema.safeParse(
+      await req.json().catch(() => null)
+    );
+    if (!parsedBody.success) {
+      return validationError(parsedBody.error);
+    }
+    const data = parsedBody.data;
 
     const targetJobTitle: string = (data.targetJobTitle || data.jobTitle || "").trim();
     if (!targetJobTitle) {
@@ -58,7 +77,7 @@ export async function POST(req: Request) {
 
     const summary: string = data.summary || "";
     const skills: string = data.skills || "";
-    const experience: ExperienceInput[] = Array.isArray(data.experience) ? data.experience : [];
+    const experience: ExperienceInput[] = data.experience ?? [];
 
     const experienceLines = experience
       .slice(0, 5)
@@ -103,7 +122,6 @@ Return ONLY a raw JSON object with this exact structure (no markdown fences or b
     const result = parseQuestionsResult(raw);
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Interview Questions Error:", error);
-    return NextResponse.json({ error: "AI Error" }, { status: 500 });
+    return internalError("POST /api/ai/interview-questions", error);
   }
 }

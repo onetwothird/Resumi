@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { internalError } from "@/lib/api-response";
 
 interface RouteContext {
   params: Promise<{ otherUserId: string }> | { otherUserId: string };
@@ -57,8 +58,7 @@ export async function GET(_req: Request, context: RouteContext) {
       })),
     });
   } catch (error: unknown) {
-    console.error("GET Conversation Error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Database Error" }, { status: 500 });
+    return internalError("GET /api/messages/[otherUserId]", error);
   }
 }
 
@@ -78,7 +78,6 @@ export async function PATCH(_req: Request, context: RouteContext) {
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    console.error("PATCH Conversation Error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Database Error" }, { status: 500 });
+    return internalError("PATCH /api/messages/[otherUserId]", error);
   }
 }
