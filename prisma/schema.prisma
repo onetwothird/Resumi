@@ -18,7 +18,13 @@ model User {
   social       String?
   github       String?
   settings     Json?
-  
+
+  /// Whether to render this user's email on their public /u/[username] page.
+  /// Defaults to false: /u/<username> is world-readable and enumerable, so
+  /// showing the address unconditionally turns the profile pages into an
+  /// email-harvesting endpoint.
+  showEmail    Boolean      @default(false)
+
   resumes      Resume[]
   jobs         Job[]
   applications Application[] 

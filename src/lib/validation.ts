@@ -135,18 +135,19 @@ export const profileSchema = z.object({
   fullName: plain(120),
   username: plain(60),
   /**
-   * Display label only. The authorization role lives in Clerk publicMetadata
-   * and is read from the session token, never from this column.
+   * Free-text professional headline, e.g. "Full Stack Developer" - NOT the
+   * account role. The authorization role lives in Clerk publicMetadata and is
+   * read from the session token, never from this column, so it must not be
+   * enum-restricted here or the profile form stops accepting real job titles.
    */
-  role: z
-    .enum(["employer", "jobseeker", "recruiter", "other"])
-    .optional()
-    .nullable(),
+  role: plain(120),
   location: plain(120),
   bio: plain(2_000),
   website: plain(300),
   social: plain(300),
   github: plain(120),
+  /** Opt-in for rendering the email address on the public /u/[username] page. */
+  showEmail: z.boolean().optional(),
 });
 
 /** Body of POST /api/testimonials */

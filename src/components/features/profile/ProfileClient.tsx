@@ -22,6 +22,7 @@ interface UserProfileData {
   social: string | null;
   github: string | null;
   email: string | null;
+  showEmail?: boolean;
 }
 
 export default function ProfileClient({ initialData }: { initialData: UserProfileData }) {
@@ -43,10 +44,16 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
     social: initialData.social || "",
     github: initialData.github || "",
     email: initialData.email || "",
+    showEmail: initialData.showEmail ?? false,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setSaveStatus("idle");
+  };
+
+  const handleShowEmailToggle = () => {
+    setFormData({ ...formData, showEmail: !formData.showEmail });
     setSaveStatus("idle");
   };
 
@@ -267,6 +274,37 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
                     className="w-full p-3 pl-24 bg-gray-50/50 border border-gray-200 rounded-xl text-sm outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-gray-800"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-start gap-3 rounded-xl bg-gray-50 border border-gray-200 p-4">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={formData.showEmail}
+                onClick={handleShowEmailToggle}
+                className={`relative shrink-0 w-11 h-6 rounded-full transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500/40 ${
+                  formData.showEmail ? "bg-indigo-600" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    formData.showEmail ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+              <div className="min-w-0">
+                <span
+                  className="text-sm font-bold text-gray-900 cursor-pointer"
+                  onClick={handleShowEmailToggle}
+                >
+                  Show my email on my public profile
+                </span>
+                <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">
+                  Off by default. Anyone can visit your public profile, and these pages are indexed, so
+                  turning this on makes your address visible to scrapers. Employers can still reach you
+                  through the Message button either way.
+                </p>
               </div>
             </div>
           </div>
