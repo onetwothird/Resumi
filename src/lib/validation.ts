@@ -183,17 +183,20 @@ export const aiInterviewQuestionsSchema = z.object({
   targetJobTitle: z.string().trim().max(160).optional(),
   jobTitle: z.string().trim().max(160).optional(),
   summary: z.string().max(5_000).optional(),
-  skills: z.string().max(2_000).optional(),
+  skills: z.string().max(4_000).optional(),
+  // Sized to match the resume editor's own limits (resumePayloadSchema:
+  // 30 entries, 4,000-char descriptions) so a long real resume is not
+  // rejected here just because it is a lot to read.
   experience: z
     .array(
       z.object({
         company: z.string().max(120).optional(),
         role: z.string().max(120).optional(),
         date: z.string().max(80).optional(),
-        description: z.string().max(2_000).optional(),
+        description: z.string().max(4_000).optional(),
       })
     )
-    .max(20)
+    .max(30)
     .optional(),
 });
 
