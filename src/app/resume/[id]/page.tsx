@@ -8,7 +8,7 @@ import {
   PenTool, Eye, Settings, FileText, Briefcase, User as UserIcon
 } from "lucide-react";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
-import { ResumeData, DEFAULT_THEME } from "@/types";
+import { ResumeData, ResumeTheme, ExperienceItem, EducationItem, DEFAULT_THEME } from "@/types";
 
 import BuilderSidebar from "@/components/features/resume/BuilderSidebar";
 import CanvasEditor from "@/components/features/resume/CanvasEditor";
@@ -30,6 +30,70 @@ const emptyResume = (): ResumeData => ({
   summary: "",
   theme: { ...DEFAULT_THEME },
 });
+
+/**
+ * Coalesce SQL NULLs in a loaded resume back to "".
+ *
+ * The API stores a null in any optional column the user left blank (an
+ * imported PDF with no phone number is the common case). A plain
+ * `{ ...emptyResume(), ...saved }` lets that null overwrite the "" default,
+ * which turns a controlled <input> into an uncontrolled one: React warns,
+ * and typing into the field does not render until focus is lost.
+ *
+ * Applied at the hydration boundary so every consumer downstream can keep
+ * treating these as plain strings.
+ */
+function normalizeLoadedResume(saved: Record<string, unknown>): ResumeData {
+  const str = (v: unknown) => (typeof v === "string" ? v : "");
+
+  // The editor keys jobs and schools off `id` (BuilderSidebar update/delete
+  // and the React key both match on it). Rows written before ids existed, or
+  // by a path that omitted them, would collide, so mint one on load rather
+  // than letting several entries share undefined.
+  const withIds = <T extends { id: string }>(v: unknown, blank: Omit<T, "id">): T[] | undefined =>
+    Array.isArray(v)
+      ? v.map((entry) => {
+          const item = (entry ?? {}) as Record<string, unknown>;
+          return {
+            ...blank,
+            ...Object.fromEntries(
+              Object.keys(blank).map((key) => [key, str(item[key])])
+            ),
+            id: str(item.id) || crypto.randomUUID(),
+          } as T;
+        })
+      : undefined;
+
+  const experience = withIds<ExperienceItem>(saved.experience, {
+    company: "",
+    role: "",
+    date: "",
+    description: "",
+  });
+
+  const education = withIds<EducationItem>(saved.education, {
+    school: "",
+    degree: "",
+    date: "",
+  });
+
+  return {
+    ...emptyResume(),
+    ...saved,
+    firstName: str(saved.firstName),
+    lastName: str(saved.lastName),
+    jobTitle: str(saved.jobTitle),
+    email: str(saved.email),
+    phone: str(saved.phone),
+    address: str(saved.address),
+    summary: str(saved.summary),
+    skills: str(saved.skills),
+    certifications: str(saved.certifications),
+    experience,
+    education,
+    theme: (saved.theme as ResumeTheme | null) ?? { ...DEFAULT_THEME },
+  };
+}
 
 function CanvasSkeleton() {
   return (
@@ -253,11 +317,7 @@ export default function EditorPage() {
         if (!res.ok) throw new Error("Failed to load resume");
         const saved = await res.json();
         if (!cancelled && saved) {
-          setData({
-            ...emptyResume(),
-            ...saved,
-            theme: saved.theme ?? { ...DEFAULT_THEME },
-          });
+          setData(normalizeLoadedResume(saved));
           setLastSaved(new Date());
         }
       } catch {
