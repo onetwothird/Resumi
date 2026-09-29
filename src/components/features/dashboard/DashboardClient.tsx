@@ -9,6 +9,9 @@ import {
   Sparkles, Briefcase, FileText, ChevronRight,
   User,
   Settings,
+  Home,
+  Building2,
+  PenTool,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { ResumeListItem } from "@/types/dashboard";
@@ -22,6 +25,7 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
+import MobileNav from "@/components/layout/MobileNav";
 import { useSearchParams, useRouter } from "next/navigation";
 
 type SortOption = "updated" | "created" | "name";
@@ -573,13 +577,8 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
         </div>
 
         <div className="flex items-center gap-2 lg:gap-4">
-          <div className="hidden sm:block">
-            <NotificationBell />
-          </div>
-          {/* REPLACED MAIL BUTTON WITH INBOX DROPDOWN */}
-          <div className="hidden sm:block">
-            <InboxDropdown />
-          </div>
+          <NotificationBell />
+          <InboxDropdown />
           <div className="flex items-center gap-2 sm:ml-2">
             <UserButton>
               <UserButton.MenuItems>
@@ -601,6 +600,16 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               </UserButton.MenuItems>
             </UserButton>
           </div>
+        <MobileNav
+            items={[
+              { label: "Home", href: "/dashboard", icon: Home },
+              { label: "Jobs", href: "/jobs", icon: Briefcase },
+              { label: "Companies", href: "/companies", icon: Building2 },
+              { label: "Builder", href: "/resume/new", icon: PenTool, primary: true },
+              { label: "AI Coach", onClick: startAiInterview, icon: Sparkles, primary: true },
+            ]}
+            label="Open navigation"
+          />
         </div>
       </header>
 

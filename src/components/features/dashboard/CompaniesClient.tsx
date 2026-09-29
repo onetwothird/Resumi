@@ -6,10 +6,12 @@ import { UserButton } from "@clerk/nextjs";
 import {
   Search, MapPin, Briefcase, AlertCircle, Building2,
   ChevronDown, Sparkles,
+  Home, PenTool,
 } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
+import MobileNav from "@/components/layout/MobileNav";
 
 interface ApiJob {
   id: string;
@@ -154,8 +156,8 @@ export default function CompaniesClient() {
         </div>
 
         <div className="flex items-center gap-2 lg:gap-4">
-          <div className="hidden sm:block"><NotificationBell /></div>
-          <div className="hidden sm:block"><InboxDropdown /></div>
+          <NotificationBell />
+          <InboxDropdown />
           <div className="flex items-center gap-2 sm:ml-2">
             <UserButton>
               <UserButton.MenuItems>
@@ -164,6 +166,16 @@ export default function CompaniesClient() {
               </UserButton.MenuItems>
             </UserButton>
           </div>
+          <MobileNav
+            items={[
+              { label: "Home", href: "/dashboard", icon: Home },
+              { label: "Jobs", href: "/dashboard?tab=jobs", icon: Briefcase },
+              { label: "Companies", href: "/companies", icon: Building2, active: true },
+              { label: "Builder", href: "/resume/new", icon: PenTool, primary: true },
+              { label: "AI Coach", href: "/dashboard", onClick: () => {}, icon: Sparkles, primary: true },
+            ]}
+            label="Open navigation"
+          />
         </div>
       </header>
 
