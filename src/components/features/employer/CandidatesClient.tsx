@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { User, FileText, Users, Search, Home, Briefcase, Video } from "lucide-react";
+import { User, FileText, Users, Search, Home, Video } from "lucide-react";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
 import MobileNav from "@/components/layout/MobileNav";
