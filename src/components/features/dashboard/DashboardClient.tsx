@@ -22,7 +22,7 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 type SortOption = "updated" | "created" | "name";
 type TabOption = "resumes" | "jobs";
@@ -45,7 +45,14 @@ interface InterviewFeedback {
 interface ParsedResumeData {
   jobTitle?: string;
   summary?: string;
-  skills?: string[];
+  /**
+   * Comma-separated string, not string[].
+   *
+   * /api/ai/interview-questions validates `skills` as a string, and this
+   * object is what prepareInterview() forwards. The previous version split
+   * skills into an array here, which the endpoint would have rejected.
+   */
+  skills?: string;
   experience?: unknown[];
 }
 
@@ -99,6 +106,9 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   const [feedback, setFeedback] = useState<InterviewFeedback | null>(null);
 
   const [uploadedResumeData, setUploadedResumeData] = useState<ParsedResumeData | null>(null);
+  /** True while an uploaded PDF is being turned into a resume. */
+  const [isImporting, setIsImporting] = useState(false);
+  const router = useRouter();
 
   const [isInterviewActive, setIsInterviewActive] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -462,18 +472,77 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     }
   };
 
-  const handlePdfScanComplete = (parsedData: Partial<ResumeData>) => {
-    setUploadedResumeData({
-      jobTitle: parsedData.jobTitle,
-      summary: parsedData.summary,
-      skills: typeof parsedData.skills === "string"
-        ? parsedData.skills.split(",").map((s) => s.trim())
-        : parsedData.skills,
-      experience: parsedData.experience,
-    });
-    setTargetJobTitle(parsedData.jobTitle || "");
-    setIsAiModalOpen(true);
-    setInterviewStage("setup");
+  /**
+   * Upload a PDF -> create a real resume -> open it in the builder.
+   *
+   * This used to stash the parsed data in `uploadedResumeData` and open the
+   * AI mock-interview modal instead, which meant the "Upload Existing" tile
+   * never produced anything editable. The parsed content was only ever read
+   * back as interview context (see prepareInterview) and then discarded.
+   *
+   * The AI Coach button in the nav still starts an interview against any
+   * existing resume, so that flow is not lost.
+   *
+   * Errors are deliberately not caught here: PdfUploader awaits this and
+   * reports the thrown message through pushToast, so toasting in both places
+   * would show the user two notifications for one failure.
+   */
+  const handlePdfScanComplete = async (parsedData: Partial<ResumeData>) => {
+    setIsImporting(true);
+    try {
+      // POST /api/resume/new creates and returns the row. That endpoint
+      // validates and sanitizes every rich-text field, so the model's output
+      // cannot inject markup into the editor even if the PDF tries to talk it
+      // into emitting some.
+      const res = await fetch("/api/resume/new", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...parsedData,
+          // The editor identifies every job and school by its `id`
+          // (BuilderSidebar.tsx updates and React keys both key off it), and
+          // the AI only returns company/role/date/description. Without ids
+          // here, all imported jobs share `id === undefined`, so editing one
+          // field rewrites all of them. Mint them here, same as
+          // BuilderSidebar does when a job is added by hand.
+          experience: (parsedData.experience ?? []).map((job) => ({
+            ...job,
+            id: job.id || crypto.randomUUID(),
+          })),
+          education: (parsedData.education ?? []).map((school) => ({
+            ...school,
+            id: school.id || crypto.randomUUID(),
+          })),
+          // Let the server derive the title from the name/job title rather
+          // than trusting a model-generated string.
+          titleIsCustom: false,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || "Failed to create the resume.");
+      }
+
+      const created = await res.json();
+      if (!created?.id) throw new Error("The resume was created but no id came back.");
+
+      // Keep the parsed content available to the interview flow too, so a
+      // user who wants to practise still can without re-uploading.
+      setUploadedResumeData({
+        jobTitle: parsedData.jobTitle,
+        summary: parsedData.summary,
+        skills: parsedData.skills,
+        experience: parsedData.experience,
+      });
+
+      // No success toast: this component unmounts on navigation, so a toast
+      // raised here would never be seen. The uploader's spinner plus the
+      // loaded resume in the builder are the confirmation.
+      router.push(`/resume/${created.id}`);
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const hasResumes = resumes.length > 0;
@@ -601,6 +670,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                   <div className="h-full">
                     <PdfUploader
                       pushToast={pushToast}
+                      disabled={isImporting}
                       onScanComplete={handlePdfScanComplete}
                     />
                   </div>
@@ -629,6 +699,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                       </Link>
                       <PdfUploader
                         pushToast={pushToast}
+                        disabled={isImporting}
                         onScanComplete={handlePdfScanComplete}
                       />
                     </>
