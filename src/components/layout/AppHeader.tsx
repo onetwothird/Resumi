@@ -7,6 +7,7 @@ import { Briefcase, FileText, Settings, User as UserIcon } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
+import MobileNav from "@/components/layout/MobileNav";
 
 /**
  * Shared authenticated header used on the Messages, Notifications, and Settings
@@ -54,12 +55,8 @@ export default function AppHeader() {
       </div>
 
       <div className="flex items-center gap-2 lg:gap-4">
-        <div className="hidden sm:block">
-          <NotificationBell />
-        </div>
-        <div className="hidden sm:block">
-          <InboxDropdown />
-        </div>
+        <NotificationBell />
+        <InboxDropdown />
         <div className="flex items-center gap-2 sm:ml-2">
           <UserButton>
             <UserButton.MenuItems>
@@ -73,6 +70,7 @@ export default function AppHeader() {
             </UserButton.MenuItems>
           </UserButton>
         </div>
+        <MobileNav items={navItems} label="Open navigation" />
       </div>
     </header>
   );
