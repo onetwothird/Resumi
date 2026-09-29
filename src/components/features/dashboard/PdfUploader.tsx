@@ -54,7 +54,11 @@ export default function PdfUploader({ onScanComplete, pushToast, disabled = fals
       const parsedData = await res.json();
 
       if (!res.ok) {
-        throw new Error(parsedData?.error || `Failed to scan PDF (status ${res.status})`);
+        // TEMP DEBUG: include full response for diagnosis
+        const detail = typeof parsedData === "object" && parsedData !== null
+          ? JSON.stringify(parsedData)
+          : String(parsedData);
+        throw new Error(`Server ${res.status}: ${parsedData?.error || detail}`);
       }
 
       // The parent creates the resume and navigates, and rethrows on failure.

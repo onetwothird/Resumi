@@ -525,7 +525,10 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
       if (!res.ok) {
         const body = await res.json().catch(() => null);
-        throw new Error(body?.error || "Failed to create the resume.");
+        const detail = typeof body === "object" && body !== null
+          ? JSON.stringify(body)
+          : String(body);
+        throw new Error(`Resume create ${res.status}: ${body?.error || detail}`);
       }
 
       const created = await res.json();
