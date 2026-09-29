@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { internalError } from "@/lib/api-response";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+
+const MAX_MESSAGE_LENGTH = 5_000;
 
 const SENDER_NAME_FALLBACK = "Someone on Resumi";
 
@@ -43,13 +46,31 @@ export async function POST(req: Request) {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    // Message has no FK on senderId/receiverId, so anyone can send to any id.
+    // That is intentional for cold outreach, but it makes this the cheapest
+    // write in the app to abuse, so it gets a budget.
+    const limited = await enforceRateLimit(
+      req,
+      "messages:send",
+      userId,
+      RATE_LIMITS.message.limit,
+      RATE_LIMITS.message.windowMs
+    );
+    if (limited) return limited;
+
     const { receiverId, content } = await req.json();
     const trimmed = typeof content === "string" ? content.trim() : "";
-    if (!receiverId || typeof receiverId !== "string") {
+    if (!receiverId || typeof receiverId !== "string" || receiverId.length > 128) {
       return NextResponse.json({ error: "Missing receiver." }, { status: 400 });
     }
     if (!trimmed) {
       return NextResponse.json({ error: "Message cannot be empty." }, { status: 400 });
+    }
+    if (trimmed.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        { error: `Message must be ${MAX_MESSAGE_LENGTH} characters or fewer.` },
+        { status: 400 }
+      );
     }
     if (receiverId === userId) {
       return NextResponse.json({ error: "You can't message yourself." }, { status: 400 });

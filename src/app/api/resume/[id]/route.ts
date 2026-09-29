@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { ensureUser } from "@/lib/ensure-user";
 import { internalError, validationError } from "@/lib/api-response";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { resumePayloadSchema, resumeTitleSchema } from "@/lib/validation";
 import { calculateResumeProgress, ResumeProgress, ProgressInput } from "@/lib/resume-progress";
 import { Prisma } from "@prisma/client";
@@ -52,6 +53,18 @@ export async function POST(
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     await ensureUser(userId);
+
+    // The editor autosaves, so this is the highest-frequency write in the app.
+    // The limit is generous enough that normal editing never trips it and
+    // tight enough that a scripted writer cannot flood the table.
+    const limited = await enforceRateLimit(
+      req,
+      "resume:write",
+      userId,
+      RATE_LIMITS.resumeWrite.limit,
+      RATE_LIMITS.resumeWrite.windowMs
+    );
+    if (limited) return limited;
 
     const { id } = await params;
 

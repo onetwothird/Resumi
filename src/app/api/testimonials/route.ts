@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
 import { internalError, validationError } from "@/lib/api-response";
 import { testimonialSchema } from "@/lib/validation";
+import { enforceRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function GET() {
   try {
@@ -43,6 +44,18 @@ export async function POST(req: Request) {
     // and become visible only after a human approves them. userId is still
     // recorded when the visitor happens to be signed in.
     const { userId } = await auth();
+
+    // Anonymous endpoint, so this is keyed by IP. The moderation flag already
+    // stops abuse from being visible; this stops the table being flooded with
+    // rows that would each need reviewing.
+    const limited = await enforceRateLimit(
+      req,
+      "testimonial",
+      userId,
+      RATE_LIMITS.testimonial.limit,
+      RATE_LIMITS.testimonial.windowMs
+    );
+    if (limited) return limited;
 
     const parsed = testimonialSchema.safeParse(
       await req.json().catch(() => null)
