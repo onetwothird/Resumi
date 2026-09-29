@@ -16,13 +16,22 @@ export default async function JobApplicantsPage({
 
   const job = await prisma.job.findUnique({
     where: { id: jobId, userId },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      company: true,
       applications: {
         orderBy: { createdAt: "desc" },
-        include: {
-          user: true,
-          // If you linked the application to a specific resume model, fetch it here
-          // resume: true 
+        select: {
+          id: true,
+          userId: true,
+          status: true,
+          createdAt: true,
+          resumeId: true,
+          // Only the columns the table reads. `include: { user: true }`
+          // pulled the full User row plus every related record, which is
+          // unused here.
+          user: { select: { id: true, name: true, username: true } },
         },
       },
     },
@@ -30,19 +39,44 @@ export default async function JobApplicantsPage({
 
   if (!job) redirect("/employer/dashboard");
 
-  // Fetch Clerk user details to get applicant names and emails
-  const client = await clerkClient();
-  const applicationsWithDetails = await Promise.all(
-    job.applications.map(async (app) => {
-      const applicantClerk = await client.users.getUser(app.userId).catch(() => null);
-      return {
-        ...app,
-        fullName: applicantClerk?.fullName || "Unknown Candidate",
-        email: applicantClerk?.primaryEmailAddress?.emailAddress || "No email",
-        imageUrl: applicantClerk?.imageUrl,
-      };
-    })
+  // Batch the Clerk lookups. This used to be one getUser() call per
+  // applicant issued in parallel, so a job with 40 applicants meant 40
+  // round trips to Clerk before the page could render. getUserList is the
+  // same pattern already used in api/messages/threads/route.ts.
+  const applicantIds = Array.from(
+    new Set(job.applications.map((app) => app.userId))
   );
+  const clerkUsersById: Record<string, { fullName: string | null; email: string | null; imageUrl: string }> = {};
+
+  if (applicantIds.length > 0) {
+    try {
+      const client = await clerkClient();
+      const result = await client.users.getUserList({
+        userId: applicantIds,
+        limit: applicantIds.length,
+      });
+      for (const cu of result.data) {
+        clerkUsersById[cu.id] = {
+          fullName: cu.fullName,
+          email: cu.primaryEmailAddress?.emailAddress ?? null,
+          imageUrl: cu.imageUrl,
+        };
+      }
+    } catch (error) {
+      // Degrade to the local name rather than failing the page.
+      console.warn("Clerk bulk lookup failed on applicants page:", error);
+    }
+  }
+
+  const applicationsWithDetails = job.applications.map((app) => {
+    const clerkUser = clerkUsersById[app.userId];
+    return {
+      ...app,
+      fullName: clerkUser?.fullName || app.user.name || "Unknown Candidate",
+      email: clerkUser?.email || "No email",
+      imageUrl: clerkUser?.imageUrl,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-[#F4F6F8] p-4 sm:p-8">
