@@ -77,6 +77,13 @@ export default async function PublicProfilePage({ params }: PageProps) {
         settings: null,
         // Synthesized record that has never opted in.
         showEmail: false,
+        // Synthesized record has never bought anything, so there is no plan to
+        // report. Matches the "free" default every real row carries.
+        plan: "free",
+        planStatus: null,
+        planExpiresAt: null,
+        paymongoCustomerId: null,
+        paymongoSubscriptionId: null,
         createdAt: new Date(),
       };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
