@@ -25,12 +25,83 @@ model User {
   /// email-harvesting endpoint.
   showEmail    Boolean      @default(false)
 
+  /// Which paid plan this account currently has. "free" is the default and is
+  /// what every existing account already is implicitly.
+  ///
+  /// The catalogue that gives this value meaning is src/lib/plans.ts — this
+  /// column deliberately holds no foreign key to a plans table, because the
+  /// plan set is defined in code and shipping a price change should not
+  /// require a migration.
+  plan        String?      @default("free")
+
+  /// Mirrors the payment provider's own lifecycle state once recurring
+  /// billing is enabled ("active", "past_due", "cancelled", ...). Null while
+  /// access is granted by one-off payments instead of a subscription.
+  planStatus  String?
+
+  /// When the paid access runs out. Null means "no expiry recorded".
+  ///
+  /// A purchase extends from the later of now and the existing expiry, so
+  /// renewing early stacks rather than truncating the remaining time.
+  planExpiresAt DateTime?
+
+  /// PayMongo Customer id, retained so that enabling recurring billing later
+  /// does not orphan the customer record or create a duplicate per user.
+  paymongoCustomerId String?
+
+  /// PayMongo Subscription id, once recurring billing is enabled.
+  paymongoSubscriptionId String?
+
   resumes      Resume[]
   jobs         Job[]
   applications Application[] 
   notifications Notification[]
   receivedMessages Message[] @relation("ReceivedMessages")
+  payments     Payment[]
   createdAt    DateTime       @default(now())
+}
+
+/// One attempted purchase of a paid plan, from the moment a checkout session
+/// is created until it is confirmed paid, failed, or abandoned.
+///
+/// A row exists before the customer is redirected, so the amount that was
+/// offered can always be reconciled against what PayMongo actually collected.
+model Payment {
+  id       String @id @default(cuid())
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider String @default("paymongo")
+
+  /// "pro" | "premium" — matches PlanId in src/lib/plans.ts.
+  plan     String
+
+  /// "month" | "year" — matches BillingInterval in src/lib/plans.ts.
+  interval String
+
+  /// Amount in centavos, snapshotted at checkout time. Deliberately NOT read
+  /// back from the catalogue later: a price change must not rewrite the
+  /// history of what someone was charged.
+  amount   Int
+  currency String @default("PHP")
+
+  /// pending | paid | failed | expired
+  status   String @default("pending")
+
+  /// The PayMongo checkout session (cs_...). Unique, so a replayed webhook or a
+  /// double-clicked button cannot create two rows for one charge.
+  checkoutSessionId String? @unique
+
+  /// Populated once PayMongo reports a matching payment.
+  paymongoPaymentId String?
+  paidAt            DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
 
 model Resume {
