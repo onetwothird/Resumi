@@ -159,4 +159,11 @@ export const RATE_LIMITS = {
   resumeWrite: { limit: 30, windowMs: 60_000 },
   /** 30 messages per minute. */
   message: { limit: 30, windowMs: 60_000 },
+  /**
+   * 5 checkout sessions per 10 minutes. Tighter than the other write budgets
+   * because each one of these creates a real payable session on the merchant's
+   * live PayMongo account, and because each is a chance to hand someone a
+   * duplicate charge to complain about.
+   */
+  checkout: { limit: 5, windowMs: 10 * 60_000 },
 } as const;

@@ -164,6 +164,25 @@ export const userRoleSchema = z.object({
   role: z.enum(["employer", "jobseeker"]),
 });
 
+/**
+ * Body of POST /api/billing/checkout.
+ *
+ * Deliberately contains no amount. The route resolves the plan from this id
+ * against the catalogue in src/lib/plans.ts and takes the price from there,
+ * so a client cannot choose what it is charged. Sending `amount` in the body
+ * is the classic way a checkout endpoint ends up honouring attacker-supplied
+ * prices.
+ */
+export const checkoutSchema = z.object({
+  plan: z.enum(["pro", "premium"]),
+  interval: z.enum(["month", "year"]).default("month"),
+});
+
+/** Query for GET /api/billing/status?payment=<paymentId> */
+export const billingStatusQuerySchema = z.object({
+  payment: z.string().trim().min(1).max(64).optional(),
+});
+
 /** Body of POST /api/ai/rewrite */
 export const aiRewriteSchema = z.object({
   text: z.string().trim().min(1).max(5_000),
