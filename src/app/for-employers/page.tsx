@@ -128,27 +128,26 @@ export default function ForEmployersPage() {
   const { stats, status } = usePlatformStats();
 
   return (
-    <div className="min-h-screen bg-background text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden">
+    <div className="min-h-dvh bg-background text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 overflow-x-clip">
       <PublicHeader active="/for-employers" />
 
       <motion.main
         initial="hidden"
         animate="visible"
         variants={staggerContainer}
-        className="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-16 md:pt-32 md:pb-20 text-center flex flex-col items-center"
+        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 md:pt-32 md:pb-20 text-center flex flex-col items-center"
       >
-        <motion.h1 variants={fadeUp} className="font-serif text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 max-w-4xl mx-auto leading-[1.15]">
-          Find your next great hire, <br className="hidden md:block" />
-          faster than job boards allow
+        <motion.h1 variants={fadeUp} className="font-serif text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 max-w-4xl mx-auto leading-[1.15]">
+          Find your next great hire, faster than job boards allow
         </motion.h1>
         <motion.p variants={fadeUp} className="text-base md:text-lg text-slate-500 max-w-2xl mx-auto mb-10">
           Post roles, get matched to qualified candidates, and manage your whole pipeline without
           leaving Resumi.
         </motion.p>
-        <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-4">
+        <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <Link
             href="/employer/post-job"
-            className="flex items-center gap-2 text-sm font-semibold bg-indigo-600 text-white px-6 py-3.5 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm font-semibold bg-indigo-600 text-white px-6 py-3.5 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
           >
             Post a Job <ArrowRight className="w-4 h-4" />
           </Link>
@@ -160,9 +159,9 @@ export default function ForEmployersPage() {
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
         variants={staggerContainer}
-        className="relative z-10 py-12 bg-white border-y border-slate-200/80"
+        className="relative z-10 py-10 md:py-12 bg-white border-y border-slate-200/80"
       >
-        <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {STAT_ITEMS.map((item) => (
             <motion.div key={item.key} variants={staggerItem}>
               {status === "loading" ? (
@@ -185,20 +184,20 @@ export default function ForEmployersPage() {
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
         variants={staggerContainer}
-        className="relative z-10 py-24 bg-background"
+        className="relative z-10 py-16 md:py-24 bg-background"
       >
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div variants={fadeUp} className="text-center mb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div variants={fadeUp} className="text-center mb-10 md:mb-16">
             <h2 className="font-serif text-2xl md:text-3xl font-bold text-slate-900 mb-3">Everything you need to hire well</h2>
             <p className="text-sm md:text-base text-slate-500 max-w-xl mx-auto">Built for lean teams who don&apos;t have time to sift through unformatted resumes.</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
             {FEATURES.map((feature) => (
               <motion.div
                 key={feature.title}
                 variants={staggerItem}
-                className="group p-8 rounded-2xl bg-white border border-slate-200/60 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+                className="group p-6 sm:p-7 rounded-2xl bg-white border border-slate-200/60 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
               >
                 <div className={`w-12 h-12 rounded-xl ${feature.bg} flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-300`}>
                   <feature.icon className={`w-6 h-6 ${feature.color}`} />
@@ -216,10 +215,10 @@ export default function ForEmployersPage() {
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
         variants={staggerContainer}
-        className="relative z-10 py-24 bg-white border-t border-slate-200/80"
+        className="relative z-10 py-16 md:py-24 bg-white border-t border-slate-200/80"
       >
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <motion.h2 variants={fadeUp} className="font-serif text-2xl md:text-3xl font-bold text-slate-900 mb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.h2 variants={fadeUp} className="font-serif text-2xl md:text-3xl font-bold text-slate-900 mb-10 md:mb-16">
             Hiring in three simple steps
           </motion.h2>
 
