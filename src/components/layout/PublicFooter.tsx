@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -21,6 +21,7 @@ export default function PublicFooter() {
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   // Testimonial form state
   const [tName, setTName] = useState("");
@@ -52,6 +53,20 @@ export default function PublicFooter() {
   function closeModal() {
     setModalOpen(false);
   }
+
+  // Escape closes the dialog. A fixed overlay cannot be scrolled, so without
+  // a height cap the form runs under the phone keyboard and the submit button
+  // is simply unreachable.
+  useEffect(() => {
+    if (!modalOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeModal();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    // Land focus inside the dialog so the next Tab is not behind the overlay.
+    titleRef.current?.focus();
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [modalOpen]);
 
   async function handleTestimonial(e: FormEvent) {
     e.preventDefault();
@@ -104,16 +119,16 @@ export default function PublicFooter() {
                 <ResumiLogo className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
                 Resumi
               </Link>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4 text-sm text-slate-400">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 text-sm text-slate-400">
                 {FOOTER_LINKS.map((link) => (
-                  <Link key={link.href} href={link.href} className="hover:text-indigo-400 transition-all duration-200 hover:translate-x-0.5">
+                  <Link key={link.href} href={link.href} className="py-1.5 hover:text-indigo-400 transition-all duration-200 hover:translate-x-0.5">
                     {link.label}
                   </Link>
                 ))}
               </div>
             </div>
 
-            <div className="flex flex-col items-start lg:items-end">
+            <div className="flex flex-col items-start lg:items-end w-full lg:w-auto">
               <p className="text-sm font-semibold text-white mb-3">Job alerts, weekly</p>
               {subscribed ? (
                 <p className="text-sm text-slate-400 animate-fade-in">You&apos;re on the list — we&apos;ll be in touch.</p>
@@ -125,11 +140,11 @@ export default function PublicFooter() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@email.com"
-                    className="flex-1 min-w-0 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200 focus:scale-[1.01]"
+                    className="flex-1 min-w-0 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-3 text-base sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200 focus:scale-[1.01]"
                   />
                   <button
                     type="submit"
-                    className="shrink-0 text-sm font-semibold bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/25 active:scale-95"
+                    className="shrink-0 text-sm font-semibold bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/25 active:scale-95"
                   >
                     Subscribe
                   </button>
@@ -147,7 +162,9 @@ export default function PublicFooter() {
               <p className="text-sm sm:text-base text-slate-300">Got hired using Resumi? Share your story — it could inspire others.</p>
             </div>
             <motion.button
+              type="button"
               onClick={openModal}
+              aria-haspopup="dialog"
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
               className="shrink-0 inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/25"
@@ -165,11 +182,11 @@ export default function PublicFooter() {
               <p className="text-sm text-slate-400">
                 © {new Date().getFullYear()} Resumi. All rights reserved.
               </p>
-              <div className="flex items-center gap-5 text-sm">
-                <Link href="/sign-in" className="font-medium text-slate-300 hover:text-white transition-all duration-200 hover:translate-x-0.5">
+              <div className="flex items-center gap-3 text-sm">
+                <Link href="/sign-in" className="py-1.5 font-medium text-slate-300 hover:text-white transition-all duration-200 hover:translate-x-0.5">
                   Sign In
                 </Link>
-                <Link href="/sign-up" className="font-semibold text-indigo-400 hover:text-indigo-300 transition-all duration-200 hover:translate-x-0.5">
+                <Link href="/sign-up" className="py-1.5 font-semibold text-indigo-400 hover:text-indigo-300 transition-all duration-200 hover:translate-x-0.5">
                   Get Started
                 </Link>
               </div>
@@ -188,7 +205,10 @@ export default function PublicFooter() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="testimonial-modal-title"
+              className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-slate-900/60 overflow-y-auto"
               onClick={closeModal}
             >
               <motion.div
@@ -198,12 +218,18 @@ export default function PublicFooter() {
                 exit={{ opacity: 0, scale: 0.95, y: 16 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg p-6 sm:p-8 relative overflow-hidden"
+                /* my-auto + max-h + scroll: on a 667px phone the form is
+                   taller than the screen once the keyboard is open, and a
+                   centred fixed overlay cannot be scrolled — the heading and
+                   the submit button used to be clipped away entirely. */
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain p-6 sm:p-8 relative my-auto"
               >
                 {/* Close button */}
                 <button
+                  type="button"
+                  aria-label="Close"
                   onClick={closeModal}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 hover:rotate-90"
+                  className="absolute top-3 right-3 p-2 -m-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                 >
                   <X size={20} />
                 </button>
@@ -246,7 +272,7 @@ export default function PublicFooter() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5 }}
                         onClick={closeModal}
-                        className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
+                        className="px-4 py-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
                       >
                         Close
                       </motion.button>
@@ -260,7 +286,14 @@ export default function PublicFooter() {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="text-center mb-5">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Share Your Experience</h3>
+                        <h3
+                          ref={titleRef}
+                          tabIndex={-1}
+                          id="testimonial-modal-title"
+                          className="text-xl font-bold text-gray-900 dark:text-white mb-1 outline-none"
+                        >
+                          Share Your Experience
+                        </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           Got hired using Resumi? Tell us about it.
                         </p>
@@ -309,25 +342,28 @@ export default function PublicFooter() {
                           value={tQuote}
                           onChange={(e) => setTQuote(e.target.value)}
                           placeholder="How did Resumi help you? (e.g. 'I went from zero callbacks to three interviews in one week.')"
-                          rows={2}
-                          className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none transition-all duration-200"
+                          rows={3}
+                          className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
                         />
 
                         <motion.div
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.25 }}
-                          className="flex items-center justify-between gap-3"
+                          className="flex flex-wrap items-center justify-between gap-3"
                         >
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1" role="radiogroup" aria-label="Rating">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <motion.button
                                 key={star}
                                 type="button"
+                                role="radio"
+                                aria-checked={star === tRating}
+                                aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
                                 onClick={() => setTRating(star)}
                                 whileHover={{ scale: 1.2 }}
                                 whileTap={{ scale: 0.9 }}
-                                className="p-0.5 transition-colors duration-150"
+                                className="p-1.5 -m-0.5 transition-colors duration-150"
                               >
                                 <Star
                                   size={18}
@@ -337,16 +373,18 @@ export default function PublicFooter() {
                             ))}
                           </div>
 
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3 ml-auto">
                             {tError && (
-                              <p className="text-xs text-red-500">{tError}</p>
+                              <p role="alert" className="text-xs text-red-500 min-w-0 flex-1 wrap-break-word text-right">
+                                {tError}
+                              </p>
                             )}
                             <motion.button
                               type="submit"
                               disabled={tSubmitting}
                               whileHover={{ scale: 1.03 }}
                               whileTap={{ scale: 0.97 }}
-                              className="flex items-center justify-center gap-2 text-sm font-semibold bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-indigo-500/25"
+                              className="shrink-0 flex items-center justify-center gap-2 text-sm font-semibold bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-indigo-500/25"
                             >
                               <Send size={14} />
                               {tSubmitting ? "Submitting…" : "Submit"}
