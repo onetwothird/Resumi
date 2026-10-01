@@ -161,7 +161,7 @@ export default function AdminClient({ initialStats }: { initialStats: AdminStats
       {toast && (
         <div
           role="status"
-          className="fixed top-4 left-1/2 z-[110] flex w-full max-w-sm -translate-x-1/2 items-start gap-2.5 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-lg"
+          className="fixed top-4 left-1/2 z-110 flex w-full max-w-sm -translate-x-1/2 items-start gap-2.5 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-lg"
         >
           {toast.variant === "success" ? (
             <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-emerald-500" />
@@ -477,7 +477,7 @@ function UsersTab({
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
+            <table className="w-full min-w-720px text-left text-sm">
               <thead className="border-b border-gray-200 bg-gray-50/60">
                 <tr>
                   <Th>Account</Th>
@@ -847,7 +847,7 @@ function UserDrawer({
       {typeof document !== "undefined" &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex justify-end bg-slate-900/40 backdrop-blur-sm"
+            className="fixed inset-0 z-100 flex justify-end bg-slate-900/40 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
             aria-label="Account details"
@@ -941,7 +941,7 @@ function UserDrawer({
           about to change is on screen at the same time as the box asking why. */}
       {confirming && (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-120 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
           onClick={() => !saving && setConfirming(false)}
         >
           <div
@@ -1452,7 +1452,7 @@ function PaymentsTab({
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
+            <table className="w-full min-w-160 text-left text-sm">
               <thead className="border-b border-gray-200 bg-gray-50/60">
                 <tr>
                   <Th>Account</Th>
@@ -1513,7 +1513,7 @@ function PaymentsTab({
 
       {confirm && (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-120 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
           onClick={() => !saving && setConfirm(null)}
         >
           <div
