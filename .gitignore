@@ -29,6 +29,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+# `npm run dev > dev.log` is the documented way to read the dev server output in
+# this repo. It is regenerated on every start and holds no source.
+*.log
 
 # env files (can opt-in for committing if needed)
 .env*
