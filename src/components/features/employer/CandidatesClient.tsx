@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { User, FileText, Users, Search, Home, Video } from "lucide-react";
+import { User, FileText, Users, Search, Home, Video, CreditCard } from "lucide-react";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
 import MobileNav from "@/components/layout/MobileNav";
@@ -34,6 +34,7 @@ export default function CandidatesClient() {
               <UserButton.MenuItems>
                 <UserButton.Link label="Edit Profile" labelIcon={<User size={15} />} href="/profile" />
                 <UserButton.Link label="Candidate Dashboard" labelIcon={<FileText size={15} />} href="/dashboard" />
+                <UserButton.Link label="Pricing" labelIcon={<CreditCard size={15} />} href="/pricing" />
               </UserButton.MenuItems>
             </UserButton>
           </div>
