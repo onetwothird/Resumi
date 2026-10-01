@@ -12,6 +12,8 @@ import {
   Home,
   Building2,
   PenTool,
+  Crown,
+  CreditCard,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { ResumeListItem } from "@/types/dashboard";
@@ -26,7 +28,7 @@ import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
 import MobileNav from "@/components/layout/MobileNav";
-import { useSearchParams, useRouter } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
 type SortOption = "updated" | "created" | "name";
 type TabOption = "resumes" | "jobs";
@@ -88,6 +90,9 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   const [] = useState(false);
   
   const searchParams = useSearchParams();
+  // Only used to highlight the Pricing nav item; the rest of this header's
+  // "active" state comes from `activeTab`.
+  const pathname = usePathname();
   const initialTab = searchParams.get("tab") === "jobs" ? "jobs" : "resumes";
   const [activeTab, setActiveTab] = useState<TabOption>(initialTab);
 
@@ -573,6 +578,18 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
             </button>
             <Link href="/companies" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Companies <ChevronDown size={14}/></Link>
             <Link href="/resume/new" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Builder <ChevronDown size={14}/></Link>
+            {/* The public pricing grid. /pricing is the full comparison table;
+                the sidebar's "Plans" link only exists on Profile/Saved, so
+                without this there was no pricing link on the page people spend
+                the most time on. */}
+            <Link
+              href="/pricing"
+              className={`transition-colors ${
+                pathname?.startsWith("/pricing") ? "text-gray-900 font-semibold" : "hover:text-gray-900"
+              }`}
+            >
+              Pricing
+            </Link>
             <button onClick={startAiInterview} className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 transition-colors">
               <Sparkles size={14} className="text-indigo-500" /> AI Coach
             </button>
@@ -600,6 +617,11 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                   labelIcon={<Briefcase size={15} />}
                   href="/employer/dashboard"
                 />
+                <UserButton.Link
+                  label="Pricing"
+                  labelIcon={<CreditCard size={15} />}
+                  href="/pricing"
+                />
               </UserButton.MenuItems>
             </UserButton>
           </div>
@@ -609,6 +631,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               { label: "Jobs", href: "/jobs", icon: Briefcase },
               { label: "Companies", href: "/companies", icon: Building2 },
               { label: "Builder", href: "/resume/new", icon: PenTool, primary: true },
+              { label: "Pricing", href: "/pricing", icon: Crown },
               { label: "AI Coach", onClick: startAiInterview, icon: Sparkles, primary: true },
             ]}
             label="Open navigation"
