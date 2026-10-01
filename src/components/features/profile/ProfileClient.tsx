@@ -7,7 +7,7 @@ import { UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { 
   LayoutDashboard, Bookmark, Crown, User as UserIcon, 
   Settings, Eye, Upload, Camera, Loader2, Check, Bell,
-  Briefcase, Building2,
+  Briefcase, Building2, CreditCard,
 } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
@@ -106,6 +106,7 @@ export default function ProfileClient({ initialData }: { initialData: UserProfil
               <UserButton.MenuItems>
                 <UserButton.Link label="Edit Profile" labelIcon={<UserIcon size={15} />} href="/profile" />
                 <UserButton.Link label="Employer Dashboard" labelIcon={<Crown size={15} />} href="/employer/dashboard" />
+                <UserButton.Link label="Pricing" labelIcon={<CreditCard size={15} />} href="/pricing" />
               </UserButton.MenuItems>
             </UserButton>
           </div>
