@@ -165,6 +165,65 @@ export const userRoleSchema = z.object({
 });
 
 /**
+ * Admin panel payloads.
+ *
+ * `plan` is an enum rather than a string so an unknown plan is rejected at the
+ * boundary — src/lib/admin.ts re-checks it too, but the route should never be
+ * the only thing standing between a typo and a user whose plan is "por".
+ *
+ * The two ways of setting an expiry are mutually exclusive on purpose: "give
+ * them 3 months" and "expire on this date" are different intentions, and
+ * accepting both at once means one silently wins.
+ */
+export const adminPlanSchema = z
+  .object({
+    plan: z.enum(["free", "pro", "premium"]),
+    /** Whole months from now, measured by the catalogue's own month length. */
+    months: z.number().int().min(1).max(120).optional(),
+    /** ISO date. null/undefined means "never expires". */
+    planExpiresAt: z
+      .string()
+      .max(40)
+      .refine(
+        (v) => !Number.isNaN(new Date(v).getTime()),
+        "Not a valid date"
+      )
+      .optional()
+      .nullable(),
+    /**
+     * Why this change was made. Required, not optional: a grant of paid access
+     * with no stated reason is indistinguishable from a mistake once it is
+     * three weeks old.
+     */
+    note: z.string().trim().min(3, "Say why this change is being made").max(1_000),
+  })
+  .refine((v) => !(v.months != null && v.planExpiresAt), {
+    message: "Send either months or a date, not both",
+    path: ["months"],
+  });
+
+/** Body of POST /api/admin/payments/[id]/mark-paid */
+export const adminMarkPaidSchema = z.object({
+  note: z.string().trim().min(3, "Say why this is being marked paid").max(1_000),
+});
+
+/** Body of PATCH /api/admin/users/[id]/note */
+export const adminNoteSchema = z.object({
+  // Empty is allowed and means "clear the note", so this is not min(1).
+  note: z.string().trim().max(4_000),
+});
+
+/** Query for GET /api/admin/users */
+export const adminUserQuerySchema = z.object({
+  q: z.string().trim().max(200).optional(),
+  plan: z.enum(["free", "pro", "premium", "any"]).default("any"),
+  /** paid | free | expiring — the precomputed buckets the panel filters on. */
+  filter: z.enum(["all", "paid", "free", "expiring"]).default("all"),
+  page: z.coerce.number().int().min(1).max(10_000).default(1),
+  perPage: z.coerce.number().int().min(1).max(100).default(25),
+});
+
+/**
  * Body of POST /api/billing/checkout.
  *
  * Deliberately contains no amount. The route resolves the plan from this id
