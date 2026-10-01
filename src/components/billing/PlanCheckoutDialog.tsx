@@ -96,7 +96,7 @@ export default function PlanCheckoutDialog({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md rounded-3xl bg-white shadow-2xl p-6 sm:p-7 outline-none max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain"
+        className="relative w-full max-w-md rounded-3xl bg-white shadow-2xl p-5 sm:p-7 outline-none max-h-[min(96dvh,720px)] overflow-y-auto overscroll-contain"
       >
         <button
           type="button"
@@ -131,11 +131,10 @@ export default function PlanCheckoutDialog({
           </p>
         </div>
 
-        <div className="mt-5 flex justify-center">
+        <div className="mt-4 flex justify-center">
           {qrBroken || qrAssetMissing ? (
             <div
-              className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white text-slate-400"
-              style={{ width: 208, height: 208 }}
+              className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white text-slate-400 w-full max-w-60 aspect-3/4 sm:max-w-70"
             >
               <QrCode size={44} aria-hidden />
               <span className="px-4 text-center text-[11px] font-medium">
@@ -147,21 +146,19 @@ export default function PlanCheckoutDialog({
             <img
               src={QR_SRC}
               alt={`QR code to pay ${formatPeso(amount)} for the Resumi ${planName} plan`}
-              width={208}
-              height={208}
               onError={() => {
                 qrAssetMissing = true;
                 setQrBroken(true);
               }}
-              className="rounded-2xl border border-slate-200 bg-white p-1"
+              className="rounded-2xl border border-slate-200 bg-white p-1 w-full max-w-60 h-auto sm:max-w-70 object-contain"
             />
           )}
         </div>
 
         {signedIn ? (
-          <ol className="mt-5 space-y-2">
+          <ol className="mt-4 space-y-1.5 sm:mt-5 sm:space-y-2">
             {STEPS.map((step, index) => (
-              <li key={step} className="flex items-start gap-2.5 text-sm text-slate-600">
+              <li key={step} className="flex items-start gap-2 text-sm text-slate-600 sm:gap-2.5">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-[11px] font-bold text-indigo-700">
                   {index + 1}
                 </span>
@@ -182,7 +179,7 @@ export default function PlanCheckoutDialog({
         {/* Two ways to pay, not a replacement: the QR is manual, and card
             checkout stays one tap for anyone who would rather not wait on a
             transfer to be matched up by hand. */}
-        <div className="mt-5 flex items-center gap-3" aria-hidden>
+        <div className="mt-4 flex items-center gap-3 sm:mt-5" aria-hidden>
           <span className="h-px flex-1 bg-slate-200" />
           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
             or
@@ -190,14 +187,14 @@ export default function PlanCheckoutDialog({
           <span className="h-px flex-1 bg-slate-200" />
         </div>
 
-        <div className="mt-5 space-y-2.5">
+        <div className="mt-4 space-y-2 sm:mt-5 sm:space-y-2.5">
           {signedIn ? (
             <CheckoutButton
               plan={plan}
               interval={interval}
               signedOutHref="/pricing"
               pendingLabel="Opening card checkout…"
-              className="w-full rounded-xl border border-slate-200 py-3 text-sm font-semibold text-slate-700 hover:border-indigo-300 hover:text-indigo-700 transition-colors"
+              className="w-full rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:border-indigo-300 hover:text-indigo-700 transition-colors sm:py-3"
             >
               <span className="inline-flex items-center gap-2">
                 <CreditCard size={15} aria-hidden />
@@ -207,7 +204,7 @@ export default function PlanCheckoutDialog({
           ) : (
             <Link
               href="/sign-up"
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors sm:py-3"
             >
               <LogIn size={15} aria-hidden />
               Sign up to pay
@@ -217,13 +214,13 @@ export default function PlanCheckoutDialog({
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-xl py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+            className="w-full rounded-xl py-2 text-sm font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors sm:py-2.5"
           >
             Not now
           </button>
         </div>
 
-        <p className="mt-4 text-center text-xs text-slate-400 leading-relaxed">
+        <p className="mt-3 text-center text-xs text-slate-400 leading-relaxed sm:mt-4">
           Charged once for the period you buy. It does not renew on its own, and
           you keep every resume you make either way.
         </p>
