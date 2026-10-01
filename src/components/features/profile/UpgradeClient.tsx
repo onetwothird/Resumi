@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
+  CreditCard,
 } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
@@ -143,6 +144,7 @@ export default function UpgradeClient({
               <UserButton.MenuItems>
                 <UserButton.Link label="Edit Profile" labelIcon={<UserIcon size={15} />} href="/profile" />
                 <UserButton.Link label="Employer Dashboard" labelIcon={<Crown size={15} />} href="/employer/dashboard" />
+                <UserButton.Link label="Pricing" labelIcon={<CreditCard size={15} />} href="/pricing" />
               </UserButton.MenuItems>
             </UserButton>
           </div>
