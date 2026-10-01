@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser, UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, Bookmark, Crown, User as UserIcon, Settings, Search, Bell, Briefcase, Building2 } from "lucide-react";
+import { LayoutDashboard, Bookmark, Crown, User as UserIcon, Settings, Search, Bell, Briefcase, Building2, CreditCard } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
@@ -35,6 +35,7 @@ export default function SavedClient() {
               <UserButton.MenuItems>
                 <UserButton.Link label="Edit Profile" labelIcon={<UserIcon size={15} />} href="/profile" />
                 <UserButton.Link label="Employer Dashboard" labelIcon={<Crown size={15} />} href="/employer/dashboard" />
+              <UserButton.Link label="Pricing" labelIcon={<CreditCard size={15} />} href="/pricing" />
               </UserButton.MenuItems>
             </UserButton>
           </div>
