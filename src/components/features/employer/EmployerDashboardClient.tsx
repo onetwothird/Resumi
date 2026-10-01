@@ -20,6 +20,8 @@ import {
   Settings,
   Home,
   Video,
+  Crown,
+  CreditCard,
 } from "lucide-react";
 import { JobListItem, EmployerAnalytics } from "@/types/employer";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
@@ -101,6 +103,12 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
             >
               Interviews
             </Link>
+            <Link
+              href="/pricing"
+              className={`transition-colors ${pathname?.startsWith('/pricing') ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}
+            >
+              Pricing
+            </Link>
           </nav>
         </div>
 
@@ -125,6 +133,11 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
                   labelIcon={<Settings size={15} />}
                   href="/settings"
                 />
+                <UserButton.Link
+                  label="Pricing"
+                  labelIcon={<CreditCard size={15} />}
+                  href="/pricing"
+                />
               </UserButton.MenuItems>
             </UserButton>
           </div>
@@ -134,6 +147,7 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
             { label: "Dashboard", href: "/employer/dashboard", icon: Home, active: pathname === "/employer/dashboard" },
             { label: "Candidates", href: "/employer/candidates", icon: Users, active: pathname?.includes("/candidates") || pathname?.includes("/applicants") },
             { label: "Interviews", href: "/employer/interviews", icon: Video, active: pathname?.includes("/interviews") },
+            { label: "Pricing", href: "/pricing", icon: Crown, active: pathname?.startsWith("/pricing") },
           ]}
           label="Open navigation"
         />
