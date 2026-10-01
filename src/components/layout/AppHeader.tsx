@@ -27,11 +27,16 @@ export default function AppHeader() {
         { label: "Dashboard", href: "/employer/dashboard", active: pathname === "/employer/dashboard" },
         { label: "Candidates", href: "/employer/candidates", active: pathname?.includes("/candidates") },
         { label: "Interviews", href: "/employer/interviews", active: pathname?.includes("/interviews") },
+        // /pricing used to be reachable only by typing the URL: the one link
+        // inside the app pointed at /upgrade, and / redirects to /dashboard once
+        // signed in, so the public header's Pricing link was never on screen.
+        { label: "Pricing", href: "/pricing", active: pathname?.startsWith("/pricing") },
       ]
     : [
         { label: "Home", href: "/dashboard", active: pathname === "/dashboard" },
         { label: "Jobs", href: "/jobs", active: pathname === "/jobs" },
         { label: "Companies", href: "/companies", active: pathname === "/companies" },
+        { label: "Pricing", href: "/pricing", active: pathname?.startsWith("/pricing") },
       ];
 
   return (
