@@ -84,6 +84,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
         planExpiresAt: null,
         paymongoCustomerId: null,
         paymongoSubscriptionId: null,
+        // Staff note. There is no staff note for a record that does not exist.
+        adminNote: null,
         createdAt: new Date(),
       };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
