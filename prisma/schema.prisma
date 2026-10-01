@@ -52,13 +52,80 @@ model User {
   /// PayMongo Subscription id, once recurring billing is enabled.
   paymongoSubscriptionId String?
 
+  /// Private note kept by staff about this account — why a plan was granted by
+  /// hand, who to ask about a dispute, and so on.
+  ///
+  /// Never selected by any user-facing query and never returned by /api/profile.
+  /// It exists so an admin can leave context that outlives the conversation it
+  /// was written in, not as a field the account holder can read or write.
+  adminNote   String?      @db.Text
+
   resumes      Resume[]
   jobs         Job[]
   applications Application[] 
   notifications Notification[]
   receivedMessages Message[] @relation("ReceivedMessages")
   payments     Payment[]
+
+  /// Audit rows this admin authored. Cascades: the trail dies with its author,
+  /// which is only reachable if the Clerk account itself is deleted.
+  adminActions AdminAuditLog[] @relation("AdminAuditActor")
+
+  /// Audit rows about this account. SetNull rather than Cascade on the target:
+  /// deleting the audited user must not erase the record that they were once
+  /// granted paid access by hand.
+  auditEntries AdminAuditLog[] @relation("AdminAuditTarget")
+
   createdAt    DateTime       @default(now())
+}
+
+/// Append-only record of every privileged change made through /admin.
+///
+/// A plan column can grant someone paid access, so "who set this and why" has
+/// to be answerable without trusting anybody's memory. Rows are written by
+/// src/lib/admin.ts and are never updated or deleted by application code.
+///
+/// The values are kept as loose strings rather than a foreign key to a plan
+/// table, for the same reason User.plan is: the plan set is defined in code, so
+/// a price or plan change must not be able to rewrite history here. A snapshot
+/// of the values is more useful in a log than a live reference to them.
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+
+  /// The admin who made the change. Not the target: these differ whenever an
+  /// admin edits someone else's account, which is the normal case here.
+  actorId   String
+  actor     User     @relation("AdminAuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  /// The account that was changed. Nullable so an entry can outlive its target.
+  targetUserId String?
+  target    User?    @relation("AdminAuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  /// plan.set | payment.mark_paid | user.note — see ADMIN_ACTIONS in
+  /// src/lib/admin.ts. Kept as text so a new action does not need a migration.
+  action    String
+
+  /// Field before the change, as a display string ("free", "pro"). Null when
+  /// the field had no prior value or the action does not touch it.
+  fromValue String?
+
+  /// Field after the change. Null for actions that do not set a value.
+  toValue   String?
+
+  /// The admin's own words for the change. Required: an unexplained grant of
+  /// paid access is indistinguishable from a mistake, and this is the only
+  /// place that context is captured.
+  note      String   @db.Text
+
+  /// When the change was effective from, for plan grants. Kept apart from
+  /// createdAt (when it was typed) so a backdated grant is legible.
+  effectiveAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([targetUserId])
+  @@index([actorId])
 }
 
 /// One attempted purchase of a paid plan, from the moment a checkout session
