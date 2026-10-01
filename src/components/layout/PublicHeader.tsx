@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Menu, X } from "lucide-react";
+import { ChevronRight, LayoutDashboard, Menu, X } from "lucide-react";
+import { useAuth, useUser } from "@clerk/nextjs";
 import ResumiLogo from "@/components/ui/ResumiLogo";
+
+type Role = "employer" | "jobseeker";
 
 const NAV_LINKS: { href: string; label: string }[] = [
   { href: "/#features", label: "Features" },
@@ -19,6 +22,20 @@ interface Props {
 
 export default function PublicHeader({ active }: Props) {
   const [open, setOpen] = useState(false);
+  const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
+  const role = user?.publicMetadata?.role as Role | undefined;
+
+  // This header renders on pages a signed-in visitor can reach — most
+  // importantly /pricing, which used to greet them with "Sign In" and "Get
+  // Started" while they already had an account. Swap the actions once Clerk has
+  // actually reported the session rather than guessing from a cookie.
+  //
+  // `isSignedIn` is false until Clerk loads, so the server render and the first
+  // client render agree on the signed-out markup and there is no hydration
+  // mismatch; the swap happens right after.
+  const signedIn = isLoaded && isSignedIn;
+  const appHref = role === "employer" ? "/employer/dashboard" : "/dashboard";
 
   // Escape closes the panel, and so does growing past `lg` — the overlay is
   // `lg:hidden`, so on an iPad rotation from portrait to landscape the nav
@@ -85,18 +102,30 @@ export default function PublicHeader({ active }: Props) {
           </div>
 
           <div className="hidden md:flex items-center gap-4 shrink-0 ml-auto">
-            <Link
-              href="/sign-in"
-              className="hidden lg:inline-block px-2 py-2 text-sm font-medium text-foreground/60 hover:text-foreground transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="px-4 py-2 rounded-lg text-sm font-semibold bg-foreground text-background hover:opacity-90 transition-opacity shadow-sm"
-            >
-              Get Started
-            </Link>
+            {signedIn ? (
+              <Link
+                href={appHref}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-foreground text-background hover:opacity-90 transition-opacity shadow-sm"
+              >
+                <LayoutDashboard size={15} aria-hidden />
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/sign-in"
+                  className="hidden lg:inline-block px-2 py-2 text-sm font-medium text-foreground/60 hover:text-foreground transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="px-4 py-2 rounded-lg text-sm font-semibold bg-foreground text-background hover:opacity-90 transition-opacity shadow-sm"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
 
           <button
@@ -165,20 +194,33 @@ export default function PublicHeader({ active }: Props) {
               className="mt-auto pt-8 flex flex-col gap-3 animate-fade-in-up"
               style={{ animationDelay: '0.4s' }}
             >
-              <Link
-                href="/sign-in"
-                onClick={() => setOpen(false)}
-                className="w-full text-center text-sm font-semibold text-foreground py-3.5 rounded-lg border border-foreground/20 hover:bg-foreground/5 transition-colors duration-200"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/sign-up"
-                onClick={() => setOpen(false)}
-                className="w-full text-center text-sm font-semibold bg-foreground text-background py-3.5 rounded-lg hover:opacity-90 transition-opacity duration-200"
-              >
-                Get Started
-              </Link>
+              {signedIn ? (
+                <Link
+                  href={appHref}
+                  onClick={() => setOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 text-sm font-semibold bg-foreground text-background py-3.5 rounded-lg hover:opacity-90 transition-opacity duration-200"
+                >
+                  <LayoutDashboard size={16} aria-hidden />
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/sign-in"
+                    onClick={() => setOpen(false)}
+                    className="w-full text-center text-sm font-semibold text-foreground py-3.5 rounded-lg border border-foreground/20 hover:bg-foreground/5 transition-colors duration-200"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    onClick={() => setOpen(false)}
+                    className="w-full text-center text-sm font-semibold bg-foreground text-background py-3.5 rounded-lg hover:opacity-90 transition-opacity duration-200"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </motion.div>
         )}
