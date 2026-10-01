@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, type FormEvent } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { useAuth } from "@clerk/nextjs";
 import { Send, CheckCircle, Star, MessageSquareQuote, X } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 
@@ -17,7 +18,12 @@ const FOOTER_LINKS: { href: string; label: string }[] = [
 export default function PublicFooter() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
-  const [mounted, setMounted] = useState(false);
+
+  // Same reason as PublicHeader: this footer renders on /pricing, and telling
+  // someone who already signed in to sign in is a dead end. False until Clerk
+  // loads, so the server render and the first client render agree.
+  const { isLoaded, isSignedIn } = useAuth();
+  const signedIn = isLoaded && isSignedIn;
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -33,10 +39,18 @@ export default function PublicFooter() {
   const [tSubmitted, setTSubmitted] = useState(false);
   const [tError, setTError] = useState<string | null>(null);
 
-  // Mark as mounted after client hydration
-  if (typeof window !== "undefined" && !mounted) {
-    setMounted(true);
-  }
+  // "Am I running in the browser?" The testimonial dialog is portalled into
+  // document.body, which does not exist on the server. This replaced a
+  // setState-during-render guarded by a `typeof window` check — React only
+  // tolerates that as a render-phase update, and moving it into an effect is
+  // no better, since it just trades the mid-render re-run for a cascading one.
+  // A store subscription answers the same question with no state at all: the
+  // server snapshot is false, the browser snapshot is true.
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   function handleSubscribe(e: FormEvent) {
     e.preventDefault();
@@ -183,12 +197,20 @@ export default function PublicFooter() {
                 © {new Date().getFullYear()} Resumi. All rights reserved.
               </p>
               <div className="flex items-center gap-3 text-sm">
-                <Link href="/sign-in" className="py-1.5 font-medium text-slate-300 hover:text-white transition-all duration-200 hover:translate-x-0.5">
-                  Sign In
-                </Link>
-                <Link href="/sign-up" className="py-1.5 font-semibold text-indigo-400 hover:text-indigo-300 transition-all duration-200 hover:translate-x-0.5">
-                  Get Started
-                </Link>
+                {signedIn ? (
+                  <Link href="/dashboard" className="py-1.5 font-semibold text-indigo-400 hover:text-indigo-300 transition-all duration-200 hover:translate-x-0.5">
+                    Go to your dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/sign-in" className="py-1.5 font-medium text-slate-300 hover:text-white transition-all duration-200 hover:translate-x-0.5">
+                      Sign In
+                    </Link>
+                    <Link href="/sign-up" className="py-1.5 font-semibold text-indigo-400 hover:text-indigo-300 transition-all duration-200 hover:translate-x-0.5">
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -196,7 +218,7 @@ export default function PublicFooter() {
       </footer>
 
       {/* ── Testimonial Modal (portal to body) ── */}
-      {mounted && createPortal(
+      {isClient && createPortal(
         <AnimatePresence>
           {modalOpen && (
             <motion.div
