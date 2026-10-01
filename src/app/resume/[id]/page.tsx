@@ -6,7 +6,7 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import {
   Undo, Redo, Share, ChevronDown, Save, 
   PenTool, Eye, Settings, FileText, Briefcase, User as UserIcon,
-  Home, Sparkles,
+  Home, Sparkles, CreditCard,
 } from "lucide-react";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import { ResumeData, ResumeTheme, ExperienceItem, EducationItem, DEFAULT_THEME } from "@/types";
@@ -495,6 +495,7 @@ export default function EditorPage() {
                 ) : (
                   <UserButton.Link label="Employer Dashboard" labelIcon={<Briefcase size={15} />} href="/employer/dashboard" />
                 )}
+                <UserButton.Link label="Pricing" labelIcon={<CreditCard size={15} />} href="/pricing" />
               </UserButton.MenuItems>
             </UserButton>
           </div>
