@@ -199,7 +199,7 @@ export default function PlanCheckoutDialog({
           */}
           <div className="mt-4 flex justify-center">
             {qrBroken || qrAssetMissing ? (
-              <div className="mx-auto flex aspect-[1220/1714] h-[min(36svh,300px)] w-auto min-w-36 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white p-3 text-slate-400">
+              <div className="mx-auto flex aspect-1220/1714 h-[min(36svh,300px)] w-auto min-w-36 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white p-3 text-slate-400">
                 <QrCode size={40} aria-hidden />
                 <span className="text-center text-[11px] font-medium">
                   Payment QR is not configured on this deployment yet
