@@ -17,6 +17,7 @@ const isApiRoute = createRouteMatcher(["/api(.*)", "/trpc(.*)"]);
 const isOnboardingRoute = createRouteMatcher(["/onboarding"]);
 const isEmployerRoute = createRouteMatcher(["/employer(.*)"]);
 const isJobSeekerRoute = createRouteMatcher(["/dashboard(.*)", "/resume(.*)"]);
+const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 
 export default clerkMiddleware(
   async (auth, req) => {
@@ -52,6 +53,25 @@ export default clerkMiddleware(
 
     if (role === "jobseeker" && isEmployerRoute(req)) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    // /admin is reachable by admins of either role, so this check sits after the
+    // cross-role redirects rather than inside one of them: an admin who is also
+    // a jobseeker still needs /admin to be theirs, not bounced to /dashboard.
+    //
+    // This is a routing convenience, not the authorization. src/proxy.ts
+    // short-circuits /api(.*) above, so none of the /api/admin routes are
+    // protected here — each one calls requireAdmin() itself, and the admin page
+    // re-checks before rendering. A non-admin who types /admin gets redirected
+    // to their own home rather than a 404, which tells them the page exists and
+    // is simply not for them.
+    const isAdmin = (sessionClaims?.metadata as { isAdmin?: unknown } | undefined)
+      ?.isAdmin === true;
+
+    if (isAdminRoute(req) && !isAdmin) {
+      return NextResponse.redirect(
+        new URL(role === "employer" ? "/employer/dashboard" : "/dashboard", req.url)
+      );
     }
 
     return NextResponse.next();
