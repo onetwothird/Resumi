@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { CreditCard, LogIn, QrCode, X } from "lucide-react";
@@ -49,6 +50,17 @@ export default function PlanCheckoutDialog({
 }: PlanCheckoutDialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [qrBroken, setQrBroken] = useState(qrAssetMissing);
+  // Portals need document.body, which does not exist during SSR. Waiting for
+  // the mount also means the dialog never renders into the server HTML.
+  // Portals need document.body, which does not exist during SSR. useSyncExternalStore
+  // rather than a setState-in-effect: the linter rejects the effect form, and this reads
+  // "am I on the client" as a subscription instead of a state change, so there is no
+  // cascading render on mount.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   const planName = PLANS[plan].name;
   const amount = chargeAmount(PLANS[plan], interval);
@@ -81,9 +93,18 @@ export default function PlanCheckoutDialog({
     };
   }, [onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  // Portalled to document.body, because template.tsx wraps every page in a
+  // framer-motion div that animates filter and y. A transformed or filtered
+  // ancestor becomes the containing block for fixed descendants, so an overlay
+  // rendered in place is measured against that page div rather than the
+  // viewport: it centres on the content box, sits behind the header, and
+  // slides around as the page scrolls. document.body is outside that subtree,
+  // so inset-0 means the actual visible screen.
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="plan-checkout-title"
@@ -225,6 +246,7 @@ export default function PlanCheckoutDialog({
           you keep every resume you make either way.
         </p>
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 }
