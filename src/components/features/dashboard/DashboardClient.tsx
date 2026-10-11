@@ -639,14 +639,14 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-6 md:p-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-10">
 
         {activeTab === "jobs" ? (
           <JobBoard />
         ) : (
           <>
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6 sm:mb-8">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-1">My Resumes</h1>
                   <p className="text-sm text-gray-500">
@@ -664,20 +664,20 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                 </div>
 
                 {hasResumes && (
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                    <div className="relative sm:flex-none">
                       <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                       <input
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Search resumes"
-                        className="pl-9 pr-3 py-2 w-56 text-sm rounded-xl border border-gray-200 bg-white text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
+                        className="pl-9 pr-3 py-2 w-full sm:w-56 text-sm rounded-xl border border-gray-200 bg-white text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
                       />
                     </div>
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value as SortOption)}
-                      className="text-sm rounded-xl border border-gray-200 bg-white text-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
+                      className="w-full sm:w-auto text-sm rounded-xl border border-gray-200 bg-white text-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
                     >
                       {SORT_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -688,7 +688,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               </div>
 
               {!hasResumes && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                   <div className="bg-white flex flex-col items-center justify-center text-center py-14 px-6 border border-gray-200 rounded-2xl shadow-xs h-full">
                     <div className="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4">
                       <FilePlus2 size={26} />
@@ -722,7 +722,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               )}
 
               {hasResumes && hasResults && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                   {currentPage === 1 && (
                     <>
                       <Link href="/resume/new" className="group flex flex-col items-center justify-center h-80 bg-white border-2 border-dashed border-indigo-200 rounded-2xl hover:bg-indigo-50/40 hover:border-indigo-500 transition-all duration-200 cursor-pointer shadow-xs">
@@ -786,7 +786,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] transition-all">
           <div className="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 w-full max-w-125 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
 
-            <div className="relative px-6 pt-6 pb-5 border-b border-gray-100 shrink-0">
+            <div className="relative px-5 sm:px-6 pt-5 sm:pt-6 pb-5 border-b border-gray-100 shrink-0">
               <button
                 onClick={closeAiInterview}
                 className="absolute top-5 right-5 w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full flex items-center justify-center transition-colors"
@@ -826,7 +826,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               </div>
             </div>
 
-            <div className="p-7 flex flex-col items-center overflow-y-auto">
+            <div className="p-5 sm:p-7 flex flex-col items-center overflow-y-auto">
               {interviewStage === "setup" && (
                 <div className="w-full space-y-5">
                   {!hasResumes && !uploadedResumeData ? (
