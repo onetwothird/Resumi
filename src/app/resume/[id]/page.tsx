@@ -6,7 +6,7 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import {
   Undo, Redo, Share, ChevronDown, Save, 
   PenTool, Eye, Settings, FileText, Briefcase, User as UserIcon,
-  Home, Sparkles, CreditCard,
+  CreditCard,
 } from "lucide-react";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
 import { ResumeData, ResumeTheme, ExperienceItem, EducationItem, DEFAULT_THEME } from "@/types";
@@ -18,7 +18,6 @@ import ResumiLogo from "@/components/ui/ResumiLogo";
 import { useLoading } from "@/components/ui/LoadingProvider";
 import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
-import MobileNav from "@/components/layout/MobileNav";
 
 const emptyResume = (): ResumeData => ({
   title: "",
@@ -500,14 +499,7 @@ export default function EditorPage() {
             </UserButton>
           </div>
         </div>
-        <MobileNav
-          items={[
-            { label: "Home", onClick: () => attemptNavigation(() => router.push('/dashboard')), icon: Home },
-            { label: "AI Tools", onClick: () => attemptNavigation(() => router.push('/ai-tools')), icon: Sparkles },
-          ]}
-          label="Open navigation"
-        />
-      </header>
+        </header>
 
       <div className="min-h-14 py-2 bg-white border-b border-gray-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 shrink-0 z-10 shadow-sm gap-2 sm:gap-3">
         {/* Row 1 on mobile: title + undo/redo. Row 2: status + buttons */}
