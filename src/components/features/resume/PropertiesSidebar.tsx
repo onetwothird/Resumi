@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
 import { ResumeData, ResumeTheme, DEFAULT_THEME, THEME_COLOR_PRESETS, ResumeFontSize } from "@/types";
-import { Sparkles, Activity, Palette, Type, Check, Image as ImageIcon, Upload, X } from "lucide-react";
+import { requestAtsAnalysis, type AtsResult } from "@/lib/ats-client";
+import { Sparkles, Loader2, Palette, Type, Check, Image as ImageIcon, Upload, X } from "lucide-react";
 
 interface Props {
   data: ResumeData;
@@ -71,7 +72,8 @@ export default function PropertiesSidebar({ data, onChange, pushToast }: Props) 
   const theme = data.theme ?? DEFAULT_THEME;
   const exTheme = theme as unknown as ExtendedTheme;
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [atsScore, setAtsScore] = useState<number | null>(null);
+  const [ats, setAts] = useState<AtsResult | null>(null);
+  const [atsError, setAtsError] = useState<string | null>(null);
 
   const updateTheme = (field: string, value: unknown) => {
     onChange({ ...data, theme: { ...theme, [field]: value } as ResumeTheme });
@@ -90,43 +92,68 @@ export default function PropertiesSidebar({ data, onChange, pushToast }: Props) 
 
   const analyzeATS = async () => {
     setIsAnalyzing(true);
+    setAtsError(null);
     try {
-      const res = await fetch("/api/ai/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error("Failed to analyze");
-      const result = await res.json();
-      setAtsScore(result.score);
-      pushToast("ATS Analysis complete!", "success");
-    } catch {
-      pushToast("Could not connect to ATS analyzer.", "error");
+      // Scores what's on screen, including edits autosave hasn't sent yet.
+      const result = await requestAtsAnalysis(data);
+      setAts(result);
+      pushToast(`ATS score: ${result.score}/100`, "success");
+    } catch (err) {
+      setAtsError(err instanceof Error ? err.message : "The ATS analysis failed. Try again.");
     } finally {
       setIsAnalyzing(false);
     }
   };
 
+  const scoreTone = (score: number) =>
+    score >= 80 ? "text-emerald-700" : score >= 60 ? "text-amber-700" : "text-red-700";
+
   return (
     <>
-      <div className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-           <div className="flex items-center gap-2 text-indigo-700 font-bold text-sm">
-             <Sparkles size={16}/> AI Alignment
-           </div>
-           {atsScore && <span className="text-xs font-bold bg-white px-2 py-1 rounded text-indigo-700">{atsScore}/100</span>}
+      <section aria-labelledby="ats-panel-title" className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <h2 id="ats-panel-title" className="flex items-center gap-2 text-indigo-700 font-bold text-sm">
+            <Sparkles size={16} /> ATS score
+          </h2>
+          {ats && (
+            <span className={`text-xs font-bold bg-white px-2 py-1 rounded-md ${scoreTone(ats.score)}`}>
+              {ats.score}/100
+            </span>
+          )}
         </div>
         <p className="text-xs text-gray-600 mb-4 leading-relaxed">
-          {atsScore ? "Your resume is analyzed. Check suggestions below." : "Check how well your resume matches ATS algorithms."}
+          {ats
+            ? "Scored against what's in the editor now. Make changes, then scan again."
+            : "See how well this resume reads to applicant tracking systems, with tips to improve it."}
         </p>
-        <button 
-          onClick={analyzeATS} 
+
+        {atsError && (
+          <p role="alert" className="mb-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs leading-relaxed text-red-700">
+            {atsError}
+          </p>
+        )}
+
+        {ats && ats.recommendations.length > 0 && (
+          <ul className="mb-4 space-y-2">
+            {ats.recommendations.map((rec, i) => (
+              <li key={i} className="flex gap-2 rounded-lg bg-white px-3 py-2 text-xs leading-relaxed text-gray-700 border border-indigo-100/70">
+                <Check size={14} className="mt-0.5 shrink-0 text-indigo-500" />
+                <span>{rec}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <button
+          type="button"
+          onClick={analyzeATS}
           disabled={isAnalyzing}
-          className="w-full py-2 bg-indigo-600 rounded-xl text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 flex justify-center items-center gap-2"
+          aria-busy={isAnalyzing}
+          className="w-full py-2 bg-indigo-600 rounded-xl text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60 flex justify-center items-center gap-2"
         >
-          {isAnalyzing ? <><Activity className="w-4 h-4 animate-spin"/> Scanning...</> : "Scan Resume"}
+          {isAnalyzing ? <><Loader2 className="w-4 h-4 animate-spin" /> Scanning&hellip;</> : ats ? "Scan again" : "Scan resume"}
         </button>
-      </div>
+      </section>
 
       <hr className="border-gray-100" />
 
