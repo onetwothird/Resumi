@@ -38,11 +38,19 @@ body {
 /* Keyboard focus is invisible in most of the app: `hover:` carries the state
    and Tailwind's preflight strips the tap highlight, so a phone tap gives no
    feedback at all and a keyboard user gets no ring. This is the floor; any
-   component that wants a different look overrides it. */
-:where(a, button, input, select, textarea, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
-  outline: 2px solid var(--color-indigo-600, #4f46e5);
-  outline-offset: 2px;
-  border-radius: 0.375rem;
+   component that wants a different look overrides it.
+
+   It lives in the base layer so that override actually works. Unlayered, it
+   beat every utility: fields that draw their own `focus:ring-2` and opt out
+   with `outline-none` got this outline on top (a double outline on click,
+   since text fields match :focus-visible for mouse focus too), and the
+   radius below squared off their `rounded-xl` corners while focused. */
+@layer base {
+  :where(a, button, input, select, textarea, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid var(--color-indigo-600, #4f46e5);
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+  }
 }
 
 /* iOS home indicator / Android gesture bar. There is no `pb-safe` utility in
@@ -235,5 +243,13 @@ body {
   }
   [contenteditable]:empty::before {
     content: none !important;
+  }
+}
+/* Horizontally scrolling tab rows (Settings sections on phones): keep them
+   swipeable without a scrollbar sitting under the tabs. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
