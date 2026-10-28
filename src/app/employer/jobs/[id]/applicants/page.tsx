@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { ArrowLeft, FileText, Mail, Calendar } from "lucide-react";
+import AppHeader from "@/components/layout/AppHeader";
 
 export default async function JobApplicantsPage({
   params,
@@ -79,6 +80,8 @@ export default async function JobApplicantsPage({
   });
 
   return (
+    <>
+    <AppHeader />
     <div className="min-h-screen bg-[#F4F6F8] p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
@@ -159,5 +162,6 @@ export default async function JobApplicantsPage({
         </div>
       </div>
     </div>
+    </>
   );
 }
