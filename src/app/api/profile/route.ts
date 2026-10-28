@@ -33,7 +33,29 @@ export async function PATCH(req: Request) {
 
     // Normalize empty strings to null to avoid unique constraint violations
     // (Prisma treats "" as a real value, so two users with username="" would clash)
-    const cleanUsername = body.username || null;
+    const cleanUsername = body.username?.replace(/^@+/, "") || null;
+
+    // The username is the public profile URL (/u/<username>), so it has to be
+    // URL-safe and unique. Both used to fail as a bare 500 ("Couldn't save
+    // your profile") with no hint that the username was the problem.
+    if (cleanUsername) {
+      if (!/^[A-Za-z0-9_-]{3,30}$/.test(cleanUsername)) {
+        return NextResponse.json(
+          { error: "Usernames are 3 to 30 characters: letters, numbers, - and _ only.", field: "username" },
+          { status: 400 }
+        );
+      }
+      const taken = await prisma.user.findFirst({
+        where: { username: { equals: cleanUsername, mode: "insensitive" }, NOT: { id: userId } },
+        select: { id: true },
+      });
+      if (taken) {
+        return NextResponse.json(
+          { error: `@${cleanUsername} is already taken. Try another username.`, field: "username" },
+          { status: 409 }
+        );
+      }
+    }
 
     // Sync name & username to Clerk
     try {
