@@ -5,6 +5,7 @@ import { ArrowLeft, Mail, Calendar, FileText, Briefcase, GraduationCap, Award, P
 import prisma from "@/lib/prisma";
 import StatusSelector from "@/components/features/employer/StatusSelector";
 import SendMessageClient from "@/components/features/employer/SendMessageClient";
+import AppHeader from "@/components/layout/AppHeader";
 
 type ExperienceItem = {
   role?: string;
@@ -69,6 +70,8 @@ export default async function ApplicantProfilePage({
   const education = Array.isArray(attachedResume?.education) ? (attachedResume.education as EducationItem[]) : [];
 
   return (
+    <>
+    <AppHeader />
     <div className="min-h-screen bg-[#F4F6F8] p-4 sm:p-8 font-sans text-gray-900">
       <div className="max-w-5xl mx-auto">
         
@@ -222,5 +225,6 @@ export default async function ApplicantProfilePage({
         </div>
       </div>
     </div>
+    </>
   );
 }
