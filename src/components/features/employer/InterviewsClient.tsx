@@ -1,53 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
-import { User, FileText, Calendar, Home, Users, Video, CreditCard } from "lucide-react";
-import NotificationBell from "@/components/features/dashboard/NotificationBell";
-import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
-import MobileNav from "@/components/layout/MobileNav";
+
+import { Calendar } from "lucide-react";
+import AppHeader from "@/components/layout/AppHeader";
 
 export default function InterviewsClient() {
-  const pathname = usePathname();
 
   return (
     <div className="min-h-screen bg-[#F4F6F8] flex flex-col font-sans">
-      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 shadow-xs">
-        <div className="flex items-center gap-4 lg:gap-8">
-          <Link href="/employer/dashboard" className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon/icons.png" alt="Resumi Logo" className="w-8 h-8 object-contain drop-shadow-sm" />
-            <span className="hidden sm:inline">Resumi</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <Link href="/employer/dashboard" className={`transition-colors ${pathname === '/employer/dashboard' ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}>Dashboard</Link>
-            <Link href="/employer/candidates" className={`transition-colors ${pathname?.includes('/candidates') ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}>Candidates</Link>
-            <Link href="/employer/interviews" className={`transition-colors ${pathname?.includes('/interviews') ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}>Interviews</Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-2 lg:gap-4">
-          <NotificationBell />
-          <InboxDropdown />
-          <div className="flex items-center gap-2 sm:ml-2">
-            <UserButton>
-              <UserButton.MenuItems>
-                <UserButton.Link label="Edit Profile" labelIcon={<User size={15} />} href="/profile" />
-                <UserButton.Link label="Candidate Dashboard" labelIcon={<FileText size={15} />} href="/dashboard" />
-                <UserButton.Link label="Pricing" labelIcon={<CreditCard size={15} />} href="/pricing" />
-              </UserButton.MenuItems>
-            </UserButton>
-          </div>
-        </div>
-        <MobileNav
-          items={[
-            { label: "Dashboard", href: "/employer/dashboard", icon: Home, active: pathname === "/employer/dashboard" },
-            { label: "Candidates", href: "/employer/candidates", icon: Users, active: pathname?.includes("/candidates") },
-            { label: "Interviews", href: "/employer/interviews", icon: Video, active: pathname?.includes("/interviews") },
-          ]}
-          label="Open navigation"
-        />
-      </header>
+      <AppHeader />
 
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-8 space-y-8">
         <div>
