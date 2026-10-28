@@ -9,10 +9,8 @@ export async function GET() {
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
-    const client = await clerkClient();
-    const clerkUser = await client.users.getUser(userId);
-    const email = clerkUser.primaryEmailAddress?.emailAddress || "";
-
+    // No Clerk round trip here: nothing reads an email from this response,
+    // and fetching the Clerk user added a network hop to every Settings load.
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { settings: true },
@@ -25,7 +23,7 @@ export async function GET() {
         : {}),
     };
 
-    return NextResponse.json({ email, settings });
+    return NextResponse.json({ settings });
   } catch (error: unknown) {
     return internalError("GET /api/settings", error);
   }
@@ -37,9 +35,15 @@ export async function PATCH(req: Request) {
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const incoming = body?.settings as Partial<NotificationSettings> | undefined;
-    if (!incoming || typeof incoming !== "object") {
+    const raw = body?.settings;
+    if (!raw || typeof raw !== "object") {
       return NextResponse.json({ error: "Missing settings payload." }, { status: 400 });
+    }
+    // Keep only known switches with boolean values. The body used to be
+    // spread straight into the stored JSON, so any key or value went in.
+    const incoming: { -readonly [K in keyof NotificationSettings]?: boolean } = {};
+    for (const key of Object.keys(DEFAULT_NOTIFICATION_SETTINGS) as (keyof NotificationSettings)[]) {
+      if (typeof raw[key] === "boolean") incoming[key] = raw[key];
     }
 
     const existing = await prisma.user.findUnique({
@@ -55,18 +59,21 @@ export async function PATCH(req: Request) {
       ...incoming,
     };
 
-    const client = await clerkClient();
-    const clerkUser = await client.users.getUser(userId);
-
-    const updated = await prisma.user.upsert({
-      where: { id: userId },
-      update: { settings: merged },
-      create: {
-        id: userId,
-        email: existing?.email || clerkUser.primaryEmailAddress?.emailAddress || `${userId}@placeholder.com`,
-        settings: merged,
-      },
-    });
+    // Only a first-time user without a row needs Clerk (for the email).
+    let updated;
+    if (existing) {
+      updated = await prisma.user.update({ where: { id: userId }, data: { settings: merged } });
+    } else {
+      const client = await clerkClient();
+      const clerkUser = await client.users.getUser(userId);
+      updated = await prisma.user.create({
+        data: {
+          id: userId,
+          email: clerkUser.primaryEmailAddress?.emailAddress || `${userId}@placeholder.com`,
+          settings: merged,
+        },
+      });
+    }
 
     return NextResponse.json({ settings: updated.settings });
   } catch (error: unknown) {
