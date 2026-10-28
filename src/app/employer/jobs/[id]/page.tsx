@@ -5,6 +5,7 @@ import { Briefcase, MapPin, Calendar, ArrowLeft, Wallet } from "lucide-react";
 import prisma from "@/lib/prisma";
 import ApplyButton from "@/components/features/jobs/ApplyButton";
 import SendMessageClient from "@/components/features/employer/SendMessageClient";
+import AppHeader from "@/components/layout/AppHeader";
 
 export default async function PublicJobPage({
   params,
@@ -64,6 +65,8 @@ export default async function PublicJobPage({
     : [];
 
   return (
+    <>
+    <AppHeader />
     <div className="min-h-screen bg-[#F4F6F8] p-4 sm:p-8 lg:p-12 font-sans text-gray-900">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
@@ -216,5 +219,6 @@ export default async function PublicJobPage({
         </div>
       </div>
     </div>
+    </>
   );
 }
