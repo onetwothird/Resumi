@@ -333,29 +333,29 @@ export default function EditorPage() {
     };
   }, [resumeId, pushToast]);
 
+  // Fit the A4 canvas to its column. A ResizeObserver fires the moment the
+  // column becomes visible, so switching to the Preview tab on a phone lands
+  // on the right size immediately. The old version measured on every tab
+  // change, including while the column was display:none (width 0, so a
+  // negative scale), then corrected itself 50ms later and animated the sheet
+  // into place: that was the slow "loading" flash between sections.
   useEffect(() => {
-    const updateScale = () => {
-      if (!mainRef.current) return;
-      const padding = 32;
-      const containerWidth = mainRef.current.clientWidth - padding;
-      const A4_PIXELS = 794;
+    const el = mainRef.current;
+    if (!el) return;
+    const A4_PIXELS = 794;
+    const padding = 32;
 
-      if (containerWidth < A4_PIXELS) {
-        setScale(containerWidth / A4_PIXELS);
-      } else {
-        setScale(1);
-      }
+    const updateScale = () => {
+      const containerWidth = el.clientWidth - padding;
+      if (containerWidth <= 0) return;
+      setScale(Math.min(containerWidth / A4_PIXELS, 1));
     };
 
     updateScale();
-    window.addEventListener('resize', updateScale);
-
-    if (activeTab === 'preview') {
-      setTimeout(updateScale, 50);
-    }
-
-    return () => window.removeEventListener('resize', updateScale);
-  }, [activeTab]);
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const derivedTitle =
     data.jobTitle?.trim() ||
@@ -512,17 +512,19 @@ export default function EditorPage() {
             className="font-semibold text-gray-800 text-left sm:text-center bg-transparent border border-transparent hover:border-gray-200 focus:border-indigo-400 focus:bg-white rounded-md px-2 py-1 outline-none truncate min-w-0 flex-1 sm:flex-none sm:w-48 lg:w-56"
           />
           <div className="flex items-center gap-1 text-gray-500 sm:hidden shrink-0 ml-2">
-            <button 
-              onClick={handleUndo} 
+            <button
+              onClick={handleUndo}
               disabled={past.length === 0}
-              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-30"
+              aria-label="Undo"
+              className="p-2 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-30"
             >
               <Undo size={16} />
             </button>
-            <button 
-              onClick={handleRedo} 
+            <button
+              onClick={handleRedo}
               disabled={future.length === 0}
-              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-30"
+              aria-label="Redo"
+              className="p-2 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-30"
             >
               <Redo size={16} />
             </button>
@@ -530,22 +532,27 @@ export default function EditorPage() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end order-2">
-          <div className="flex items-center gap-1 text-gray-500 sm:flex">
-            <button 
-              onClick={handleUndo} 
+          {/* Phones get undo/redo in the title row above and the save status
+              in its own row below; this group is for sm and up only. It used
+              to be visible everywhere, so phones showed both twice. */}
+          <div className="hidden sm:flex items-center gap-1 text-gray-500">
+            <button
+              onClick={handleUndo}
               disabled={past.length === 0}
+              aria-label="Undo"
               className="p-1.5 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-30"
             >
               <Undo size={16} />
             </button>
-            <button 
-              onClick={handleRedo} 
+            <button
+              onClick={handleRedo}
               disabled={future.length === 0}
+              aria-label="Redo"
               className="p-1.5 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-30"
             >
               <Redo size={16} />
             </button>
-            <span className="text-xs flex items-center gap-1 italic ml-2">
+            <span className="text-xs flex items-center gap-1 italic ml-2 whitespace-nowrap">
               {isSaving
                 ? "Saving..."
                 : hasUnsavedChanges
@@ -555,20 +562,21 @@ export default function EditorPage() {
                 : "Unsaved changes"}
             </span>
           </div>
-          <div className="flex gap-2">
+          {/* Full-width pair on phones (the status sits in its own row), so
+              both buttons are easy to hit; natural width from sm up. */}
+          <div className="flex gap-2 flex-1 sm:flex-none">
             <button
               onClick={handleSave}
               disabled={isSaving || isLoading || !hasUnsavedChanges}
-              className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-              <Save className={`w-4 h-4 ${!hasUnsavedChanges && !isSaving ? 'text-emerald-500' : 'text-gray-500'}`} /> 
-              <span className="hidden xs:inline">{isSaving ? "Saving..." : hasUnsavedChanges ? "Save" : "Saved"}</span>
-              <span className="xs:hidden">{isSaving ? "Saving..." : hasUnsavedChanges ? "Save" : "Saved"}</span>
+              <Save className={`w-4 h-4 ${!hasUnsavedChanges && !isSaving ? 'text-emerald-500' : 'text-gray-500'}`} />
+              <span>{isSaving ? "Saving..." : hasUnsavedChanges ? "Save" : "Saved"}</span>
             </button>
             <button
               onClick={() => handlePrint()}
               disabled={isLoading}
-              className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >
               <Share className="w-4 h-4" /> Export
             </button>
@@ -587,7 +595,7 @@ export default function EditorPage() {
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
-        <aside className={`${activeTab === 'builder' ? 'flex' : 'hidden'} lg:flex w-full lg:w-85 bg-white border-r border-gray-200 overflow-y-auto flex-col shrink-0 absolute lg:relative z-10 h-full left-0`}>
+        <aside className={`${activeTab === 'builder' ? 'flex' : 'hidden'} lg:flex w-full lg:w-80 xl:w-85 bg-white border-r border-gray-200 overflow-y-auto flex-col shrink-0 absolute lg:relative z-10 h-full left-0`}>
           {isLoading ? <SidebarSkeleton /> : <BuilderSidebar data={data} onChange={updateData} />}
         </aside>
 
@@ -596,7 +604,7 @@ export default function EditorPage() {
           className={`${activeTab === 'preview' ? 'flex' : 'hidden'} lg:flex flex-1 overflow-y-auto overflow-x-hidden bg-gray-100/50 flex-col items-center relative w-full`}
         >
           <div
-            className="transition-transform duration-200 ease-in-out mt-4 lg:mt-8 shrink-0"
+            className="mt-4 lg:mt-8 shrink-0"
             style={{
               transform: `scale(${scale})`,
               transformOrigin: 'top center',
@@ -615,34 +623,37 @@ export default function EditorPage() {
           <div className="h-8 lg:h-12 w-full shrink-0"></div>
         </main>
 
-        <aside className={`${activeTab === 'settings' ? 'flex' : 'hidden'} lg:flex w-full lg:w-75 bg-white border-l border-gray-200 overflow-y-auto p-5 flex-col gap-6 shrink-0 absolute lg:relative z-10 h-full right-0`}>
+        <aside className={`${activeTab === 'settings' ? 'flex' : 'hidden'} lg:flex w-full lg:w-68 xl:w-75 bg-white border-l border-gray-200 overflow-y-auto p-5 flex-col gap-6 shrink-0 absolute lg:relative z-10 h-full right-0`}>
           {isLoading ? <SidebarSkeleton /> : <PropertiesSidebar data={data} onChange={updateData} pushToast={pushToast} />}
         </aside>
       </div>
 
-      <div className="lg:hidden flex h-16 bg-white border-t border-gray-200 shrink-0 z-20 w-full justify-around items-center pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+      <nav aria-label="Editor sections" className="lg:hidden flex min-h-16 bg-white border-t border-gray-200 shrink-0 z-20 w-full justify-around items-center pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <button
           onClick={() => setActiveTab('builder')}
-          className={`flex flex-col items-center p-2 w-full transition-colors ${activeTab === 'builder' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
+          aria-pressed={activeTab === 'builder'}
+          className={`flex flex-col items-center py-2.5 w-full transition-colors ${activeTab === 'builder' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
         >
           <PenTool size={20} />
           <span className="text-[10px] mt-1 font-semibold">Build</span>
         </button>
         <button
           onClick={() => setActiveTab('preview')}
-          className={`flex flex-col items-center p-2 w-full transition-colors ${activeTab === 'preview' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
+          aria-pressed={activeTab === 'preview'}
+          className={`flex flex-col items-center py-2.5 w-full transition-colors ${activeTab === 'preview' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
         >
           <Eye size={20} />
           <span className="text-[10px] mt-1 font-semibold">Preview</span>
         </button>
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex flex-col items-center p-2 w-full transition-colors ${activeTab === 'settings' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
+          aria-pressed={activeTab === 'settings'}
+          className={`flex flex-col items-center py-2.5 w-full transition-colors ${activeTab === 'settings' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
         >
           <Settings size={20} />
           <span className="text-[10px] mt-1 font-semibold">Settings</span>
         </button>
-      </div>
+      </nav>
 
       <UnsavedChangesModal
         open={isLeaveModalOpen}

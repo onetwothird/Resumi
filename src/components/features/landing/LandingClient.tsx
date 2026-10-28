@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, Variants } from "framer-motion";
+import { animate, motion, useInView, useReducedMotion, Variants } from "framer-motion";
 import {
   ArrowRight,
   CheckCircle,
@@ -150,6 +150,41 @@ const staggerItem: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
+/**
+ * A stat that counts up from zero the first time it scrolls into view.
+ * Writes straight to the DOM on each frame rather than through React state,
+ * so a 1.2s count costs no re-renders. Reduced motion shows the final value.
+ */
+function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "0px 0px -15% 0px" });
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !inView) return;
+    const format = (n: number) => `${Math.round(n).toLocaleString()}${suffix}`;
+    if (reduceMotion) {
+      el.textContent = format(to);
+      return;
+    }
+    const controls = animate(0, to, {
+      duration: 1.2,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => {
+        el.textContent = format(v);
+      },
+    });
+    return () => controls.stop();
+  }, [inView, to, suffix, reduceMotion]);
+
+  return (
+    <span ref={ref} className="tabular-nums">
+      0{suffix}
+    </span>
+  );
+}
+
 interface BoardStats {
   openRoles: number;
   companies: number;
@@ -166,7 +201,9 @@ interface Testimonial {
 
 export default function LandingClient() {
   const [stats, setStats] = useState<BoardStats | null>(null);
-  const [resumesBuilt, setResumesBuilt] = useState(0);
+  // null = still loading. Both fetches settle to a number even on failure, so
+  // the stats row never sits on a loading placeholder forever.
+  const [resumesBuilt, setResumesBuilt] = useState<number | null>(null);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
   useEffect(() => {
@@ -179,6 +216,7 @@ export default function LandingClient() {
         setStats({ openRoles: jobs.length, companies });
       })
       .catch(() => {
+        if (!cancelled) setStats({ openRoles: 0, companies: 0 });
       });
     return () => {
       cancelled = true;
@@ -192,7 +230,9 @@ export default function LandingClient() {
       .then((data: { resumesBuilt: number }) => {
         if (!cancelled) setResumesBuilt(data.resumesBuilt);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setResumesBuilt(0);
+      });
     return () => { cancelled = true; };
   }, []);
 
@@ -391,10 +431,10 @@ export default function LandingClient() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
             {[
-              { value: resumesBuilt > 0 ? `${resumesBuilt.toLocaleString()}+` : "—", label: "Resumes Built", icon: Layout },
-              { value: stats?.companies ? `${stats.companies.toLocaleString()}+` : "—", label: "Companies Hiring", icon: Building2 },
-              { value: "94%", label: "ATS Pass Rate", icon: Target },
-              { value: "3 min", label: "Avg. Build Time", icon: Gauge },
+              { to: resumesBuilt, suffix: "+", label: "Resumes Built", icon: Layout },
+              { to: stats ? stats.companies : null, suffix: "+", label: "Companies Hiring", icon: Building2 },
+              { to: 94, suffix: "%", label: "ATS Pass Rate", icon: Target },
+              { to: 3, suffix: " min", label: "Avg. Build Time", icon: Gauge },
             ].map((stat) => (
               <motion.div
                 key={stat.label}
@@ -404,7 +444,19 @@ export default function LandingClient() {
                 <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mx-auto mb-4">
                   <stat.icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <p className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-1">{stat.value}</p>
+                {/* Fixed height so the row does not jump when a fetched
+                    number replaces its placeholder. */}
+                <p className="h-9 md:h-10 flex items-center justify-center text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-1">
+                  {stat.to === null ? (
+                    <span className="block h-7 w-16 rounded-md bg-slate-200/80 dark:bg-slate-800 animate-pulse">
+                      <span className="sr-only">Loading</span>
+                    </span>
+                  ) : stat.to > 0 ? (
+                    <CountUp to={stat.to} suffix={stat.suffix} />
+                  ) : (
+                    "—"
+                  )}
+                </p>
                 <p className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</p>
               </motion.div>
             ))}
@@ -690,35 +742,75 @@ export default function LandingClient() {
         id="get-started"
         className="relative z-10 py-16 md:py-24 bg-background dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800"
       >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-              variants={fadeUp}
-              className="relative overflow-hidden rounded-3xl bg-slate-900 dark:bg-slate-950 dark:border dark:border-slate-800 px-6 py-12 sm:px-16 sm:py-20"
-            >
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-85 h-85 rounded-full bg-indigo-500/20 blur-[80px] sm:w-125 sm:h-125 sm:blur-[110px]"
-              />
-              <div className="relative">
-                <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white mb-3">Free to build. Free to browse.</h2>
-                <p className="text-sm md:text-base text-slate-300 max-w-lg mx-auto mb-8 leading-relaxed">
+            variants={fadeUp}
+            className="relative overflow-hidden rounded-3xl bg-slate-900 dark:bg-slate-900/80 dark:border dark:border-slate-800"
+          >
+            <div className="relative grid md:grid-cols-[1.15fr_1fr] items-center">
+              <div className="px-6 py-12 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
+                <h2 className="font-serif text-3xl sm:text-4xl lg:text-[2.75rem] leading-tight font-semibold text-white">
+                  Free to build. Free to browse.
+                </h2>
+                <p className="mt-4 text-base text-slate-300 max-w-md leading-relaxed">
                   Create your resume and start applying to real, open roles today. No paywall between you and your next job.
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                    <Link href="/sign-up" className="flex items-center justify-center gap-2 bg-white text-slate-900 px-8 py-3.5 rounded-lg font-semibold text-sm hover:bg-slate-100 transition-all duration-200 w-full sm:w-auto hover:shadow-lg">
+
+                <ul className="mt-7 space-y-2.5">
+                  {["No credit card to get started", "An ATS score on every resume", "Apply to live roles in one click"].map((item) => (
+                    <li key={item} className="flex items-center gap-2.5 text-sm text-slate-200">
+                      <span className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-indigo-300" aria-hidden="true" />
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-9 flex flex-col sm:flex-row gap-3">
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                    <Link href="/sign-up" className="flex items-center justify-center gap-2 bg-indigo-500 text-white px-7 py-3.5 rounded-lg font-semibold text-sm hover:bg-indigo-400 transition-colors w-full sm:w-auto shadow-lg shadow-indigo-950/40 group">
                       Start Building
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </motion.div>
-                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                    <Link href="/sign-in?redirect_url=/jobs" className="flex items-center justify-center gap-2 bg-transparent text-white px-8 py-3.5 rounded-lg font-semibold text-sm border border-slate-600 hover:bg-slate-800 transition-all duration-200 w-full sm:w-auto">
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                    <Link href="/sign-in?redirect_url=/jobs" className="flex items-center justify-center gap-2 text-white px-7 py-3.5 rounded-lg font-semibold text-sm border border-slate-600 hover:bg-slate-800 hover:border-slate-500 transition-colors w-full sm:w-auto">
+                      <Briefcase className="w-4 h-4" aria-hidden="true" />
                       Browse Open Roles
                     </Link>
                   </motion.div>
                 </div>
               </div>
-            </motion.div>
+
+              {/* A small stack of finished resumes, cropped by the card edge.
+                  Decorative, and only from md up where there is room. */}
+              <div aria-hidden="true" className="hidden md:block relative h-full min-h-80 self-stretch">
+                <div className="absolute right-[-8%] top-14 w-64 lg:w-72 aspect-210/297 rotate-[7deg] rounded-lg bg-slate-700/60" />
+                <div className="absolute right-[4%] top-20 w-64 lg:w-72 aspect-210/297 -rotate-3 rounded-lg bg-white shadow-2xl shadow-black/40 p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-2 flex-1">
+                      <div className="h-3 w-3/4 rounded-full bg-slate-800" />
+                      <div className="h-2 w-1/2 rounded-full bg-indigo-400" />
+                    </div>
+                    <span className="shrink-0 rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-600">94%</span>
+                  </div>
+                  <div className="mt-6 h-px bg-slate-100" />
+                  <div className="mt-5 space-y-2">
+                    <div className="h-2 w-1/3 rounded-full bg-slate-300" />
+                    <div className="h-2 w-full rounded-full bg-slate-100" />
+                    <div className="h-2 w-11/12 rounded-full bg-slate-100" />
+                    <div className="h-2 w-4/5 rounded-full bg-slate-100" />
+                  </div>
+                  <div className="mt-6 space-y-2">
+                    <div className="h-2 w-1/4 rounded-full bg-slate-300" />
+                    <div className="h-2 w-full rounded-full bg-slate-100" />
+                    <div className="h-2 w-2/3 rounded-full bg-slate-100" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </motion.section>
 

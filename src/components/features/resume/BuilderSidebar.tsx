@@ -53,6 +53,15 @@ const MOCK_DATA: Partial<ResumeData> = {
 
 export default function BuilderSidebar({ data, onChange }: Props) {
   const [activeTab, setActiveTab] = useState<"builder" | "templates">("builder");
+  // The template library is the heaviest thing in the sidebar (every template
+  // draws a thumbnail). Mount it the first time it is opened, then keep it
+  // mounted and just hide it, so switching between the two tabs is instant
+  // instead of rebuilding the whole grid each time.
+  const [templatesMounted, setTemplatesMounted] = useState(false);
+  const showTab = (tab: "builder" | "templates") => {
+    if (tab === "templates") setTemplatesMounted(true);
+    setActiveTab(tab);
+  };
   const [draggedItem, setDraggedItem] = useState<{type: 'experience'|'education', index: number} | null>(null);
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -161,13 +170,15 @@ export default function BuilderSidebar({ data, onChange }: Props) {
       <div className="p-4 border-b border-gray-100 shrink-0">
         <div className="bg-gray-100 p-1 rounded-lg flex text-sm font-medium">
           <button 
-            onClick={() => setActiveTab("builder")}
+            onClick={() => showTab("builder")}
+            aria-pressed={activeTab === "builder"}
             className={`flex-1 rounded-md py-1.5 transition-all ${activeTab === 'builder' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-500 hover:text-gray-700'}`}
           >
             Builder
           </button>
           <button 
-            onClick={() => setActiveTab("templates")}
+            onClick={() => showTab("templates")}
+            aria-pressed={activeTab === "templates"}
             className={`flex-1 rounded-md py-1.5 transition-all ${activeTab === 'templates' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-500 hover:text-gray-700'}`}
           >
             Templates
@@ -176,8 +187,7 @@ export default function BuilderSidebar({ data, onChange }: Props) {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-20">
-        {activeTab === "builder" ? (
-          <>
+        <div hidden={activeTab !== "builder"}>
             <div className="p-4 border-b border-gray-100 bg-indigo-50/50">
                <button 
                  onClick={loadMockData}
@@ -363,9 +373,9 @@ export default function BuilderSidebar({ data, onChange }: Props) {
                 </div>
               );
             })}
-          </>
-        ) : (
-          <div className="p-4 animate-in fade-in duration-200">
+        </div>
+        {templatesMounted && (
+          <div hidden={activeTab !== "templates"} className="p-4">
             <TemplateLibrary data={data} onChange={onChange} />
           </div>
         )}

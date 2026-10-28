@@ -2,17 +2,8 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
-import {
-  Search, MapPin, Briefcase, AlertCircle, Building2,
-  ChevronDown, Sparkles,
-  Home, PenTool,
-  CreditCard,
-} from "lucide-react";
-import ResumiLogo from "@/components/ui/ResumiLogo";
-import NotificationBell from "@/components/features/dashboard/NotificationBell";
-import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
-import MobileNav from "@/components/layout/MobileNav";
+import { Search, MapPin, Briefcase, AlertCircle, Building2 } from "lucide-react";
+import AppHeader from "@/components/layout/AppHeader";
 
 interface ApiJob {
   id: string;
@@ -130,56 +121,7 @@ export default function CompaniesClient() {
   return (
     <div className="min-h-screen bg-[#F7F9FC] text-gray-900 flex flex-col">
       {/* Dashboard Header */}
-      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 shadow-xs">
-        <div className="flex items-center gap-4 lg:gap-8">
-          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
-            <ResumiLogo className="w-8 h-8" />
-            <span className="hidden sm:inline">Resumi</span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <Link href="/dashboard" className="hover:text-gray-900 transition-colors">
-              Home
-            </Link>
-            <Link href="/dashboard?tab=jobs" className="hover:text-gray-900 transition-colors">
-              Jobs
-            </Link>
-            <Link href="/companies" className="text-gray-900 font-semibold transition-colors">
-              Companies
-            </Link>
-            <Link href="/resume/new" className="flex items-center gap-1 hover:text-gray-900 transition-colors">
-              Builder <ChevronDown size={14} />
-            </Link>
-            <Link href="/dashboard" className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 transition-colors">
-              <Sparkles size={14} className="text-indigo-500" /> AI Coach
-            </Link>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-2 lg:gap-4">
-          <NotificationBell />
-          <InboxDropdown />
-          <div className="flex items-center gap-2 sm:ml-2">
-            <UserButton>
-              <UserButton.MenuItems>
-                <UserButton.Link label="Edit Profile" labelIcon={<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>} href="/profile" />
-                <UserButton.Link label="Settings" labelIcon={<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>} href="/settings" />
-                <UserButton.Link label="Pricing" labelIcon={<CreditCard size={15} />} href="/pricing" />
-              </UserButton.MenuItems>
-            </UserButton>
-          </div>
-          <MobileNav
-            items={[
-              { label: "Home", href: "/dashboard", icon: Home },
-              { label: "Jobs", href: "/dashboard?tab=jobs", icon: Briefcase },
-              { label: "Companies", href: "/companies", icon: Building2, active: true },
-              { label: "Builder", href: "/resume/new", icon: PenTool, primary: true },
-              { label: "AI Coach", href: "/dashboard", onClick: () => {}, icon: Sparkles, primary: true },
-            ]}
-            label="Open navigation"
-          />
-        </div>
-      </header>
+      <AppHeader />
 
       {/* Companies Content */}
       <main className="max-w-7xl mx-auto w-full p-6 md:p-10">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   X,
@@ -47,7 +47,7 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 
 /* ── Schematic thumbnail ───────────────────────────────────────────── */
 
-function TemplateThumb({ def }: { def: TemplateDef }) {
+const TemplateThumb = memo(function TemplateThumb({ def }: { def: TemplateDef }) {
   const accent = def.accent;
   const isSplit = def.layout === "split";
   const sidebarBg =
@@ -117,7 +117,59 @@ function TemplateThumb({ def }: { def: TemplateDef }) {
       )}
     </div>
   );
-}
+});
+
+/* ── Template card ─────────────────────────────────────────────────── */
+
+/**
+ * One grid entry. Memoised on (template, active) because the library stays
+ * mounted while the user types into the builder: without this, every
+ * keystroke re-rendered every card. `content-visibility: auto` lets the
+ * browser skip layout and paint for cards that are scrolled out of view.
+ */
+const TemplateCard = memo(function TemplateCard({
+  tpl,
+  active,
+  onPreview,
+}: {
+  tpl: ResumeTemplate;
+  active: boolean;
+  onPreview: (tpl: ResumeTemplate) => void;
+}) {
+  return (
+    <button
+      onClick={() => onPreview(tpl)}
+      style={{ contentVisibility: "auto", containIntrinsicSize: "auto 260px" }}
+      className={`group text-left rounded-xl border bg-white p-2 transition-all hover:shadow-md hover:-translate-y-0.5 ${
+        active ? "border-indigo-500 ring-2 ring-indigo-500/30" : "border-gray-200"
+      }`}
+    >
+      <TemplateThumb def={tpl.def} />
+      <div className="mt-2 px-0.5">
+        <div className="flex items-center justify-between gap-1">
+          <p className="text-xs font-semibold text-gray-800 truncate">{tpl.name}</p>
+          {active && <Check size={13} className="text-indigo-600 shrink-0" />}
+        </div>
+        <p className="text-[10px] text-gray-400 truncate">{tpl.industry}</p>
+        <div className="flex items-center gap-1 mt-1">
+          {tpl.atsFriendly ? (
+            <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+              <ShieldCheck size={9} /> ATS
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-fuchsia-50 text-fuchsia-700">
+              <Sparkles size={9} /> Creative
+            </span>
+          )}
+          <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">{tpl.style}</span>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-center gap-1 text-[10px] font-medium text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
+        <Eye size={11} /> Preview
+      </div>
+    </button>
+  );
+});
 
 /* ── Preview modal ─────────────────────────────────────────────────── */
 
@@ -170,13 +222,13 @@ function PreviewModal({
   const inView = !!previewData.experience?.length;
 
   return (
-    <div className="fixed inset-0 z-90 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-90 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92dvh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal header */}
-        <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-gray-100">
+        <div className="flex items-start justify-between gap-4 px-4 sm:px-6 pt-5 pb-4 border-b border-gray-100">
           <div className="min-w-0">
             <h3 className="text-lg font-bold text-gray-900 truncate">{template.name}</h3>
             <p className="text-sm text-gray-500 line-clamp-2">{template.description}</p>
@@ -197,7 +249,7 @@ function PreviewModal({
         </div>
 
         {/* Preview body */}
-        <div ref={holderRef} className="flex-1 overflow-auto px-6 py-5 bg-gray-100">
+        <div ref={holderRef} className="flex-1 overflow-auto px-3 sm:px-6 py-5 bg-gray-100">
           <div className="flex items-center justify-center gap-1.5 mb-4">
             <button
               onClick={() => setUseSample(true)}
@@ -233,11 +285,11 @@ function PreviewModal({
         </div>
 
         {/* Modal footer */}
-        <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-white">
-          <p className="text-[11px] text-gray-400 max-w-[46%]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-gray-100 bg-white">
+          <p className="text-[11px] text-gray-400 sm:max-w-[46%]">
             Using a template only changes the design, colour and font — your content is never touched.
           </p>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 shrink-0 [&>button]:flex-1 sm:[&>button]:flex-none">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
@@ -396,42 +448,9 @@ export default function TemplateLibrary({ data, onChange }: Props) {
         <div className="text-center py-10 text-sm text-gray-400">No templates match your filters.</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {filtered.map((tpl) => {
-            const active = tpl.id === currentId;
-            return (
-              <button
-                key={tpl.id}
-                onClick={() => setPreview(tpl)}
-                className={`group text-left rounded-xl border bg-white p-2 transition-all hover:shadow-md hover:-translate-y-0.5 ${
-                  active ? "border-indigo-500 ring-2 ring-indigo-500/30" : "border-gray-200"
-                }`}
-              >
-                <TemplateThumb def={tpl.def} />
-                <div className="mt-2 px-0.5">
-                  <div className="flex items-center justify-between gap-1">
-                    <p className="text-xs font-semibold text-gray-800 truncate">{tpl.name}</p>
-                    {active && <Check size={13} className="text-indigo-600 shrink-0" />}
-                  </div>
-                  <p className="text-[10px] text-gray-400 truncate">{tpl.industry}</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    {tpl.atsFriendly ? (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
-                        <ShieldCheck size={9} /> ATS
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-fuchsia-50 text-fuchsia-700">
-                        <Sparkles size={9} /> Creative
-                      </span>
-                    )}
-                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">{tpl.style}</span>
-                  </div>
-                </div>
-                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] font-medium text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Eye size={11} /> Preview
-                </div>
-              </button>
-            );
-          })}
+          {filtered.map((tpl) => (
+            <TemplateCard key={tpl.id} tpl={tpl} active={tpl.id === currentId} onPreview={setPreview} />
+          ))}
         </div>
       )}
 
