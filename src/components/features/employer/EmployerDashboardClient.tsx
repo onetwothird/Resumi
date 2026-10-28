@@ -1,33 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
-import { UserButton, useUser } from "@clerk/nextjs";
-import { 
-  Plus, 
-  MapPin, 
-  Clock, 
-  Briefcase, 
-  MoreVertical, 
-  Edit3, 
-  Eye, 
-  Trash2,
-  Users,
-  TrendingUp,
-  User,
-  FileText,
-  Settings,
-  Home,
-  Video,
-  Crown,
-  CreditCard,
-} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { Plus, MapPin, Clock, Briefcase, MoreVertical, Edit3, Eye, Trash2, Users, TrendingUp } from "lucide-react";
 import { JobListItem, EmployerAnalytics } from "@/types/employer";
-import NotificationBell from "@/components/features/dashboard/NotificationBell";
-import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
-import MobileNav from "@/components/layout/MobileNav";
 import { useLoading } from "@/components/ui/LoadingProvider";
+import AppHeader from "@/components/layout/AppHeader";
 
 interface Props {
   initialJobs: JobListItem[];
@@ -60,7 +39,6 @@ function skillsOf(job: JobListItem): string[] {
 
 export default function EmployerDashboardClient({ initialJobs, analytics }: Props) {
   const router = useRouter();
-  const pathname = usePathname();
   const { user } = useUser();
   const { startLoading } = useLoading();
   
@@ -77,81 +55,7 @@ export default function EmployerDashboardClient({ initialJobs, analytics }: Prop
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F7F9FC]">
-      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 shadow-xs">
-        <div className="flex items-center gap-4 lg:gap-8">
-          <Link href="/employer/dashboard" className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon/icons.png" alt="Resumi Logo" className="w-8 h-8 object-contain drop-shadow-sm" />
-            <span className="hidden sm:inline">Resumi</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <Link 
-              href="/employer/dashboard" 
-              className={`transition-colors ${pathname === '/employer/dashboard' ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}
-            >
-              Dashboard
-            </Link>
-            <Link 
-              href="/employer/candidates" 
-              className={`transition-colors ${pathname?.includes('/candidates') || pathname?.includes('/applicants') ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}
-            >
-              Candidates
-            </Link>
-            <Link 
-              href="/employer/interviews" 
-              className={`transition-colors ${pathname?.includes('/interviews') ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}
-            >
-              Interviews
-            </Link>
-            <Link
-              href="/pricing"
-              className={`transition-colors ${pathname?.startsWith('/pricing') ? 'text-gray-900 font-bold' : 'hover:text-gray-900'}`}
-            >
-              Pricing
-            </Link>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-2 lg:gap-4">
-          <NotificationBell />
-          <InboxDropdown />
-          <div className="flex items-center gap-2 sm:ml-2">
-            <UserButton>
-              <UserButton.MenuItems>
-                <UserButton.Link
-                  label="Edit Profile"
-                  labelIcon={<User size={15} />}
-                  href="/profile"
-                />
-                <UserButton.Link
-                  label="Candidate Dashboard"
-                  labelIcon={<FileText size={15} />}
-                  href="/dashboard"
-                />
-                <UserButton.Link
-                  label="Settings"
-                  labelIcon={<Settings size={15} />}
-                  href="/settings"
-                />
-                <UserButton.Link
-                  label="Pricing"
-                  labelIcon={<CreditCard size={15} />}
-                  href="/pricing"
-                />
-              </UserButton.MenuItems>
-            </UserButton>
-          </div>
-        </div>
-        <MobileNav
-          items={[
-            { label: "Dashboard", href: "/employer/dashboard", icon: Home, active: pathname === "/employer/dashboard" },
-            { label: "Candidates", href: "/employer/candidates", icon: Users, active: pathname?.includes("/candidates") || pathname?.includes("/applicants") },
-            { label: "Interviews", href: "/employer/interviews", icon: Video, active: pathname?.includes("/interviews") },
-            { label: "Pricing", href: "/pricing", icon: Crown, active: pathname?.startsWith("/pricing") },
-          ]}
-          label="Open navigation"
-        />
-      </header>
+      <AppHeader />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 lg:px-6 py-6 sm:py-8">
         
