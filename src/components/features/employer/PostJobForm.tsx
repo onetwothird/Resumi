@@ -2,25 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserButton, useUser } from "@clerk/nextjs";
-import {
-  MapPin,
-  Clock,
-  X,
-  Loader2,
-  Save,
-  Rocket,
-  Bell,
-  Mail,
-  Search,
-  Lock,
-  Wallet,
-  Eye,
-  ChevronUp,
-} from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import { MapPin, Clock, X, Loader2, Save, Rocket, Search, Lock, Wallet, Eye, ChevronUp } from "lucide-react";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
-import ResumiLogo from "@/components/ui/ResumiLogo";
 import { useLoading } from "@/components/ui/LoadingProvider";
+import AppHeader from "@/components/layout/AppHeader";
 
 type EmploymentType = "Full-time" | "Part-time" | "Contract" | "Internship";
 
@@ -205,28 +191,7 @@ export default function PostJobForm() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#F7F9FC]">
-      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-20">
-        <div
-          className="flex items-center gap-2 font-bold text-indigo-600 text-xl cursor-pointer"
-          onClick={() => { startLoading(); router.push("/employer/dashboard"); }}
-        >
-          <ResumiLogo className="w-8 h-8" />
-          <span className="hidden sm:inline">Resumi</span>
-          <span className="hidden sm:inline text-xs font-semibold text-slate-400 border border-slate-200 rounded-full px-2 py-0.5 ml-1">
-            Employer
-          </span>
-        </div>
-        <div className="flex items-center gap-2 lg:gap-4">
-          <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
-            <Bell size={16} />
-          </button>
-          <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 rounded-full border border-gray-200 transition-colors">
-            <Mail size={16} />
-          </button>
-          <div className="h-6 w-px bg-gray-200"></div>
-          <UserButton />
-        </div>
-      </header>
+      <AppHeader />
 
       <div className="min-h-14 py-3 bg-white border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between px-4 shrink-0 z-10 shadow-sm gap-3 sm:gap-0">
         <div>
