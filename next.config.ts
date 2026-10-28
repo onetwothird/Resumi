@@ -72,9 +72,18 @@ const clerkOrigins = [
  *   appended to the same list, because a Clerk instance fronted by a custom
  *   domain is not matched by Clerk's own wildcards.
  */
+/**
+ * Cloudflare Turnstile, which Clerk uses as the sign-up CAPTCHA (bot
+ * protection). It needs its script and its API calls allowed as well as its
+ * frame: with only frame-src, the loader script was blocked and sign-up showed
+ * "The CAPTCHA failed to load. This may be due to an unsupported browser or a
+ * browser extension."
+ */
+const turnstile = "https://challenges.cloudflare.com";
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${clerkOrigins}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${clerkOrigins} ${turnstile}`,
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${clerkOrigins}`,
   `font-src 'self' https://fonts.gstatic.com data: ${clerkOrigins}`,
   "img-src 'self' data: blob: https:",
@@ -82,8 +91,8 @@ const contentSecurityPolicy = [
   // session-token refresh, the FAPI calls behind useUser(), and the telemetry
   // endpoint are all connect-src, and missing any one of them leaves a session
   // that loads but never updates.
-  `connect-src 'self' ${clerkOrigins} https://clerk-telemetry.com`,
-  `frame-src 'self' ${clerkOrigins} https://challenges.cloudflare.com`,
+  `connect-src 'self' ${clerkOrigins} https://clerk-telemetry.com ${turnstile}`,
+  `frame-src 'self' ${clerkOrigins} ${turnstile}`,
   // Clerk spawns a blob: worker on boot; without this it falls back to
   // script-src, which has no blob: and the worker never starts.
   "worker-src 'self' blob:",
