@@ -248,12 +248,50 @@ export const aiRewriteSchema = z.object({
   jobTitle: z.string().trim().max(160).optional(),
 });
 
-/** Body of POST /api/ai/analyze */
+/** A text field the ATS analyzer reads. Null, because that is how the
+ *  database (and so GET /api/resume/[id]) returns an empty column. */
+const atsText = (max: number) => z.string().max(max).nullish();
+
+/**
+ * Body of POST /api/ai/analyze.
+ *
+ * Every field is nullish. Both callers send a resume straight from the
+ * database or the editor, where empty fields are `null`; the old schema took
+ * only strings and required a summary, so most real resumes were rejected
+ * with "Invalid request." before the model was ever called. Whether there is
+ * enough to score is decided by the handler instead, with a message that says
+ * what to add.
+ */
 export const aiAnalyzeSchema = z.object({
-  summary: z.string().trim().min(1).max(5_000),
-  jobTitle: z.string().trim().max(160).optional(),
-  firstName: z.string().max(120).optional(),
-  lastName: z.string().max(120).optional(),
+  /** When set and owned by the caller, the score is saved on that resume. */
+  resumeId: z.string().max(64).nullish(),
+  firstName: atsText(120),
+  lastName: atsText(120),
+  jobTitle: atsText(160),
+  summary: atsText(20_000),
+  skills: atsText(16_000),
+  certifications: atsText(16_000),
+  experience: z
+    .array(
+      z.object({
+        company: atsText(480),
+        role: atsText(480),
+        date: atsText(320),
+        description: atsText(16_000),
+      })
+    )
+    .max(30)
+    .nullish(),
+  education: z
+    .array(
+      z.object({
+        school: atsText(640),
+        degree: atsText(640),
+        date: atsText(320),
+      })
+    )
+    .max(30)
+    .nullish(),
 });
 
 /** Body of POST /api/ai/interview-questions */
