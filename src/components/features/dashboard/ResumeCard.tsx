@@ -9,10 +9,7 @@ import {
 import { ResumeListItem } from "@/types/dashboard";
 import { formatRelativeDate } from "@/lib/format";
 
-interface AtsResult {
-  score: number;
-  recommendations: string[];
-}
+import { requestAtsAnalysis, type AtsResult } from "@/lib/ats-client";
 
 interface ResumeCardProps {
   resume: ResumeListItem;
@@ -104,8 +101,8 @@ export default function ResumeCard({
   }, [resume.id, pushToast]);
 
   // Analyze with AI
-  const handleAnalyze = useCallback(async (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleAnalyze = useCallback(async (e?: React.MouseEvent) => {
+    e?.preventDefault();
     setMenuOpen(false);
     setIsAnalyzing(true);
     setAtsError(null);
@@ -113,35 +110,13 @@ export default function ResumeCard({
     setIsAtsModalOpen(true);
 
     try {
-      // Fetch full resume data
       const resumeRes = await fetch(`/api/resume/${resume.id}`);
-      if (!resumeRes.ok) throw new Error("Failed to load resume data");
+      if (!resumeRes.ok) throw new Error("Couldn't load this resume. Refresh the page and try again.");
       const resumeData = await resumeRes.json();
 
-      if (!resumeData.summary?.trim()) {
-        setAtsError("Add a professional summary to this resume before analyzing.");
-        setIsAnalyzing(false);
-        return;
-      }
-
-      // Call ATS analysis API
-      const res = await fetch("/api/ai/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(resumeData),
-      });
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.error || "Analysis failed");
-      }
-
-      const result = await res.json();
-      if (typeof result.score !== "number" || !Array.isArray(result.recommendations)) {
-        throw new Error("Malformed response from AI");
-      }
-
-      setAtsResult(result);
+      // The server decides whether there's enough to score (summary,
+      // experience or skills all count) and says what to add if not.
+      setAtsResult(await requestAtsAnalysis({ ...resumeData, id: resume.id }));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setAtsError(msg);
@@ -149,6 +124,13 @@ export default function ResumeCard({
       setIsAnalyzing(false);
     }
   }, [resume.id]);
+
+  useEffect(() => {
+    if (!isAtsModalOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setIsAtsModalOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isAtsModalOpen]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-emerald-700 bg-emerald-50 border-emerald-200";
@@ -171,7 +153,7 @@ export default function ResumeCard({
             }}
             aria-label="Resume actions"
             className={`w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all ${
-              menuOpen ? "opacity-100 bg-indigo-50 text-indigo-600" : "opacity-0 group-hover:opacity-100"
+              menuOpen ? "opacity-100 bg-indigo-50 text-indigo-600" : "opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
             }`}
           >
             <MoreVertical size={16} />
@@ -279,27 +261,37 @@ export default function ResumeCard({
 
       {/* ATS Analysis Modal */}
       {isAtsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px]">
-          <div className="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <div className="flex items-center gap-3">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-slate-900/40 backdrop-blur-[2px]"
+          onClick={(e) => { if (e.target === e.currentTarget && !isAnalyzing) setIsAtsModalOpen(false); }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`ats-title-${resume.id}`}
+            className="bg-white rounded-t-3xl sm:rounded-2xl shadow-xl ring-1 ring-black/5 w-full sm:max-w-lg overflow-hidden animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 max-h-[92dvh] flex flex-col pb-[env(safe-area-inset-bottom)]"
+          >
+            <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 sm:py-5 border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
                   <Sparkles size={19} className="text-purple-600" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">ATS Analysis</h3>
-                  <p className="text-xs text-gray-500 truncate max-w-52">{displayTitle}</p>
+                <div className="min-w-0">
+                  <h3 id={`ats-title-${resume.id}`} className="font-bold text-gray-900">ATS analysis</h3>
+                  <p className="text-xs text-gray-500 truncate">{displayTitle}</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsAtsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
+                aria-label="Close ATS analysis"
+                className="shrink-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain">
               {isAnalyzing && (
                 <div className="py-10 flex flex-col items-center gap-4">
                   <div className="relative w-14 h-14 flex items-center justify-center">
@@ -308,7 +300,7 @@ export default function ResumeCard({
                       <Sparkles className="w-6 h-6 text-purple-500" />
                     </div>
                   </div>
-                  <p className="text-sm font-medium text-gray-500">Analyzing your resume with AI...</p>
+                  <p className="text-sm font-medium text-gray-500" aria-live="polite">Scoring your resume&hellip; this takes a few seconds.</p>
                 </div>
               )}
 
@@ -317,21 +309,30 @@ export default function ResumeCard({
                   <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mb-3">
                     <AlertTriangle size={20} className="text-red-500" />
                   </div>
-                  <p className="text-sm text-gray-600 max-w-sm">{atsError}</p>
-                  <button
-                    onClick={() => setIsAtsModalOpen(false)}
-                    className="mt-4 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    Close
-                  </button>
+                  <p className="text-sm text-gray-600 max-w-sm" role="alert">{atsError}</p>
+                  <div className="mt-5 flex w-full sm:w-auto flex-col-reverse sm:flex-row gap-2">
+                    <Link
+                      href={`/resume/${resume.id}`}
+                      className="px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                    >
+                      Open in editor
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleAnalyze}
+                      className="px-4 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors"
+                    >
+                      Try again
+                    </button>
+                  </div>
                 </div>
               )}
 
               {atsResult && !isAnalyzing && (
                 <div className="space-y-5">
                   {/* Score */}
-                  <div className="flex items-center gap-4">
-                    <div className={`text-3xl font-black px-5 py-3 rounded-xl border ${getScoreColor(atsResult.score)}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                    <div className={`self-start shrink-0 text-3xl font-black px-5 py-3 rounded-xl border ${getScoreColor(atsResult.score)}`}>
                       {atsResult.score}
                       <span className="text-sm font-bold opacity-60">/100</span>
                     </div>
@@ -349,7 +350,7 @@ export default function ResumeCard({
 
                   {/* Recommendations */}
                   <div>
-                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Recommendations</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 mb-3">How to raise your score</h4>
                     <div className="space-y-2.5">
                       {atsResult.recommendations.map((rec, i) => (
                         <div key={i} className="flex items-start gap-3 bg-gray-50 p-3.5 rounded-xl border border-gray-100">
@@ -360,12 +361,21 @@ export default function ResumeCard({
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => setIsAtsModalOpen(false)}
-                    className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold rounded-xl transition-colors"
-                  >
-                    Done
-                  </button>
+                  <div className="flex flex-col-reverse sm:flex-row gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsAtsModalOpen(false)}
+                      className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition-colors"
+                    >
+                      Done
+                    </button>
+                    <Link
+                      href={`/resume/${resume.id}`}
+                      className="flex-1 py-2.5 text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors"
+                    >
+                      Edit this resume
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
