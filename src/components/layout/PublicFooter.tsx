@@ -8,12 +8,14 @@ import { useAuth } from "@clerk/nextjs";
 import { Send, CheckCircle, Star, MessageSquareQuote, X } from "lucide-react";
 import ResumiLogo from "@/components/ui/ResumiLogo";
 
-const FOOTER_LINKS: { href: string; label: string }[] = [
+const PRODUCT_LINKS: { href: string; label: string }[] = [
   { href: "/#features", label: "Features" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/jobs", label: "Browse jobs" },
   { href: "/companies", label: "Companies" },
-  { href: "/for-employers", label: "For Employers" },
 ];
+
+const LINK_CLASS = "text-sm text-slate-400 hover:text-white transition-colors";
 
 export default function PublicFooter() {
   const [email, setEmail] = useState("");
@@ -124,41 +126,93 @@ export default function PublicFooter() {
 
   return (
     <>
-      <footer className="relative z-10 bg-slate-900 dark:bg-slate-950 border-t border-white/10">
-        {/* ── Section 1: Logo, Links & Newsletter ── */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10">
-            <div>
+      <footer className="relative z-10 bg-slate-900 dark:bg-slate-950 border-t border-white/10 text-slate-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10 sm:pt-16">
+          <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
+            {/* Brand + share your story */}
+            <div className="lg:col-span-4">
               <Link href="/" className="inline-flex items-center gap-2 font-bold text-lg text-white tracking-tight group">
                 <ResumiLogo className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
-                Resumi
+                <span className="font-serif">Resumi</span>
               </Link>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 text-sm text-slate-400">
-                {FOOTER_LINKS.map((link) => (
-                  <Link key={link.href} href={link.href} className="py-1.5 hover:text-indigo-400 transition-all duration-200 hover:translate-x-0.5">
-                    {link.label}
-                  </Link>
-                ))}
+              <p className="mt-4 max-w-xs text-sm leading-relaxed">
+                A resume builder and a live job board in one place. Free for job seekers.
+              </p>
+
+              <div className="mt-6 max-w-sm rounded-xl border border-white/10 bg-white/5 p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <MessageSquareQuote className="w-4 h-4 text-indigo-400 shrink-0" aria-hidden="true" />
+                  Got hired using Resumi?
+                </p>
+                <p className="mt-1 text-xs leading-relaxed">Share your story. It could help someone else land theirs.</p>
+                <button
+                  type="button"
+                  onClick={openModal}
+                  aria-haspopup="dialog"
+                  className="mt-3 text-sm font-semibold text-indigo-300 hover:text-indigo-200 transition-colors"
+                >
+                  Share your experience
+                </button>
               </div>
             </div>
 
-            <div className="flex flex-col items-start lg:items-end w-full lg:w-auto">
-              <p className="text-sm font-semibold text-white mb-3">Job alerts, weekly</p>
+            {/* Link groups */}
+            <nav aria-label="Footer" className="grid grid-cols-2 gap-8 lg:col-span-4">
+              <div>
+                <p className="text-sm font-semibold text-white">Product</p>
+                <ul className="mt-4 space-y-3">
+                  {PRODUCT_LINKS.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className={LINK_CLASS}>{link.label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Get started</p>
+                <ul className="mt-4 space-y-3">
+                  <li>
+                    <Link href="/for-employers" className={LINK_CLASS}>For employers</Link>
+                  </li>
+                  {signedIn ? (
+                    <li>
+                      <Link href="/dashboard" className={LINK_CLASS}>Your dashboard</Link>
+                    </li>
+                  ) : (
+                    <>
+                      <li>
+                        <Link href="/sign-in" className={LINK_CLASS}>Sign in</Link>
+                      </li>
+                      <li>
+                        <Link href="/sign-up" className={LINK_CLASS}>Create an account</Link>
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </nav>
+
+            {/* Job alerts */}
+            <div className="lg:col-span-4">
+              <p className="text-sm font-semibold text-white">Job alerts, weekly</p>
+              <p className="mt-2 text-sm leading-relaxed">New openings from companies hiring on Resumi.</p>
               {subscribed ? (
-                <p className="text-sm text-slate-400 animate-fade-in">You&apos;re on the list — we&apos;ll be in touch.</p>
+                <p className="mt-4 text-sm text-slate-300 animate-fade-in">You&apos;re on the list — we&apos;ll be in touch.</p>
               ) : (
-                <form onSubmit={handleSubscribe} className="flex items-center gap-2 w-full max-w-sm">
+                <form onSubmit={handleSubscribe} className="mt-4 flex flex-col sm:flex-row gap-2 w-full max-w-sm">
+                  <label htmlFor="footer-email" className="sr-only">Email address</label>
                   <input
+                    id="footer-email"
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@email.com"
-                    className="flex-1 min-w-0 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-3 text-base sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200 focus:scale-[1.01]"
+                    className="flex-1 min-w-0 rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-3 text-base sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
                   />
                   <button
                     type="submit"
-                    className="shrink-0 text-sm font-semibold bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/25 active:scale-95"
+                    className="shrink-0 text-sm font-semibold bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-500 transition-colors active:scale-95"
                   >
                     Subscribe
                   </button>
@@ -166,53 +220,10 @@ export default function PublicFooter() {
               )}
             </div>
           </div>
-        </div>
 
-        {/* ── Section 2: Share Your Experience (button only) ── */}
-        <div className="border-t border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
-            <div className="flex items-center gap-3">
-              <MessageSquareQuote className="w-5 h-5 text-indigo-400" />
-              <p className="text-sm sm:text-base text-slate-300">Got hired using Resumi? Share your story — it could inspire others.</p>
-            </div>
-            <motion.button
-              type="button"
-              onClick={openModal}
-              aria-haspopup="dialog"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              className="shrink-0 inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/25"
-            >
-              <MessageSquareQuote size={16} />
-              Share Your Experience
-            </motion.button>
-          </div>
-        </div>
-
-        {/* ── Section 3: Bottom bar ── */}
-        <div className="border-t border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-slate-400">
-                © {new Date().getFullYear()} Resumi. All rights reserved.
-              </p>
-              <div className="flex items-center gap-3 text-sm">
-                {signedIn ? (
-                  <Link href="/dashboard" className="py-1.5 font-semibold text-indigo-400 hover:text-indigo-300 transition-all duration-200 hover:translate-x-0.5">
-                    Go to your dashboard
-                  </Link>
-                ) : (
-                  <>
-                    <Link href="/sign-in" className="py-1.5 font-medium text-slate-300 hover:text-white transition-all duration-200 hover:translate-x-0.5">
-                      Sign In
-                    </Link>
-                    <Link href="/sign-up" className="py-1.5 font-semibold text-indigo-400 hover:text-indigo-300 transition-all duration-200 hover:translate-x-0.5">
-                      Get Started
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
+          <div className="mt-12 pt-6 border-t border-white/10 flex flex-col-reverse sm:flex-row items-center justify-between gap-3 text-sm">
+            <p>© {new Date().getFullYear()} Resumi. All rights reserved.</p>
+            <p className="text-slate-500">Built for job seekers and the teams hiring them.</p>
           </div>
         </div>
       </footer>

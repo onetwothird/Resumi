@@ -6,29 +6,18 @@ import {
   Plus,
   Search, FileX2, FilePlus2, Mic, Bot, X, PlaySquare, Square,
   Video, VideoOff, RotateCcw, TrendingUp, ThumbsUp, Target, ChevronDown,
-  Sparkles, Briefcase, FileText, ChevronRight,
-  User,
-  Settings,
-  Home,
-  Building2,
-  PenTool,
-  Crown,
-  CreditCard,
+  Sparkles, FileText, ChevronRight,
 } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
 import { ResumeListItem } from "@/types/dashboard";
 import { ResumeData } from "@/types";
 import { formatRelativeDate } from "@/lib/format";
 import ResumeCard from "@/components/features/dashboard/ResumeCard";
 import PdfUploader from "@/components/features/dashboard/PdfUploader";
-import NotificationBell from "@/components/features/dashboard/NotificationBell";
 import JobBoard from "@/components/features/dashboard/JobBoard";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ToastStack, ToastItem } from "@/components/ui/Toast";
-import ResumiLogo from "@/components/ui/ResumiLogo";
-import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
-import MobileNav from "@/components/layout/MobileNav";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import AppHeader from "@/components/layout/AppHeader";
 
 type SortOption = "updated" | "created" | "name";
 type TabOption = "resumes" | "jobs";
@@ -90,11 +79,10 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
   const [] = useState(false);
   
   const searchParams = useSearchParams();
-  // Only used to highlight the Pricing nav item; the rest of this header's
-  // "active" state comes from `activeTab`.
-  const pathname = usePathname();
-  const initialTab = searchParams.get("tab") === "jobs" ? "jobs" : "resumes";
-  const [activeTab, setActiveTab] = useState<TabOption>(initialTab);
+  // Derived from the URL rather than held in state: the header's Jobs item is
+  // a link to /jobs now, so nothing on this page switches tabs in place, and
+  // /dashboard always means Home.
+  const activeTab: TabOption = searchParams.get("tab") === "jobs" ? "jobs" : "resumes";
 
   const [resumes, setResumes] = useState<ResumeListItem[]>(initialResumes);
   const [query, setQuery] = useState("");
@@ -169,6 +157,17 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     setCameraOn(true);
   };
 
+  // Other pages' AI Coach links land here as /dashboard?coach=1. Open the
+  // coach, then drop the flag so a refresh or Back doesn't reopen it.
+  const wantsCoach = searchParams.get("coach") === "1";
+  useEffect(() => {
+    if (!wantsCoach) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: open the coach requested by the URL
+    startAiInterview();
+    router.replace("/dashboard", { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per arrival with the flag
+  }, [wantsCoach]);
+
   const closeAiInterview = () => {
     try {
       window.speechSynthesis?.cancel();
@@ -202,6 +201,14 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
   };
+
+  useEffect(() => {
+    if (!isAiModalOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeAiInterview(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- closeAiInterview only touches refs and setters
+  }, [isAiModalOpen]);
 
   const beginInterview = async () => {
     if (!selectedResumeId && !uploadedResumeData) {
@@ -562,82 +569,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
   return (
     <>
-     <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 shadow-xs">
-        <div className="flex items-center gap-4 lg:gap-8">
-          <Link href="/dashboard" onClick={() => setActiveTab("resumes")} className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
-            <ResumiLogo className="w-8 h-8" />
-            <span className="hidden sm:inline">Resumi</span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <button onClick={() => setActiveTab("resumes")} className={`transition-colors ${activeTab === "resumes" ? "text-gray-900 font-semibold" : "hover:text-gray-900"}`}>
-              Home
-            </button>
-            <button onClick={() => setActiveTab("jobs")} className={`transition-colors ${activeTab === "jobs" ? "text-gray-900 font-semibold" : "hover:text-gray-900"}`}>
-              Jobs
-            </button>
-            <Link href="/companies" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Companies <ChevronDown size={14}/></Link>
-            <Link href="/resume/new" className="flex items-center gap-1 hover:text-gray-900 transition-colors">Builder <ChevronDown size={14}/></Link>
-            {/* The public pricing grid. /pricing is the full comparison table;
-                the sidebar's "Plans" link only exists on Profile/Saved, so
-                without this there was no pricing link on the page people spend
-                the most time on. */}
-            <Link
-              href="/pricing"
-              className={`transition-colors ${
-                pathname?.startsWith("/pricing") ? "text-gray-900 font-semibold" : "hover:text-gray-900"
-              }`}
-            >
-              Pricing
-            </Link>
-            <button onClick={startAiInterview} className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 transition-colors">
-              <Sparkles size={14} className="text-indigo-500" /> AI Coach
-            </button>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-2 lg:gap-4">
-          <NotificationBell />
-          <InboxDropdown />
-          <div className="flex items-center gap-2 sm:ml-2">
-            <UserButton>
-              <UserButton.MenuItems>
-                <UserButton.Link
-                  label="Edit Profile"
-                  labelIcon={<User size={15} />}
-                  href="/profile"
-                />
-                <UserButton.Link
-                  label="Settings"
-                  labelIcon={<Settings size={15} />}
-                  href="/settings"
-                />
-                <UserButton.Link
-                  label="Employer Dashboard"
-                  labelIcon={<Briefcase size={15} />}
-                  href="/employer/dashboard"
-                />
-                <UserButton.Link
-                  label="Pricing"
-                  labelIcon={<CreditCard size={15} />}
-                  href="/pricing"
-                />
-              </UserButton.MenuItems>
-            </UserButton>
-          </div>
-        <MobileNav
-            items={[
-              { label: "Home", href: "/dashboard", icon: Home },
-              { label: "Jobs", href: "/jobs", icon: Briefcase },
-              { label: "Companies", href: "/companies", icon: Building2 },
-              { label: "Builder", href: "/resume/new", icon: PenTool, primary: true },
-              { label: "Pricing", href: "/pricing", icon: Crown },
-              { label: "AI Coach", onClick: startAiInterview, icon: Sparkles, primary: true },
-            ]}
-            label="Open navigation"
-          />
-        </div>
-      </header>
+      <AppHeader onAiCoach={startAiInterview} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-10">
 
@@ -783,23 +715,34 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
       </main>
 
       {isAiModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] transition-all">
-          <div className="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 w-full max-w-125 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-slate-900/40 backdrop-blur-[2px]"
+          onClick={(e) => { if (e.target === e.currentTarget) closeAiInterview(); }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ai-coach-title"
+            className="bg-white rounded-t-3xl sm:rounded-2xl shadow-xl ring-1 ring-black/5 w-full sm:max-w-lg overflow-hidden animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 max-h-[92dvh] sm:max-h-[90vh] flex flex-col pb-[env(safe-area-inset-bottom)]"
+          >
 
-            <div className="relative px-5 sm:px-6 pt-5 sm:pt-6 pb-5 border-b border-gray-100 shrink-0">
+            <div className="relative px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-100 shrink-0">
+              <div aria-hidden="true" className="sm:hidden mx-auto -mt-2 mb-4 h-1 w-10 rounded-full bg-gray-200" />
               <button
+                type="button"
                 onClick={closeAiInterview}
-                className="absolute top-5 right-5 w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full flex items-center justify-center transition-colors"
+                aria-label="Close AI Coach"
+                className="absolute top-4 right-4 sm:top-5 sm:right-5 w-9 h-9 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full flex items-center justify-center transition-colors"
               >
-                <X size={14} strokeWidth={2.5} />
+                <X size={16} strokeWidth={2.5} />
               </button>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 pr-10">
                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
                   <Bot size={19} className="text-indigo-600" strokeWidth={2} />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="font-serif text-lg text-gray-900 leading-tight">AI Interview Coach</h2>
+                  <h2 id="ai-coach-title" className="font-serif text-lg text-gray-900 leading-tight">AI Interview Coach</h2>
                   <p className="text-[13px] text-gray-500 mt-0.5 truncate">
                     {interviewStage === "setup" && "Set up your mock interview"}
                     {interviewStage === "preparing" && "Preparing tailored questions..."}
@@ -810,23 +753,28 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 mt-5">
+              <ol className="grid grid-cols-3 gap-2 mt-5" aria-label="Progress">
                 {(() => {
                   const stepIndex =
                     interviewStage === "setup" || interviewStage === "preparing" ? 0 :
                     interviewStage === "live" || interviewStage === "reviewing" ? 1 : 2;
                   return ["Setup", "Interview", "Feedback"].map((label, i) => (
-                    <div key={label} className="flex-1 h-1 rounded-full bg-gray-100 overflow-hidden">
-                      <div
-                        className={`h-full bg-indigo-600 rounded-full transition-all duration-500 ${i <= stepIndex ? "w-full" : "w-0"}`}
-                      />
-                    </div>
+                    <li key={label} aria-current={i === stepIndex ? "step" : undefined}>
+                      <div className="h-1 rounded-full bg-gray-100 overflow-hidden">
+                        <div
+                          className={`h-full bg-indigo-600 rounded-full transition-all duration-500 ${i <= stepIndex ? "w-full" : "w-0"}`}
+                        />
+                      </div>
+                      <span className={`mt-1.5 block text-xs ${i === stepIndex ? "font-semibold text-gray-900" : i < stepIndex ? "text-indigo-600" : "text-gray-400"}`}>
+                        {label}
+                      </span>
+                    </li>
                   ));
                 })()}
-              </div>
+              </ol>
             </div>
 
-            <div className="p-5 sm:p-7 flex flex-col items-center overflow-y-auto">
+            <div className="p-5 sm:p-6 flex flex-col items-center overflow-y-auto overscroll-contain">
               {interviewStage === "setup" && (
                 <div className="w-full space-y-5">
                   {!hasResumes && !uploadedResumeData ? (
@@ -843,11 +791,12 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                     <>
                       {!uploadedResumeData && (
                         <div>
-                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                            <FileText size={12} /> Which resume are we prepping with?
+                          <label htmlFor="coach-resume" className="text-sm font-medium text-gray-700 mb-1.5 block">
+                            Resume to practice with
                           </label>
                           <div className="relative">
                             <select
+                              id="coach-resume"
                               value={selectedResumeId}
                               onChange={(e) => {
                                 const id = e.target.value;
@@ -869,16 +818,17 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                       )}
 
                       {uploadedResumeData && (
-                        <div className="p-3 bg-indigo-50 text-indigo-700 text-sm rounded-xl border border-indigo-100 flex items-center gap-2 mb-2">
-                           <FilePlus2 size={16} /> <span>Using uploaded PDF data</span>
+                        <div className="p-3 bg-indigo-50 text-indigo-700 text-sm rounded-xl border border-indigo-100 flex items-center gap-2">
+                          <FilePlus2 size={16} /> <span>Using the PDF you just uploaded</span>
                         </div>
                       )}
 
                       <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                          <Briefcase size={12} /> Target job title
+                        <label htmlFor="coach-title" className="text-sm font-medium text-gray-700 mb-1.5 block">
+                          Job you&rsquo;re interviewing for
                         </label>
                         <input
+                          id="coach-title"
                           value={targetJobTitle}
                           onChange={(e) => setTargetJobTitle(e.target.value)}
                           placeholder="e.g. Frontend Web Engineer"
@@ -887,9 +837,12 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                       </div>
 
                       <label className="flex items-center justify-between gap-3 cursor-pointer bg-gray-50 border border-gray-200 rounded-xl p-3.5">
-                        <span className="text-sm text-gray-700 flex items-center gap-2">
-                          <Video size={15} className="text-gray-400 shrink-0" />
-                          <span>Practice on camera <span className="text-gray-400 font-normal">— self-view only, never sent anywhere</span></span>
+                        <span className="text-sm text-gray-700 flex items-start gap-2.5">
+                          <Video size={16} className="text-gray-400 shrink-0 mt-0.5" />
+                          <span>
+                            Practice on camera
+                            <span className="block text-xs text-gray-400">Only you see it. Video is never uploaded.</span>
+                          </span>
                         </span>
                         <button
                           type="button"
@@ -906,7 +859,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                         onClick={beginInterview}
                         className="w-full flex items-center justify-center gap-2 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[14px] rounded-xl transition-colors active:scale-[0.99]"
                       >
-                        <PlaySquare size={16} /> Start Mock Interview
+                        <PlaySquare size={16} /> Start mock interview
                       </button>
                     </>
                   )}
@@ -928,7 +881,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
               {interviewStage === "live" && (
                 <div className="w-full">
                   {cameraOn && (
-                    <div className={`relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden mb-6 border transition-all ${isListening ? "border-violet-300 ring-4 ring-violet-100" : "border-gray-200"}`}>
+                    <div className="relative w-full aspect-video max-h-[32dvh] sm:max-h-none bg-gray-900 rounded-2xl overflow-hidden mb-5 border border-gray-200">
                       <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover -scale-x-100" />
                       {cameraError && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-900 px-6">
@@ -943,55 +896,61 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                     </div>
                   )}
 
-                  <div className="relative bg-gray-50 rounded-2xl p-5 pt-4 w-full mb-6 border border-gray-200">
-                    <span className="inline-block bg-white px-2 py-0.5 mb-2 text-[10px] font-bold text-indigo-500 uppercase tracking-wide border border-gray-200 rounded-full">
-                      Question {questionIndex + 1}
-                    </span>
-                    <p className="text-gray-800 font-medium text-[15px] leading-relaxed">
+                  <div className="bg-indigo-50/60 rounded-2xl p-4 sm:p-5 w-full mb-5 border border-indigo-100">
+                    <p className="text-xs font-semibold text-indigo-600 mb-1.5">
+                      Question {questionIndex + 1} of {questions.length}
+                    </p>
+                    <p className="text-gray-900 font-medium text-[15px] leading-relaxed">
                       {questions[questionIndex]}
                     </p>
                   </div>
 
-                  <div className="relative flex items-center justify-center w-20 h-20 mb-6 mx-auto">
-                    {isListening && <span className="absolute inset-0 rounded-full bg-violet-400 animate-ping opacity-20"></span>}
-                    <button
-                      onClick={toggleInterview}
-                      disabled={!speechSupported}
-                      className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 outline-none disabled:opacity-40 disabled:cursor-not-allowed ${isListening ? 'bg-violet-50 scale-105 shadow-md ring-4 ring-violet-100' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'}`}
-                    >
-                      <Mic size={28} strokeWidth={1.5} className={isListening ? "text-violet-600 animate-pulse" : "text-gray-400"} />
-                    </button>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label htmlFor="coach-answer" className="text-sm font-medium text-gray-700">Your answer</label>
+                    <span aria-live="polite" className="text-xs">
+                      {isListening ? (
+                        <span className="flex items-center gap-1.5 font-semibold text-rose-600">
+                          <Mic size={13} className="animate-pulse" /> Listening
+                        </span>
+                      ) : isInterviewActive ? (
+                        <span className="text-gray-400">Reading the question&hellip;</span>
+                      ) : null}
+                    </span>
                   </div>
-                  {!speechSupported && (
-                    <p className="text-center text-xs text-gray-400 -mt-4 mb-6">Voice isn&rsquo;t supported in this browser — just type your answer below.</p>
-                  )}
-
                   <textarea
+                    id="coach-answer"
                     value={transcript}
                     onChange={(e) => setTranscript(e.target.value)}
-                    placeholder={isListening ? "Listening to your answer..." : "Your answer will appear here — or just type it"}
-                    rows={4}
-                    className="w-full bg-white rounded-2xl p-5 border border-gray-200 mb-6 shadow-xs text-[14px] leading-relaxed text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 resize-none transition-all"
+                    placeholder={speechSupported ? "Speak after the question is read, or type here" : "Type your answer here"}
+                    rows={5}
+                    className={`w-full bg-white rounded-xl p-4 border mb-1 text-[14px] leading-relaxed text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 resize-none transition-all ${isListening ? "border-rose-300 ring-2 ring-rose-100" : "border-gray-200"}`}
                   />
+                  {!speechSupported && (
+                    <p className="text-xs text-gray-400 mb-1">Voice isn&rsquo;t supported in this browser, so type your answer instead.</p>
+                  )}
 
-                  <div className="flex gap-3 w-full mb-3">
+                  <div className="flex flex-col-reverse sm:flex-row gap-2.5 w-full mt-4 mb-3">
+                    {speechSupported && (
+                      <button
+                        type="button"
+                        onClick={toggleInterview}
+                        aria-pressed={isInterviewActive}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-[14px] transition-colors outline-none active:scale-[0.98] border ${isInterviewActive ? "bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}
+                      >
+                        {isInterviewActive ? <><Square size={14} fill="currentColor" /> Stop voice</> : <><Mic size={16} /> Use voice</>}
+                      </button>
+                    )}
                     <button
-                      onClick={toggleInterview}
-                      disabled={!speechSupported}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[14px] text-white transition-colors outline-none active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${isInterviewActive ? 'bg-rose-500 hover:bg-rose-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}
-                    >
-                      {isInterviewActive ? <><Square size={16} fill="currentColor" /> Stop</> : <><PlaySquare size={16} /> Read Aloud</>}
-                    </button>
-                    <button
+                      type="button"
                       onClick={handleNextQuestion}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold text-[14px] rounded-xl transition-colors outline-none border border-gray-200"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-[14px] rounded-xl transition-colors outline-none active:scale-[0.98]"
                     >
-                      {questionIndex === questions.length - 1 ? "Finish" : "Next Question"} <ChevronRight size={15} />
+                      {questionIndex === questions.length - 1 ? "Finish and get feedback" : "Next question"} <ChevronRight size={15} />
                     </button>
                   </div>
                   <div className="text-center">
-                    <button onClick={finishEarly} className="text-xs font-semibold text-gray-400 hover:text-gray-600 transition-colors">
-                      End interview now
+                    <button type="button" onClick={finishEarly} className="text-xs font-semibold text-gray-500 hover:text-gray-800 transition-colors py-1">
+                      End early and get feedback
                     </button>
                   </div>
                 </div>
@@ -1045,7 +1004,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
                       {Array.isArray(feedback.strengths) && feedback.strengths.length > 0 && (
                         <div className="w-full bg-emerald-50/70 border border-emerald-100 rounded-2xl p-4 mb-3">
-                          <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-wide mb-2.5">
+                          <div className="flex items-center gap-2 text-emerald-700 font-semibold text-sm mb-2.5">
                             <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0"><ThumbsUp size={11} /></span> Strengths
                           </div>
                           <ul className="space-y-1.5">
@@ -1058,7 +1017,7 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
 
                       {Array.isArray(feedback.improvements) && feedback.improvements.length > 0 && (
                         <div className="w-full bg-amber-50/70 border border-amber-100 rounded-2xl p-4 mb-6">
-                          <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wide mb-2.5">
+                          <div className="flex items-center gap-2 text-amber-700 font-semibold text-sm mb-2.5">
                             <span className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center shrink-0"><TrendingUp size={11} /></span> Room to grow
                           </div>
                           <ul className="space-y-1.5">
@@ -1074,13 +1033,13 @@ export default function DashboardClient({ initialResumes }: DashboardClientProps
                       <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                         <Target size={24} className="text-gray-300" />
                       </div>
-                      <p className="text-sm text-gray-500">Nice work finishing the mock interview! We couldn&rsquo;t generate written feedback this time — but reviewing your own answers is a great next step.</p>
+                      <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">Written feedback couldn&rsquo;t be generated for this session. Practice again to get a score.</p>
                     </div>
                   )}
 
                   <div className="flex gap-3 w-full">
                     <button onClick={restartInterview} className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold text-[13px] rounded-xl transition-colors border border-gray-200">
-                      <RotateCcw size={15} /> Practice Again
+                      <RotateCcw size={15} /> Practice again
                     </button>
                     <button onClick={closeAiInterview} className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[13px] rounded-xl transition-colors">
                       Done

@@ -3,36 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useUser, UserButton } from "@clerk/nextjs";
-import {
-  LayoutDashboard,
-  Bookmark,
-  Crown,
-  User as UserIcon,
-  Settings,
-  Check,
-  Bell,
-  Briefcase,
-  Building2,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  CreditCard,
-} from "lucide-react";
-import ResumiLogo from "@/components/ui/ResumiLogo";
-import NotificationBell from "@/components/features/dashboard/NotificationBell";
-import InboxDropdown from "@/components/features/dashboard/InboxDropdown";
-import MobileNav from "@/components/layout/MobileNav";
+import { useUser } from "@clerk/nextjs";
+import { LayoutDashboard, Bookmark, Crown, User as UserIcon, Settings, Check, Bell, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import CheckoutButton from "@/components/billing/CheckoutButton";
-import {
-  PLANS,
-  PLAN_ORDER,
-  formatPeso,
-  isPlanId,
-  monthlyEquivalent,
-  type BillingInterval,
-  type PlanId,
-} from "@/lib/plans";
+import { PLANS, PLAN_ORDER, formatPeso, isPlanId, monthlyEquivalent, type BillingInterval, type PlanId } from "@/lib/plans";
+import AppHeader from "@/components/layout/AppHeader";
 
 /** Mirrors the shape of GET /api/billing/status. */
 interface BillingState {
@@ -124,40 +99,7 @@ export default function UpgradeClient({
 
   return (
     <div className="min-h-dvh bg-[#F4F6F8] flex flex-col font-sans">
-      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20 shadow-xs">
-        <div className="flex items-center gap-4 lg:gap-8">
-          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-indigo-600 text-xl">
-            <ResumiLogo className="w-8 h-8" />
-            <span className="hidden sm:inline">Resumi</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
-            <Link href="/dashboard" className="hover:text-gray-900 transition-colors">Home</Link>
-            <Link href="/jobs" className="hover:text-gray-900 transition-colors">Jobs</Link>
-            <Link href="/companies" className="hover:text-gray-900 transition-colors">Companies</Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-2 lg:gap-4">
-          <NotificationBell />
-          <InboxDropdown />
-          <div className="flex items-center gap-2 sm:ml-2">
-            <UserButton>
-              <UserButton.MenuItems>
-                <UserButton.Link label="Edit Profile" labelIcon={<UserIcon size={15} />} href="/profile" />
-                <UserButton.Link label="Employer Dashboard" labelIcon={<Crown size={15} />} href="/employer/dashboard" />
-                <UserButton.Link label="Pricing" labelIcon={<CreditCard size={15} />} href="/pricing" />
-              </UserButton.MenuItems>
-            </UserButton>
-          </div>
-        </div>
-        <MobileNav
-          items={[
-            { label: "Home", href: "/dashboard", icon: LayoutDashboard },
-            { label: "Jobs", href: "/jobs", icon: Briefcase },
-            { label: "Companies", href: "/companies", icon: Building2 },
-          ]}
-          label="Open navigation"
-        />
-      </header>
+      <AppHeader />
 
       <div className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
 
