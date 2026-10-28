@@ -13,6 +13,7 @@ import {
   Home,
   LayoutDashboard,
   PenTool,
+  Plus,
   Settings,
   Sparkles,
   User as UserIcon,
@@ -41,8 +42,19 @@ const JOBSEEKER_NAV: NavItem[] = [
 ];
 
 const EMPLOYER_NAV: NavItem[] = [
-  { label: "Dashboard", href: "/employer/dashboard", icon: LayoutDashboard, match: (p) => p === "/employer/dashboard" },
-  { label: "Candidates", href: "/employer/candidates", icon: Users, match: (p) => p.includes("/candidates") },
+  {
+    label: "Dashboard",
+    href: "/employer/dashboard",
+    icon: LayoutDashboard,
+    // A job's own page and the post-a-job form belong to the dashboard;
+    // its applicant pages belong to Candidates.
+    match: (p) =>
+      p === "/employer/dashboard" ||
+      p === "/for-employers/dashboard" ||
+      p.startsWith("/employer/post-job") ||
+      (p.startsWith("/employer/jobs/") && !p.includes("/applicants")),
+  },
+  { label: "Candidates", href: "/employer/candidates", icon: Users, match: (p) => p.includes("/candidates") || p.includes("/applicants") },
   { label: "Interviews", href: "/employer/interviews", icon: CalendarClock, match: (p) => p.includes("/interviews") },
   // /pricing used to be reachable only by typing the URL: the one link
   // inside the app pointed at /upgrade, and / redirects to /dashboard once
@@ -82,7 +94,9 @@ export default function AppHeader({ onAiCoach }: Props) {
     icon: item.icon,
     active: item.match(pathname),
   }));
-  if (!isEmployer) {
+  if (isEmployer) {
+    mobileItems.push({ label: "Post a job", href: "/employer/post-job", icon: Plus, primary: true });
+  } else {
     mobileItems.push(
       onAiCoach
         ? { label: "AI Coach", onClick: onAiCoach, icon: Sparkles, primary: true }
@@ -118,6 +132,15 @@ export default function AppHeader({ onAiCoach }: Props) {
               </Link>
             );
           })}
+          {isEmployer && (
+            <Link
+              href="/employer/post-job"
+              aria-current={pathname.startsWith("/employer/post-job") ? "page" : undefined}
+              className={coachClass}
+            >
+              <Plus size={14} className="text-indigo-500" /> Post a job
+            </Link>
+          )}
           {!isEmployer &&
             (onAiCoach ? (
               <button type="button" onClick={onAiCoach} className={coachClass}>
